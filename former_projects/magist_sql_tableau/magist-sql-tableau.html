@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Data-Driven Business Case: SQL + Tableau — Iliya Angelov Radulov</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ── TOKENS (matched to site) ── */
+:root {
+  --phoenix: #C8721A;
+  --phoenix-light:#E8924A;
+  --phoenix-glow: #F0A855;
+  --dark: #121212;
+  --surface: #1C1C1C;
+  --surface2: #242424;
+  --border: #2E2E2E;
+  --text: #E8E0D8;
+  --text-muted: #8A8078;
+  --content-w: 800px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--dark);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* ── TOP BAR ── */
+#topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(18,18,18,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+#topbar .inner {
+  max-width: var(--content-w);
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+#topbar .back {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 500;
+}
+#topbar .back:hover { color: var(--phoenix-light); }
+#topbar nav { display: flex; gap: 22px; flex-wrap: wrap; }
+#topbar nav a {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+#topbar nav a:hover { color: var(--phoenix-light); }
+
+/* ── HERO ── */
+header.hero {
+  max-width: var(--content-w);
+  margin: 0 auto;
+  padding: 64px 24px 40px;
+  border-bottom: 1px solid var(--border);
+}
+.eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phoenix);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+.tool-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; }
+.pill {
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.first-person {
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+  max-width: 62ch;
+}
+.first-person strong { color: var(--text); font-weight: 600; }
+
+/* ── MAIN ── */
+main { max-width: var(--content-w); margin: 0 auto; padding: 0 24px 80px; }
+
+.section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+.section:last-of-type { border-bottom: none; }
+
+.section-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phoenix);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  color: var(--text);
+  margin-bottom: 18px;
+  line-height: 1.25;
+}
+.section p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  max-width: 65ch;
+}
+.section p strong { color: var(--text); font-weight: 600; }
+
+/* setup two-card layout */
+.setup-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
+.setup-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 22px;
+}
+.setup-card .who {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--phoenix-light);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.setup-card p { font-size: 0.88rem; margin-bottom: 0; color: var(--text-muted); }
+.questions {
+  margin-top: 22px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.q-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--phoenix);
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+.q-item .qmark { color: var(--phoenix); font-weight: 700; flex-shrink: 0; }
+
+/* finding blocks */
+.finding {
+  margin-bottom: 48px;
+}
+.finding:last-child { margin-bottom: 0; }
+.finding-head {
+  display: flex; align-items: baseline; gap: 12px;
+  margin-bottom: 14px;
+}
+.finding-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--phoenix);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  border-radius: 5px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+}
+.finding-head h3 {
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.figure-frame {
+  background: #F4F1EA;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin: 16px 0;
+}
+.figure-frame img { display: block; width: 100%; height: auto; border-radius: 4px; }
+.figure-caption {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-style: italic;
+}
+.verdict {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--phoenix);
+  border-radius: 6px;
+  font-size: 0.88rem;
+}
+.verdict .label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--phoenix-light);
+  font-weight: 700;
+  margin-right: 8px;
+}
+.verdict span.copy { color: var(--text); }
+
+/* stat row */
+.stat-row { display: flex; gap: 14px; flex-wrap: wrap; margin: 16px 0; }
+.stat-box {
+  flex: 1; min-width: 130px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.stat-box .num {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.3rem;
+  color: var(--phoenix-light);
+  font-weight: 500;
+}
+.stat-box .lbl {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* schema */
+.eer-wrap { margin-top: 20px; }
+
+/* closing */
+.closing-quote {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--text);
+  padding: 24px 26px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--phoenix);
+  border-radius: 10px;
+  margin-top: 6px;
+}
+.closing-quote .attr {
+  display: block;
+  margin-top: 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: normal;
+  letter-spacing: 0.03em;
+}
+
+/* stack table */
+.stack-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.stack-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 0.86rem; }
+.stack-table td:first-child { color: var(--phoenix-light); font-weight: 600; width: 130px; }
+.stack-table td:last-child { color: var(--text-muted); }
+.stack-table tr:last-child td { border-bottom: none; }
+
+/* footer */
+footer {
+  max-width: var(--content-w);
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 16px;
+}
+footer .byline { font-size: 0.82rem; color: var(--text-muted); }
+footer .byline strong { color: var(--text); }
+footer .foot-links { display: flex; gap: 18px; }
+footer .foot-links a { font-size: 0.82rem; color: var(--phoenix-light); text-decoration: none; font-weight: 500; }
+footer .foot-links a:hover { text-decoration: underline; }
+
+/* mobile */
+@media (max-width: 720px) {
+  .hero h1 { font-size: 1.8rem; }
+  .setup-cards { grid-template-columns: 1fr; }
+  #topbar .inner { flex-direction: column; align-items: flex-start; }
+  #topbar nav { gap: 14px; }
+  .stat-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="inner">
+    <a class="back" href="../../index.html">&larr; Back to portfolio</a>
+    <nav>
+      <a href="#setup">Setup</a>
+      <a href="#schema">Data</a>
+      <a href="#findings">Findings</a>
+      <a href="#conclusion">Conclusion</a>
+      <a href="#stack">Stack</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="eyebrow">Former Project · First Case Study</div>
+  <h1>Data-Driven Business Case:<br>SQL + Tableau</h1>
+  <div class="tool-pills">
+    <span class="pill">MySQL Workbench</span>
+    <span class="pill">Tableau</span>
+    <span class="pill">Relational Modeling</span>
+    <span class="pill">Business Analysis</span>
+  </div>
+  <p class="first-person">This was my <strong>first real data project</strong> — a case study using MySQL and Tableau to answer a business question for a real-world scenario. I built a 9-table relational analysis from scratch, wrote every query by hand, and made my first dashboards. It's not polished, and I'd do some things differently now, but I'm proud of how far the analysis actually went.</p>
+</header>
+
+<main>
+
+  <!-- SETUP -->
+  <section class="section" id="setup">
+    <div class="section-label">The Scenario</div>
+    <h2>Should Eniac partner with Magist to enter Brazil?</h2>
+    <div class="setup-cards">
+      <div class="setup-card">
+        <div class="who">Eniac — the client</div>
+        <p>A Spain-founded marketplace known for premium Apple products and curated accessories, exploring expansion into Brazil.</p>
+      </div>
+      <div class="setup-card">
+        <div class="who">Magist — the candidate</div>
+        <p>A Brazilian SaaS platform connecting small and medium stores to major marketplaces, also handling warehousing, shipping, and customer service on sellers' behalf.</p>
+      </div>
+    </div>
+    <div class="questions">
+      <div class="q-item"><span class="qmark">Q1</span><span>Is Magist specialized in selling high-end tech products?</span></div>
+      <div class="q-item"><span class="qmark">Q2</span><span>Are deliveries fast enough — and are customers satisfied?</span></div>
+    </div>
+  </section>
+
+  <!-- SCHEMA -->
+  <section class="section" id="schema">
+    <div class="section-label">Getting Started</div>
+    <h2>Understanding the data</h2>
+    <p>Before answering anything, I had to understand what I was working with: a snapshot database with <strong>9 linked tables</strong> — orders, customers, sellers, products, payments, reviews, geolocation, and category translations. Mapping this out first made every query afterward much easier to write correctly.</p>
+    <div class="eer-wrap">
+      <div class="figure-frame">
+        <img src="Figs/eer_diagram.png" alt="EER diagram of the 9-table Magist database schema" />
+      </div>
+      <div class="figure-caption">EER diagram — orders sits at the center, joined out to customers, sellers, order items, payments, and reviews.</div>
+    </div>
+    <div class="stat-row" style="margin-top:24px;">
+      <div class="stat-box"><div class="num">99,441</div><div class="lbl">total orders</div></div>
+      <div class="stat-box"><div class="num">32,951</div><div class="lbl">products</div></div>
+      <div class="stat-box"><div class="num">3,095</div><div class="lbl">sellers</div></div>
+      <div class="stat-box"><div class="num">96.5%</div><div class="lbl">orders delivered</div></div>
+    </div>
+  </section>
+
+  <!-- FINDINGS -->
+  <section class="section" id="findings">
+    <div class="section-label">Getting Further</div>
+    <h2>Four findings</h2>
+
+    <div class="finding">
+      <div class="finding-head">
+        <span class="finding-num">01</span>
+        <h3>Not a high-end tech specialist</h3>
+      </div>
+      <p>I flagged five categories as "high-tech": computers, computer accessories, tablets/printing, telephony, and watches/gifts. Computers make up just <strong>0.21% of orders</strong> (203 out of ~99k) — but they carry the highest average price ($1,053) and the best customer reviews of any tech category.</p>
+      <div class="figure-frame">
+        <img src="Figs/tech_fit_bar.png" alt="Bar chart comparing average price and order count across tech categories" />
+      </div>
+      <div class="figure-caption">Average price vs. order count by tech category — computers are rare, but priced and rated the best.</div>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">Magist isn't a premium-tech specialist today — but where they do carry tech, it performs well.</span></div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head">
+        <span class="finding-num">02</span>
+        <h3>Delivery is a genuine strength</h3>
+      </div>
+      <p>Across every tech category, the overwhelming majority of orders arrive <strong>before</strong> the estimated delivery date — between 88% and 96%, depending on category.</p>
+      <div class="figure-frame">
+        <img src="Figs/delivery_on_time.png" alt="Table showing delivery timing breakdown by tech category" />
+      </div>
+      <div class="figure-caption">Delivery timing by category — "earlier" dominates in every case.</div>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">Fulfillment is reliable, not a risk factor for a potential partnership.</span></div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head">
+        <span class="finding-num">03</span>
+        <h3>The revenue gap</h3>
+      </div>
+      <p>Tech categories are a minority of Magist's business, but not a trivial one.</p>
+      <div class="stat-row">
+        <div class="stat-box"><div class="num">$16.0M</div><div class="lbl">total platform revenue</div></div>
+        <div class="stat-box"><div class="num">$3.79M</div><div class="lbl">tech category revenue</div></div>
+        <div class="stat-box"><div class="num">~24%</div><div class="lbl">tech share of revenue</div></div>
+      </div>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">Tech is a real, established slice of the business — enough to build on, not enough to call Magist a specialist.</span></div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head">
+        <span class="finding-num">04</span>
+        <h3>Geography matters for expansion</h3>
+      </div>
+      <p>Orders and revenue are heavily concentrated in <strong>São Paulo and the southeast</strong> — exactly where Eniac would want the strongest overlap if entering the market.</p>
+      <div class="figure-frame">
+        <img src="Figs/orders_revenue_map.png" alt="Map of Brazil showing order count and revenue by state" />
+      </div>
+      <div class="figure-caption">Orders & revenue by state — São Paulo alone accounts for the largest share of both.</div>
+    </div>
+
+  </section>
+
+  <!-- CONCLUSION -->
+  <section class="section" id="conclusion">
+    <div class="section-label">Conclusion</div>
+    <h2>My take</h2>
+    <div class="closing-quote">
+      "Magist isn't currently a high-end tech specialist, but their delivery performance and product quality in the categories they do carry suggest they could support Eniac's premium catalog well. I'd want to understand the cancellation spikes at the edges of the dataset before fully trusting these numbers."
+      <span class="attr">— Iliya, on finishing this project</span>
+    </div>
+  </section>
+
+  <!-- STACK -->
+  <section class="section" id="stack" style="border-bottom:none;">
+    <div class="section-label">Under the Hood</div>
+    <h2>Stack &amp; approach</h2>
+    <table class="stack-table">
+      <tr><td>Database</td><td>MySQL Workbench — 9-table relational schema, hand-written joins and window functions</td></tr>
+      <tr><td>Visualization</td><td>Tableau Public — geographic maps, bar charts, and breakdown tables</td></tr>
+      <tr><td>Scope</td><td>Business case analysis: partner evaluation for market expansion</td></tr>
+      <tr><td>What's next</td><td>Investigate the September/October 2018 cancellation spikes before trusting the full-period averages</td></tr>
+    </table>
+  </section>
+
+</main>
+
+<footer>
+  <div class="byline">By <strong>Iliya Angelov Radulov</strong> — my first data science project.</div>
+  <div class="foot-links">
+    <a href="../../index.html">More projects</a>
+  </div>
+</footer>
+
+</body>
+</html>

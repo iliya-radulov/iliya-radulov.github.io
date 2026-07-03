@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magnetic Materials — Iliya Angelov Radulov</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0a08;
+    --bg-elev:#171310;
+    --bg-elev-2:#1f1a15;
+    --orange:#ff6a1f;
+    --amber:#ffb347;
+    --text:#f2ede4;
+    --muted:#a89d8c;
+    --muted-2:#6f6558;
+    --line:#332a20;
+    --line-soft:#241d16;
+    --serif: 'Fraunces', serif;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-weight:300;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--orange); color:#0c0a08; }
+
+  a{ color:var(--amber); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+  }
+
+  :focus-visible{ outline:2px solid var(--orange); outline-offset:3px; }
+
+  .wrap{ max-width:920px; margin:0 auto; padding:0 28px; }
+
+  /* -------- Back link -------- */
+  .backbar{
+    position:sticky; top:0; z-index:40;
+    background:rgba(12,10,8,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .backbar .wrap{ display:flex; align-items:center; justify-content:space-between; padding:14px 28px; }
+  .backbar a.home{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.04em; color:var(--muted);
+  }
+  .backbar a.home:hover{ color:var(--orange); text-decoration:none; }
+  .backbar .tag{
+    font-family:var(--mono); font-size:11px; color:var(--muted-2); letter-spacing:.08em; text-transform:uppercase;
+  }
+
+  /* -------- Hero -------- */
+  .hero{
+    position:relative;
+    padding:96px 0 64px;
+    overflow:hidden;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .hero-motif{
+    position:absolute;
+    right:-90px; top:-40px;
+    width:520px; height:520px;
+    opacity:0.6;
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--orange);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:""; width:26px; height:1px; background:var(--orange); display:inline-block;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:clamp(2.4rem, 6vw, 3.9rem);
+    line-height:1.04;
+    letter-spacing:-0.01em;
+    margin:0 0 26px;
+    max-width:12ch;
+  }
+  h1.title em{
+    font-style:italic;
+    font-weight:400;
+    color:var(--orange);
+  }
+  .dek{
+    font-size:1.15rem;
+    font-weight:300;
+    color:var(--muted);
+    max-width:58ch;
+    margin:0;
+  }
+  .dek strong{ color:var(--text); font-weight:500; }
+
+  /* -------- Stat strip -------- */
+  .statstrip{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    border-top:1px solid var(--line-soft);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .stat{
+    padding:30px 24px;
+    border-right:1px solid var(--line-soft);
+  }
+  .stat:last-child{ border-right:none; }
+  .stat .num{
+    font-family:var(--serif);
+    font-size:2.1rem;
+    font-weight:500;
+    color:var(--orange);
+    line-height:1;
+    display:block;
+    margin-bottom:8px;
+  }
+  .stat .lbl{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--muted);
+    line-height:1.5;
+    letter-spacing:.01em;
+  }
+
+  @media (max-width: 720px){
+    .statstrip{ grid-template-columns:repeat(2,1fr); }
+    .stat{ border-bottom:1px solid var(--line-soft); }
+    .stat:nth-child(2n){ border-right:none; }
+  }
+
+  /* -------- Section framing -------- */
+  section.block{ padding:76px 0; border-bottom:1px solid var(--line-soft); }
+  section.block:last-of-type{ border-bottom:none; }
+
+  .section-head{
+    display:flex; align-items:baseline; gap:18px;
+    margin-bottom:36px;
+  }
+  .section-head .idx{
+    font-family:var(--mono); font-size:13px; color:var(--muted-2);
+  }
+  .section-head h2{
+    font-family:var(--serif); font-weight:500; font-size:1.9rem;
+    margin:0; letter-spacing:-0.005em;
+  }
+  .section-head::after{
+    content:""; flex:1; height:1px; background:var(--line);
+  }
+
+  p{ margin:0 0 20px; color:var(--text); font-size:1.02rem; }
+  .lede{ font-size:1.12rem; color:var(--muted); max-width:68ch; }
+  .prose{ max-width:68ch; }
+  .prose p{ color:#d9d2c6; }
+
+  .pull{
+    font-family:var(--serif);
+    font-style:italic;
+    font-weight:400;
+    font-size:1.5rem;
+    line-height:1.42;
+    color:var(--amber);
+    border-left:2px solid var(--orange);
+    padding:4px 0 4px 26px;
+    margin:36px 0;
+    max-width:56ch;
+  }
+
+  /* -------- Demand curve stats -------- */
+  .demand{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+    border:1px solid var(--line); margin-top:8px;
+  }
+  .demand .col{ padding:26px 24px; border-right:1px solid var(--line); }
+  .demand .col:last-child{ border-right:none; }
+  .demand .col h3{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 12px;
+  }
+  .demand .col .big{
+    font-family:var(--serif); font-size:2.1rem; color:var(--orange); line-height:1.1; margin-bottom:10px;
+  }
+  .demand .col p{ font-size:.9rem; color:var(--muted); margin:0; }
+  @media (max-width:720px){
+    .demand{ grid-template-columns:1fr; }
+    .demand .col{ border-right:none; border-bottom:1px solid var(--line); }
+    .demand .col:last-child{ border-bottom:none; }
+  }
+
+  /* -------- Contributions list -------- */
+  .contrib{
+    counter-reset: contrib;
+    display:flex; flex-direction:column;
+  }
+  .contrib-item{
+    counter-increment: contrib;
+    position:relative;
+    padding:30px 0 30px 64px;
+    border-top:1px solid var(--line-soft);
+  }
+  .contrib-item:first-child{ border-top:none; }
+  .contrib-item::before{
+    content: counter(contrib, decimal-leading-zero);
+    position:absolute; left:0; top:30px;
+    font-family:var(--mono); font-size:13px; color:var(--orange);
+  }
+  .contrib-item h3{
+    font-family:var(--sans); font-weight:500; font-size:1.08rem;
+    color:var(--text); margin:0 0 8px;
+  }
+  .contrib-item p{
+    color:var(--muted); font-size:.98rem; max-width:64ch; margin:0;
+  }
+  .contrib-item .fam{
+    display:inline-block; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em;
+    color:var(--amber); text-transform:uppercase; margin-bottom:8px;
+  }
+
+  /* -------- Element tiles (periodic-table style) -------- */
+  .elements{
+    display:flex; flex-wrap:wrap; gap:10px; margin:22px 0 30px;
+  }
+  .elem{
+    width:72px; height:72px;
+    border:1px solid var(--line);
+    background:var(--bg-elev);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:var(--mono);
+  }
+  .elem .sym{ font-size:1.3rem; color:var(--orange); line-height:1; }
+  .elem .name{ font-size:9px; color:var(--muted-2); margin-top:4px; text-transform:uppercase; letter-spacing:.03em; }
+
+  /* -------- Impact grid -------- */
+  .impact-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:28px;
+  }
+  .impact-card{
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    padding:26px 24px;
+  }
+  .impact-card h3{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 14px;
+  }
+  .impact-card .big{
+    font-family:var(--serif); font-size:2.6rem; color:var(--orange); line-height:1; margin-bottom:10px;
+  }
+  .impact-card p{ color:var(--muted); font-size:.92rem; margin:0; }
+  @media (max-width:720px){ .impact-grid{ grid-template-columns:1fr; } }
+
+  /* -------- References -------- */
+  .refs{
+    font-family:var(--mono);
+    font-size:.83rem;
+    color:var(--muted);
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .refs .ref{ display:flex; gap:14px; }
+  .refs .ref .n{ color:var(--orange); flex:0 0 28px; }
+  .refs .ref .t{ line-height:1.6; }
+
+  footer{
+    padding:56px 0 80px;
+    text-align:center;
+  }
+  footer .backhome{
+    font-family:var(--mono); font-size:13px; color:var(--muted);
+    border:1px solid var(--line); padding:12px 22px; display:inline-block;
+  }
+  footer .backhome:hover{ color:var(--orange); border-color:var(--orange); text-decoration:none; }
+
+  .divider-motif{
+    display:block; margin:0 auto; width:120px; height:44px; opacity:.55;
+  }
+</style>
+</head>
+<body>
+
+<div class="backbar">
+  <div class="wrap">
+    <a class="home" href="https://radulradul.github.io/">← Iliya Angelov Radulov</a>
+    <span class="tag">Lab Research</span>
+  </div>
+</div>
+
+<header class="hero">
+  <svg class="hero-motif" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- easy-axis / spin-alignment motif: rows of aligned arrows within a lattice -->
+    <g stroke="#ff6a1f" stroke-width="1.4" opacity="0.9">
+      <line x1="80" y1="90" x2="80" y2="50"/><polygon points="80,42 74,56 86,56" fill="#ff6a1f"/>
+      <line x1="140" y1="90" x2="140" y2="50"/><polygon points="140,42 134,56 146,56" fill="#ff6a1f"/>
+      <line x1="200" y1="90" x2="200" y2="50"/><polygon points="200,42 194,56 206,56" fill="#ff6a1f"/>
+      <line x1="260" y1="90" x2="260" y2="50"/><polygon points="260,42 254,56 266,56" fill="#ff6a1f"/>
+      <line x1="320" y1="90" x2="320" y2="50"/><polygon points="320,42 314,56 326,56" fill="#ff6a1f"/>
+    </g>
+    <g stroke="#ffb347" stroke-width="1" opacity="0.55">
+      <line x1="80" y1="180" x2="80" y2="140"/><polygon points="80,132 74,146 86,146" fill="#ffb347"/>
+      <line x1="140" y1="180" x2="140" y2="140"/><polygon points="140,132 134,146 146,146" fill="#ffb347"/>
+      <line x1="200" y1="180" x2="200" y2="140"/><polygon points="200,132 194,146 206,146" fill="#ffb347"/>
+      <line x1="260" y1="180" x2="260" y2="140"/><polygon points="260,132 254,146 266,146" fill="#ffb347"/>
+      <line x1="320" y1="180" x2="320" y2="140"/><polygon points="320,132 314,146 326,146" fill="#ffb347"/>
+    </g>
+    <g stroke="#ff6a1f" stroke-width="1.4" opacity="0.9">
+      <line x1="80" y1="270" x2="80" y2="230"/><polygon points="80,222 74,236 86,236" fill="#ff6a1f"/>
+      <line x1="140" y1="270" x2="140" y2="230"/><polygon points="140,222 134,236 146,236" fill="#ff6a1f"/>
+      <line x1="200" y1="270" x2="200" y2="230"/><polygon points="200,222 194,236 206,236" fill="#ff6a1f"/>
+      <line x1="260" y1="270" x2="260" y2="230"/><polygon points="260,222 254,236 266,236" fill="#ff6a1f"/>
+      <line x1="320" y1="270" x2="320" y2="230"/><polygon points="320,222 314,236 326,236" fill="#ff6a1f"/>
+    </g>
+    <g stroke="#3a3128" stroke-width="0.6" opacity="0.6">
+      <line x1="50" y1="110" x2="350" y2="110"/>
+      <line x1="50" y1="200" x2="350" y2="200"/>
+      <line x1="50" y1="290" x2="350" y2="290"/>
+    </g>
+  </svg>
+  <div class="wrap">
+    <div class="eyebrow">Magnetic Materials</div>
+    <h1 class="title">Getting spins to point <em>the right way</em>, and stay there</h1>
+    <p class="dek">From permanent magnets that power motors and turbines to thin films for spintronics, this work spans the synthesis and characterization of new magnetic phases — with a deliberate focus on <strong>reducing dependence on critical rare-earth elements</strong> without giving up performance.</p>
+  </div>
+</header>
+
+<div class="statstrip">
+  <div class="stat"><span class="num">11–13×</span><span class="lbl">projected Nd/Dy demand growth by 2050</span></div>
+  <div class="stat"><span class="num">232 kg</span><span class="lbl">Nd-Pr required per MW in an offshore wind turbine</span></div>
+  <div class="stat"><span class="num">90%</span><span class="lbl">of global magnet manufacturing capacity, China</span></div>
+  <div class="stat"><span class="num">~15 yrs</span><span class="lbl">to bring a new mine-to-magnet supply chain online</span></div>
+</div>
+
+<main class="wrap">
+
+  <section class="block" id="scope">
+    <div class="section-head"><span class="idx">01</span><h2>Why magnetic materials matter now</h2></div>
+    <div class="prose">
+      <p class="lede">My research spans a broad spectrum — from fundamental studies of hard and soft magnetic materials to the development of entirely new magnetic phases. It's work aimed squarely at the 21st century's demand for materials that are stronger, lighter, and more energy-efficient.</p>
+      <p>Sustainable energy systems, data storage, advanced transportation, and emerging fields like magnetic refrigeration, quantum computing, and medical imaging are all fundamentally enabled by high-performance magnetic materials. My focus sits at the intersection of synthesizing new functional material systems and building the goal-specific apparatus needed to characterize them properly.</p>
+    </div>
+    <div class="pull">Every electric motor, wind turbine, and hard drive depends on a magnet that has to hold its alignment under heat, vibration, and time — that durability is the real engineering problem.</div>
+  </section>
+
+  <section class="block" id="demand">
+    <div class="section-head"><span class="idx">02</span><h2>A demand curve that outpaces supply</h2></div>
+    <p class="lede">Rare-earth permanent magnets sit at the center of the clean-energy transition — and the numbers involved are steep.</p>
+    <div class="demand">
+      <div class="col">
+        <h3>Wind</h3>
+        <div class="big">13,000 → 69,600 t</div>
+        <p>EU Nd + Pr demand for wind turbines, 2030 → 2050, at up to 232 kg of Nd-Pr per megawatt installed.</p>
+      </div>
+      <div class="col">
+        <h3>EVs</h3>
+        <div class="big">10.5M → 75M</div>
+        <p>Global EV sales, 2022 → 2040, each motor needing roughly 0.5–1.5 kg of neodymium.</p>
+      </div>
+      <div class="col">
+        <h3>Overall</h3>
+        <div class="big">4–5× / 11–13×</div>
+        <p>Projected growth in Nd and Dy demand by 2030 and by 2050, respectively — driven mainly by EVs and wind.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="contributions">
+    <div class="section-head"><span class="idx">03</span><h2>Key contributions</h2></div>
+    <div class="contrib">
+
+      <div class="contrib-item">
+        <span class="fam">Nd-Fe-B</span>
+        <h3>A new hardening mechanism</h3>
+        <p>Contributed to discovering a novel magnetic hardening mechanism for Nd-Fe-B permanent magnets based on solid-state phase transformation — showing that phase-transformation pathways can raise coercivity without relying on traditional grain-boundary diffusion. That opens new routes for magnet design and processing.</p>
+      </div>
+
+      <div class="contrib-item">
+        <span class="fam">Rare-earth-free · Mn-Al-C</span>
+        <h3>Net-shape Mn-Al magnets</h3>
+        <p>Systematically studied the microstructure and magnetic properties of Mn-Al-C permanent magnets across electron beam melting, mechanical alloying, and powder metallurgy. Produced net-shape Mn-Al magnets by electron beam melting, reaching 90% of the desired ferromagnetic τ-phase after optimized annealing — a rare-earth-free candidate that directly reduces critical raw material dependence.</p>
+      </div>
+
+      <div class="contrib-item">
+        <span class="fam">Thin films</span>
+        <h3>Perpendicular anisotropy in YCo₅ and CeCo₅</h3>
+        <p>Grew YCo₅±x and CeCo₅ thin films with perpendicular anisotropy by molecular beam epitaxy, mapping how growth conditions shape the magnetic properties of rare-earth–transition-metal films for spintronics and high-density recording.</p>
+      </div>
+
+      <div class="contrib-item">
+        <span class="fam">Rare-earth-free · MnBi</span>
+        <h3>High-anisotropy MnBi films</h3>
+        <p>Studied low-temperature-phase, c-axis-oriented manganese bismuth thin films with high anisotropy, grown from a Mn₅₅Bi₄₅ target — demonstrating controlled crystallographic orientation in another promising rare-earth-free permanent magnet system.</p>
+      </div>
+
+      <div class="contrib-item">
+        <span class="fam">Reduced Nd content</span>
+        <h3>Rapid solidification of Nd₁₊ₓFe₁₁Ti</h3>
+        <p>Investigated phase formation and magnetic properties of Nd₁₊ₓFe₁₁Ti compounds made by rapid solidification, exploring these as alternative permanent-magnet materials that need less neodymium.</p>
+      </div>
+
+      <div class="contrib-item">
+        <span class="fam">Transport physics</span>
+        <h3>Anomalous Hall effect in La(Fe,Co)₁₃₋ₓSiₓ</h3>
+        <p>Studied the anomalous Hall effect in this compound family, providing insight into electronic transport and magnetic structure and contributing to the fundamental understanding of magnetotransport in complex magnetic materials.</p>
+      </div>
+
+      <div class="contrib-item">
+        <span class="fam">Thin films · Y-Co</span>
+        <h3>Engineering anisotropy through phase separation</h3>
+        <p>Showed that controlled phase separation in Y-Co thin films can be used deliberately to induce uniaxial anisotropy — turning what is often an unwanted effect into a design tool for engineering magnetic behavior in thin-film systems.</p>
+      </div>
+
+    </div>
+    <p style="margin-top:8px; color:var(--muted); font-size:.95rem; max-width:64ch;">Alongside these, my work extends into complex magnetic oxides — ferrimagnetism, exchange bias, and spin-glass behavior in disordered La₂CrNiO₆ — and into dynamic unidirectional anisotropy in cubic FeGe, probing the fundamental physics that governs magnetic behavior more broadly.</p>
+  </section>
+
+  <section class="block" id="criticality">
+    <div class="section-head"><span class="idx">04</span><h2>The concentration problem</h2></div>
+    <p class="lede">Rare-earth criticality has become a strategic priority for governments worldwide — the numbers explain why.</p>
+    <div class="elements">
+      <div class="elem"><span class="sym">Nd</span><span class="name">Neodymium</span></div>
+      <div class="elem"><span class="sym">Pr</span><span class="name">Praseodymium</span></div>
+      <div class="elem"><span class="sym">Dy</span><span class="name">Dysprosium</span></div>
+      <div class="elem"><span class="sym">Tb</span><span class="name">Terbium</span></div>
+      <div class="elem"><span class="sym">Mn</span><span class="name">Rare-earth-free</span></div>
+      <div class="elem"><span class="sym">Y</span><span class="name">Rare-earth-free</span></div>
+    </div>
+    <div class="impact-grid">
+      <div class="impact-card">
+        <h3>China's position in the supply chain</h3>
+        <div class="big">40% / 60% / 85% / 90%</div>
+        <p>Share of global reserves, mine production, oxide processing &amp; separation, and magnet manufacturing, respectively. The concentration is worst precisely in the midstream — separation and metal conversion — which is the hardest stage to replicate quickly.</p>
+      </div>
+      <div class="impact-card">
+        <h3>Why this can't be fixed fast</h3>
+        <div class="big">~15 years</div>
+        <p>Typical time to bring a new mine and processing facility online — which is why materials-level solutions (rare-earth-free or rare-earth-lean magnets) matter as much as new supply.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="ml">
+    <div class="section-head"><span class="idx">05</span><h2>Where machine learning fits in</h2></div>
+    <div class="prose">
+      <p class="lede">Data-driven methods are becoming a genuine new paradigm for this field — not a buzzword bolted onto it.</p>
+      <p>Analyzing large materials datasets is starting to predict physical properties, discover new candidates, and optimize existing ones directly. That's directly relevant to my work on new magnetic phases: high-throughput screening can narrow the search for high-performance magnets with reduced critical-element content long before a single sample gets melted.</p>
+    </div>
+  </section>
+
+  <section class="block" id="references">
+    <div class="section-head"><span class="idx">06</span><h2>Literature</h2></div>
+    <div class="refs">
+      <div class="ref"><span class="n">[1]</span><span class="t">I.A. Radulov, V.V. Popov, A. Koptyug, F. Maccari, A. Kovalevsky, S. Essel, J. Gassmann, K.P. Skokov, M. Bamberger, "Production of net-shape Mn-Al permanent magnets by electron beam melting," Additive Manufacturing, 30, 100787, 2019.</span></div>
+      <div class="ref"><span class="n">[2]</span><span class="t">V.V. Popov, F. Maccari, I.A. Radulov, A. Kovalevsky, A. Katz-Demyanetz, M. Bamberger, "Microstructure and magnetic properties of Mn-Al-C permanent magnets produced by various techniques," Manufacturing Review, 2021.</span></div>
+      <div class="ref"><span class="n">[3]</span><span class="t">A. Edström et al., "Magnetic properties of (Fe₁₋ₓCoₓ)₂B alloys and the effect of doping by 5d elements," Phys. Rev. B, 92, 174413, 2015.</span></div>
+      <div class="ref"><span class="n">[4]</span><span class="t">I.A. Radulov, K.P. Skokov, D.Y. Karpenkov, T. Gottschall, O. Gutfleisch, "On the preparation of La(Fe,Mn,Si)13Hx polymer-composites with optimized magnetocaloric properties," J. Magn. Magn. Mater., 396, 228–236, 2015.</span></div>
+      <div class="ref"><span class="n">[5]</span><span class="t">L.M. Moreno-Ramírez, C. Romero-Muñiz, J.Y. Law, V. Franco, A. Conde, I.A. Radulov, F. Maccari, K.P. Skokov, O. Gutfleisch, "The role of Ni in modifying the order of the phase transition of La(Fe,Ni,Si)13," Acta Mater., 160, 137–146, 2018.</span></div>
+      <div class="ref"><span class="n">[6]</span><span class="t">E. Righetti, V. Rizos, "Understanding the barriers to recycling critical raw materials for the energy transition," Energy Reports, 12, 1673–1682, 2024.</span></div>
+      <div class="ref"><span class="n">[7]</span><span class="t">G. Li et al., "Rare earth permanent magnets for the green energy transition: Bottlenecks, current developments and cleaner production solutions," Resources, Conservation and Recycling, 2024.</span></div>
+      <div class="ref"><span class="n">[8]</span><span class="t">"Rare Earth Magnet Global Market Insights 2025, Analysis and Forecast to 2030," Research and Markets Report, Nov. 2025.</span></div>
+      <div class="ref"><span class="n">[9]</span><span class="t">A. Verma, J. Jami, A. Bhattacharya, "Accelerating magnetic materials discovery using interaction matrix-based machine learning descriptors," Comput. Mater. Sci., 2025.</span></div>
+      <div class="ref"><span class="n">[10]</span><span class="t">"The northeast materials database for magnetic materials," Nat. Commun., 16, 9415, 2025.</span></div>
+      <div class="ref"><span class="n">[11]</span><span class="t">L. Schäfer, K. Skokov, F. Maccari, I. Radulov, D. Koch, A. Mazilkin, E. Adabifiroozjaei, L. Molina-Luna, O. Gutfleisch, "A Novel Magnetic Hardening Mechanism for Nd-Fe-B Permanent Magnets Based on Solid-State Phase Transformation," Adv. Funct. Mater., 33(4), 2022.</span></div>
+      <div class="ref"><span class="n">[12]</span><span class="t">L. Schäfer, K. Skokov, F. Maccari, I. Radulov, D. Koch, A. Mazilkin, E. Adabifiroozjaei, L. Molina-Luna, O. Gutfleisch, "A Novel Magnetic Hardening Mechanism for Nd-Fe-B Permanent Magnets Based on Solid-State Phase Transformation," Adv. Funct. Mater., DOI: 10.1002/adfm.202208821, 2022.</span></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <svg class="divider-motif" viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g stroke="#ff6a1f" stroke-width="1.4" opacity="0.8">
+      <line x1="140" y1="90" x2="140" y2="30"/><polygon points="140,20 132,38 148,38" fill="#ff6a1f"/>
+      <line x1="200" y1="90" x2="200" y2="30"/><polygon points="200,20 192,38 208,38" fill="#ff6a1f"/>
+      <line x1="260" y1="90" x2="260" y2="30"/><polygon points="260,20 252,38 268,38" fill="#ff6a1f"/>
+    </g>
+  </svg>
+  <a class="backhome" href="https://radulradul.github.io/">← Back to portfolio</a>
+</footer>
+
+</body>
+</html>

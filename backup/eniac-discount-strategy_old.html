@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Eniac's Discount Strategy: A Data Cleaning Case Study — Iliya Angelov Radulov</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --phoenix: #C8721A;
+  --phoenix-light:#E8924A;
+  --phoenix-glow: #F0A855;
+  --dark: #121212;
+  --surface: #1C1C1C;
+  --surface2: #242424;
+  --border: #2E2E2E;
+  --text: #E8E0D8;
+  --text-muted: #8A8078;
+  --content-w: 800px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: var(--text); line-height: 1.6; }
+
+/* TOP BAR */
+#topbar { position: sticky; top: 0; z-index: 50; background: rgba(18,18,18,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+#topbar .inner { max-width: var(--content-w); margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+#topbar .back { font-size: 0.82rem; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+#topbar .back:hover { color: var(--phoenix-light); }
+#topbar nav { display: flex; gap: 20px; flex-wrap: wrap; }
+#topbar nav a { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); text-decoration: none; font-weight: 600; white-space: nowrap; }
+#topbar nav a:hover { color: var(--phoenix-light); }
+
+/* HERO */
+header.hero { max-width: var(--content-w); margin: 0 auto; padding: 64px 24px 40px; border-bottom: 1px solid var(--border); }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--phoenix); font-weight: 600; margin-bottom: 14px; }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: 2.3rem; line-height: 1.15; color: var(--text); margin-bottom: 18px; }
+.tool-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; }
+.pill { padding: 5px 13px; border-radius: 20px; font-size: 0.76rem; font-weight: 500; background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); }
+.first-person { font-size: 1rem; color: var(--text-muted); line-height: 1.8; max-width: 62ch; }
+.first-person strong { color: var(--text); font-weight: 600; }
+.collab-note { margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+.collab-note a { color: var(--phoenix-light); text-decoration: none; font-weight: 600; }
+.collab-note a:hover { text-decoration: underline; }
+
+/* MAIN */
+main { max-width: var(--content-w); margin: 0 auto; padding: 0 24px 80px; }
+.section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+.section:last-of-type { border-bottom: none; }
+.section-label { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--phoenix); font-weight: 600; margin-bottom: 10px; }
+.section h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--text); margin-bottom: 18px; line-height: 1.25; }
+.section p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 16px; max-width: 65ch; }
+.section p strong { color: var(--text); font-weight: 600; }
+
+/* setup card */
+.setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; margin-top: 20px; }
+.setup-card p:last-child { margin-bottom: 0; }
+
+/* cleaning steps */
+.clean-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.clean-step { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+.clean-step .step-n { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--phoenix-light); border: 1px solid var(--border); background: var(--surface2); border-radius: 5px; padding: 2px 8px; flex-shrink: 0; margin-top: 2px; }
+.clean-step .step-txt { font-size: 0.88rem; color: var(--text); }
+.clean-step .step-txt strong { color: var(--phoenix-light); }
+.bug-callout { margin-top: 20px; padding: 16px 18px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--phoenix); border-radius: 8px; }
+.bug-callout .label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--phoenix-light); font-weight: 700; margin-bottom: 8px; display: block; }
+.bug-callout code { font-family: 'DM Mono', monospace; background: var(--surface2); padding: 1px 6px; border-radius: 4px; font-size: 0.85rem; color: var(--phoenix-glow); }
+.bug-callout p { font-size: 0.86rem; margin-bottom: 0; }
+
+/* findings */
+.finding { margin-bottom: 44px; }
+.finding:last-child { margin-bottom: 0; }
+.finding-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.finding-num { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--phoenix); border: 1px solid var(--border); background: var(--surface2); border-radius: 5px; padding: 2px 8px; flex-shrink: 0; }
+.finding-head h3 { font-size: 1.06rem; font-weight: 600; color: var(--text); }
+.stat-row { display: flex; gap: 14px; flex-wrap: wrap; margin: 16px 0; }
+.stat-box { flex: 1; min-width: 130px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.stat-box .num { font-family: 'DM Mono', monospace; font-size: 1.3rem; color: var(--phoenix-light); font-weight: 500; }
+.stat-box .lbl { font-size: 0.74rem; color: var(--text-muted); margin-top: 4px; }
+.verdict { margin-top: 14px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--phoenix); border-radius: 6px; font-size: 0.88rem; }
+.verdict .label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--phoenix-light); font-weight: 700; margin-right: 8px; }
+.verdict span.copy { color: var(--text); }
+
+/* verify note */
+.verify-note { margin-top: 26px; padding: 14px 18px; background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; font-size: 0.84rem; color: var(--text-muted); display: flex; gap: 10px; align-items: flex-start; }
+.verify-note .check { color: var(--phoenix-light); flex-shrink: 0; }
+
+/* recs */
+.rec-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+.rec-item { padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; }
+.rec-item strong { color: var(--phoenix-light); }
+
+/* closing */
+.closing-quote { font-family: 'Playfair Display', serif; font-size: 1.12rem; line-height: 1.6; color: var(--text); padding: 24px 26px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--phoenix); border-radius: 10px; margin-top: 6px; }
+.closing-quote .attr { display: block; margin-top: 16px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: var(--text-muted); font-style: normal; letter-spacing: 0.03em; }
+
+/* TOOLS - icon section, distinct style but still on-brand */
+.tools-wrap { margin-top: 24px; display: flex; flex-direction: column; gap: 28px; }
+.tool-group .cat-label { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--text); margin-bottom: 12px; }
+.tool-icons { display: flex; gap: 18px; flex-wrap: wrap; }
+.tool-icon-item { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 74px; }
+.tool-icon-item img { width: 44px; height: 44px; object-fit: contain; }
+.tool-icon-item span { font-size: 0.72rem; color: var(--text-muted); text-align: center; }
+
+/* links row */
+.resource-links { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.resource-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; transition: border-color 0.15s; }
+.resource-link:hover { border-color: var(--phoenix); }
+.resource-link .rl-text { font-size: 0.88rem; color: var(--text); font-weight: 500; }
+.resource-link .rl-sub { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
+.resource-link .rl-arrow { color: var(--phoenix-light); font-size: 1rem; flex-shrink: 0; }
+
+/* footer */
+footer { max-width: var(--content-w); margin: 0 auto; padding: 40px 24px 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+footer .byline { font-size: 0.82rem; color: var(--text-muted); }
+footer .byline strong { color: var(--text); }
+footer .foot-links { display: flex; gap: 18px; }
+footer .foot-links a { font-size: 0.82rem; color: var(--phoenix-light); text-decoration: none; font-weight: 500; }
+footer .foot-links a:hover { text-decoration: underline; }
+
+@media (max-width: 720px) {
+  .hero h1 { font-size: 1.7rem; }
+  #topbar .inner { flex-direction: column; align-items: flex-start; }
+  #topbar nav { gap: 12px; }
+  .stat-row { flex-direction: column; }
+  .tool-icons { gap: 14px; }
+  .tool-icon-item { width: 62px; }
+  .tool-icon-item img { width: 36px; height: 36px; }
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="inner">
+    <a class="back" href="../../index.html">&larr; Back to portfolio</a>
+    <nav>
+      <a href="#setup">Setup</a>
+      <a href="#cleaning">Cleaning</a>
+      <a href="#findings">Findings</a>
+      <a href="#recommendations">Recommendations</a>
+      <a href="#tools">Tools</a>
+      <a href="#resources">Resources</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="eyebrow">Former Project · Discount Strategy Case Study</div>
+  <h1>Eniac's Discount Strategy:<br>A Data Cleaning Case Study</h1>
+  <div class="tool-pills">
+    <span class="pill">Python</span>
+    <span class="pill">Pandas</span>
+    <span class="pill">Jupyter</span>
+    <span class="pill">Matplotlib / Seaborn</span>
+    <span class="pill">Plotly</span>
+  </div>
+  <p class="first-person">This project started as a <strong>messy, real-world dataset</strong> from Eniac, an e-commerce electronics retailer, and turned into a deep dive on how much their discounting habit was actually costing them. The dataset was genuinely chaotic — broken price formats, duplicate rows, orders in five different states — so a large chunk of the work was just getting the data into a state I could trust. While preparing this page, I went back and double-checked every number against the source data again, so what's below is verified, not just remembered.</p>
+  <div class="collab-note">
+    <span>👥</span>
+    <span>Built together with <a href="https://www.linkedin.com/in/lisa-renn-a420b4116" target="_blank" rel="noopener">Lisa Renn</a> — GitHub link coming soon.</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- SETUP -->
+  <section class="section" id="setup">
+    <div class="section-label">The Brief</div>
+    <h2>How much is discounting actually costing Eniac?</h2>
+    <p>Eniac is an online electronics retailer selling everything from Apple hardware to accessories, new and second-hand. Acting as internal data analysts, our job was to dig into their order history and figure out how deep the discount habit really went — and what it was doing to revenue.</p>
+    <div class="setup-card">
+      <p><strong>The data:</strong> four linked CSVs — orders, orderlines, products, and brands — covering <strong>437 days</strong>, January 1, 2017 to March 14, 2018. Real, non-anonymized, and genuinely messy.</p>
+    </div>
+  </section>
+
+  <!-- CLEANING -->
+  <section class="section" id="cleaning">
+    <div class="section-label">Getting Started</div>
+    <h2>Cleaning a genuinely messy dataset</h2>
+    <p>Before any analysis could happen, the data needed serious work. Here's the pipeline that got it from raw CSVs to something trustworthy:</p>
+    <div class="clean-steps">
+      <div class="clean-step"><span class="step-n">01</span><span class="step-txt"><strong>Filter to Completed orders.</strong> Of 226,909 orders, only 46,605 had state = "Completed" — the rest were abandoned baskets, pending, or cancelled.</span></div>
+      <div class="clean-step"><span class="step-n">02</span><span class="step-txt"><strong>Cross-check orders against orderlines.</strong> Kept only orders that existed in both tables, dropping mismatches down to 46,560 orders.</span></div>
+      <div class="clean-step"><span class="step-n">03</span><span class="step-txt"><strong>Drop orders with unknown products.</strong> Orderlines referencing a SKU with no match in the product catalog were removed — down to 46,204 orders.</span></div>
+      <div class="clean-step"><span class="step-n">04</span><span class="step-txt"><strong>Remove outliers with the IQR method.</strong> Compared each order's paid total against the sum of its line items; anything outside 1.5×IQR of that difference got dropped — landing on <strong>45,450 clean orders</strong>.</span></div>
+    </div>
+    <div class="bug-callout">
+      <span class="label">The gnarliest bug</span>
+      <p>Prices were stored in European formatting, so <code>unit_price</code> and <code>price</code> sometimes read as strings like <code>"1.137.99"</code> instead of <code>1137.99</code>. A naive fix (just stripping extra dots) mangled some values into nonsense. The real fix had to be positional — check the string length, and remove only the character at the exact index where the thousands-separator dot would sit — leaving the decimal point untouched.</p>
+    </div>
+  </section>
+
+  <!-- FINDINGS -->
+  <section class="section" id="findings">
+    <div class="section-label">Getting Further</div>
+    <h2>What the clean data showed</h2>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-num">01</span><h3>Discounting isn't occasional — it's the default</h3></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="num">94.4%</div><div class="lbl">of orders include a discount</div></div>
+        <div class="stat-box"><div class="num">18.4%</div><div class="lbl">median discount size</div></div>
+        <div class="stat-box"><div class="num">~100%</div><div class="lbl">maximum discount seen</div></div>
+      </div>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">Almost every order gets a discount — this isn't a promotional tactic, it's the standard price of doing business with Eniac.</span></div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-num">02</span><h3>The revenue gap is real, but smaller than first assumed</h3></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="num">€14.0M</div><div class="lbl">actual revenue (discounted)</div></div>
+        <div class="stat-box"><div class="num">€16.4M</div><div class="lbl">revenue at list price</div></div>
+        <div class="stat-box"><div class="num">14.6%</div><div class="lbl">revenue given up to discounts</div></div>
+      </div>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">Discounting costs Eniac roughly €2.4M against list price over the period — significant, but a smaller share of revenue than the "discount on almost every order" headline might suggest.</span></div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-num">03</span><h3>Most of the catalog is genuinely affordable</h3></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="num">61.7%</div><div class="lbl">of products priced under €300</div></div>
+      </div>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">Eniac's catalog skews toward accessories and mid-range electronics rather than being dominated by big-ticket items.</span></div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-num">04</span><h3>Second-hand electronics can still command premium prices</h3></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="num">25.9%</div><div class="lbl">of second-hand listings priced over €500</div></div>
+      </div>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">There's a real market for premium used electronics — refurbished and open-box items aren't just a clearance bin.</span></div>
+    </div>
+
+    <div class="verify-note">
+      <span class="check">✓</span>
+      <span>All four numbers above were recomputed directly from the raw CSVs during this write-up, following the exact cleaning pipeline documented in the notebooks — not pulled from an earlier draft.</span>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATIONS -->
+  <section class="section" id="recommendations">
+    <div class="section-label">So What</div>
+    <h2>What we recommended</h2>
+    <div class="rec-list">
+      <div class="rec-item"><strong>Time discounts deliberately.</strong> With discounting this pervasive, timing promotions around genuine demand peaks — rather than running them constantly — could protect margin without losing volume.</div>
+      <div class="rec-item"><strong>Question the reliance on discounting.</strong> At 94% of orders, discounting looks less like a lever and more like a crutch. Loyalty programs or bundling could reduce that dependency.</div>
+      <div class="rec-item"><strong>Lean into the premium second-hand market.</strong> A quarter of used listings sell for over €500 — there's real appetite for higher-end refurbished electronics worth building around.</div>
+    </div>
+  </section>
+
+  <!-- CLOSING -->
+  <section class="section">
+    <div class="section-label">Conclusion</div>
+    <h2>My take</h2>
+    <div class="closing-quote">
+      "The biggest lesson from this project wasn't really about discounts — it was about how much a single formatting quirk in raw data can quietly wreck an analysis if you don't catch it. Getting the cleaning pipeline right took longer than the actual discount analysis, and that felt like the real skill being tested."
+      <span class="attr">— Iliya, on finishing this project</span>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section class="section" id="tools">
+    <div class="section-label">Under the Hood</div>
+    <h2>Tools &amp; workflow</h2>
+    <div class="tools-wrap">
+      <div class="tool-group">
+        <div class="cat-label">Software</div>
+        <div class="tool-icons">
+          <div class="tool-icon-item"><img src="figs/jupyter.svg" alt="Jupyter"><span>Jupyter</span></div>
+          <div class="tool-icon-item"><img src="figs/vscode.svg" alt="VS Code"><span>VS Code</span></div>
+        </div>
+      </div>
+      <div class="tool-group">
+        <div class="cat-label">Coding</div>
+        <div class="tool-icons">
+          <div class="tool-icon-item"><img src="figs/python.svg" alt="Python"><span>Python</span></div>
+          <div class="tool-icon-item"><img src="figs/numpy.svg" alt="NumPy"><span>NumPy</span></div>
+          <div class="tool-icon-item"><img src="figs/pandas.svg" alt="Pandas"><span>Pandas</span></div>
+        </div>
+      </div>
+      <div class="tool-group">
+        <div class="cat-label">Visualisation</div>
+        <div class="tool-icons">
+          <div class="tool-icon-item"><img src="figs/matplotlib.svg" alt="Matplotlib"><span>Matplotlib</span></div>
+          <div class="tool-icon-item"><img src="figs/seaborn.svg" alt="Seaborn"><span>Seaborn</span></div>
+          <div class="tool-icon-item"><img src="figs/plotly.svg" alt="Plotly"><span>Plotly</span></div>
+        </div>
+      </div>
+      <div class="tool-group">
+        <div class="cat-label">Presenting</div>
+        <div class="tool-icons">
+          <div class="tool-icon-item"><img src="figs/marp.png" alt="Marp"><span>Marp</span></div>
+        </div>
+      </div>
+      <div class="tool-group">
+        <div class="cat-label">Sharing</div>
+        <div class="tool-icons">
+          <div class="tool-icon-item"><img src="figs/git.svg" alt="Git"><span>Git</span></div>
+          <div class="tool-icon-item"><img src="figs/github.svg" alt="GitHub"><span>GitHub</span></div>
+          <div class="tool-icon-item"><img src="figs/kaggle.svg" alt="Kaggle"><span>Kaggle</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESOURCES -->
+  <section class="section" id="resources" style="border-bottom:none;">
+    <div class="section-label">Explore Further</div>
+    <h2>Notebooks, data &amp; presentation</h2>
+    <div class="resource-links">
+      <a class="resource-link" href="code/00_data_cleaning_eniac_full.ipynb" download="Full_data_cleaning_notebook.ipynb" rel="noopener">
+        <div><div class="rl-text">Full data cleaning notebook</div><div class="rl-sub">code/00_data_cleaning_eniac_full.ipynb</div></div>
+        <span class="rl-arrow">→</span>
+      </a>
+      <a class="resource-link" href="code/06_category_creation_discounts_ext_data.ipynb" download="Discount_category_analysis_notebook.ipynb" rel="noopener">
+        <div><div class="rl-text">Discount &amp; category analysis notebook</div><div class="rl-sub">code/06_category_creation_discounts_ext_data.ipynb</div></div>
+        <span class="rl-arrow">→</span>
+      </a>
+      <a class="resource-link" href="data/" download="Raw_data.zip" rel="noopener">
+        <div><div class="rl-text">Raw data (CSV)</div><div class="rl-sub">orders, orderlines, products, brands</div></div>
+        <span class="rl-arrow">→</span>
+      </a>
+      <a class="resource-link" href="presentation/Eniac_temp_2.html" target="_blank" rel="noopener">
+        <div><div class="rl-text">Full presentation deck</div><div class="rl-sub">presentation/Eniac_temp_2.html (Marp)</div></div>
+        <span class="rl-arrow">→</span>
+      </a>
+      <a class="resource-link" href="presentation/plot1.html" target="_blank" rel="noopener">
+        <div><div class="rl-text">Interactive chart — daily revenue by discount %</div><div class="rl-sub">presentation/plot1.html</div></div>
+        <span class="rl-arrow">→</span>
+      </a>
+      <a class="resource-link" href="presentation/plot2.html" target="_blank" rel="noopener">
+        <div><div class="rl-text">Interactive chart — daily revenue by items sold</div><div class="rl-sub">presentation/plot2.html</div></div>
+        <span class="rl-arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="byline">By <strong>Iliya Angelov Radulov</strong> with <strong>Lisa Renn</strong>.</div>
+  <div class="foot-links">
+    <a href="../../index.html">More projects</a>
+  </div>
+</footer>
+
+</body>
+</html>

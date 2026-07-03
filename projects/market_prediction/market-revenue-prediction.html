@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Revenue Prediction — Econometric Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --slate:      #1E2A3A;
+    --slate2:     #253347;
+    --paper:      #F7F9FC;
+    --paper2:     #EEF2F7;
+    --body-text:  #374151;
+    --muted:      #6B7280;
+    --rule:       #D1D9E3;
+    --blue:       #3B82F6;
+    --blue-dim:   #1D4ED8;
+    --red:        #DC2626;
+    --red-bg:     #FEF2F2;
+    --green:      #15803D;
+    --green-bg:   #F0FDF4;
+    --warn:       #B45309;
+    --warn-bg:    #FFFBEB;
+    --code-bg:    #111827;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--body-text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--slate);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: 52px;
+    border-bottom: 1px solid #2d3f55;
+  }
+  .nav-brand {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem; color: #8BA3BE; letter-spacing: 0.04em;
+  }
+  .nav-links { display: flex; gap: 1.8rem; }
+  .nav-links a {
+    color: #6B88A4; font-size: 0.82rem; text-decoration: none;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: #F7F9FC; }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--slate);
+    padding: 5rem 2rem 4.5rem;
+    position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--red) 0%, var(--warn) 40%, var(--blue) 70%, var(--green) 100%);
+  }
+  .hero-inner { max-width: 760px; margin: 0 auto; }
+  .hero-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem; color: var(--blue);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 1.4rem;
+  }
+  .hero h1 {
+    font-family: 'IBM Plex Serif', serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 600; color: #F7F9FC;
+    line-height: 1.2; margin-bottom: 0.8rem;
+  }
+  .hero h1 em { font-style: italic; color: #93C5FD; font-weight: 400; }
+  .hero-sub {
+    color: #8BA3BE; font-size: 1rem;
+    line-height: 1.75; margin-bottom: 2.5rem;
+    max-width: 580px;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .tag {
+    background: #253347; color: #8BA3BE;
+    border: 1px solid #2d3f55;
+    padding: 0.2rem 0.7rem; border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
+  }
+
+  /* ── SIGNATURE: ITERATION TIMELINE ── */
+  .timeline-section {
+    background: var(--slate2);
+    padding: 3.5rem 2rem;
+    border-bottom: 1px solid #2d3f55;
+  }
+  .timeline-section h2 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; color: var(--blue);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    text-align: center; margin-bottom: 2rem;
+  }
+  .timeline {
+    max-width: 820px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 80px 80px 220px;
+    gap: 0;
+    border-bottom: 1px solid #2d3f55;
+    align-items: center;
+  }
+  .timeline-row.header {
+    background: #1a2535;
+    border-top: 1px solid #2d3f55;
+    border-radius: 6px 6px 0 0;
+  }
+  .timeline-row.header .tc {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem; color: #4A6A8A;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.7rem 1rem;
+  }
+  .timeline-row.final { background: #162232; }
+  .tc {
+    padding: 0.9rem 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+  }
+  .tc.version { color: #8BA3BE; font-size: 0.7rem; }
+  .tc.desc { color: #C8D8E8; font-size: 0.78rem; font-family: 'IBM Plex Sans', sans-serif; }
+  .tc.dw-fail  { color: var(--red); }
+  .tc.dw-warn  { color: #F59E0B; }
+  .tc.dw-ok    { color: var(--green); }
+  .tc.r2       { color: #93C5FD; }
+  .tc.issue    { font-size: 0.72rem; color: #6B88A4; font-family: 'IBM Plex Sans', sans-serif; }
+  .tc.issue.fail { color: #F87171; }
+  .tc.issue.ok   { color: #4ADE80; }
+
+  /* ── CONTENT ── */
+  .content { max-width: 740px; margin: 0 auto; padding: 4rem 2rem; }
+  .section { margin-bottom: 4rem; }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; color: var(--blue);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--rule);
+  }
+
+  .section h2 {
+    font-family: 'IBM Plex Serif', serif;
+    font-size: 1.7rem; font-weight: 600;
+    color: var(--slate); margin-bottom: 1rem; line-height: 1.25;
+  }
+
+  .section p { color: var(--body-text); margin-bottom: 1rem; }
+  .section p:last-child { margin-bottom: 0; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 0 6px 6px 0; padding: 0.9rem 1.2rem;
+    margin: 1.2rem 0; font-size: 0.9rem;
+  }
+  .callout.fail  { background: var(--red-bg);  border-left: 3px solid var(--red);  color: #7F1D1D; }
+  .callout.warn  { background: var(--warn-bg); border-left: 3px solid var(--warn); color: #78350F; }
+  .callout.ok    { background: var(--green-bg);border-left: 3px solid var(--green);color: #14532D; }
+  .callout.info  { background: #EFF6FF;        border-left: 3px solid var(--blue); color: #1E3A5F; }
+  .callout strong { font-weight: 600; }
+
+  /* ── CODE ── */
+  .code-block {
+    background: var(--code-bg); border-radius: 6px;
+    overflow: hidden; margin: 1.2rem 0;
+  }
+  .code-header {
+    background: #1f2937; padding: 0.45rem 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; color: #4B5563;
+    display: flex; justify-content: space-between;
+  }
+  .dots { display: flex; gap: 5px; align-items: center; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot.r{background:#ff5f56}.dot.y{background:#ffbd2e}.dot.g{background:#27c93f}
+  code {
+    display: block; padding: 1rem 1.2rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem; color: #9CA3AF;
+    line-height: 1.75; white-space: pre; overflow-x: auto;
+  }
+  code .kw  { color: #60A5FA; }
+  code .str { color: #86EFAC; }
+  code .cm  { color: #374151; font-style: italic; }
+  code .fn  { color: #C084FC; }
+  code .num { color: #FCA5A5; }
+
+  /* ── PROBLEM / DIAGNOSIS CARDS ── */
+  .diag-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1rem; margin: 1.5rem 0;
+  }
+  .diag-card {
+    border-radius: 8px; padding: 1.2rem;
+    border: 1px solid;
+  }
+  .diag-card.bad  { background: var(--red-bg);  border-color: #FECACA; }
+  .diag-card.good { background: var(--green-bg); border-color: #BBF7D0; }
+  .diag-card h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 0.06em;
+    margin-bottom: 0.6rem;
+  }
+  .diag-card.bad h3  { color: var(--red); }
+  .diag-card.good h3 { color: var(--green); }
+  .diag-card p { font-size: 0.85rem; margin: 0; }
+  .diag-card.bad  p { color: #7F1D1D; }
+  .diag-card.good p { color: #14532D; }
+
+  /* ── STAT ROWS ── */
+  .stat-row {
+    display: flex; gap: 0; margin: 1.5rem 0;
+    border: 1px solid var(--rule); border-radius: 8px;
+    overflow: hidden;
+  }
+  .stat {
+    flex: 1; padding: 1.1rem 1.2rem; text-align: center;
+    border-right: 1px solid var(--rule);
+    background: white;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.5rem; font-weight: 500;
+    display: block; line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .stat-val.bad  { color: var(--red); }
+  .stat-val.warn { color: var(--warn); }
+  .stat-val.good { color: var(--green); }
+  .stat-val.blue { color: var(--blue); }
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem; color: var(--muted);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  /* ── RESULTS TABLE ── */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 1.2rem 0; font-size: 0.87rem;
+  }
+  th {
+    background: var(--slate); color: #F7F9FC;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; font-weight: 500;
+    padding: 0.7rem 1rem; text-align: left;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--body-text);
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: var(--paper2); }
+  .mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; }
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; padding: 0.15rem 0.5rem;
+    border-radius: 3px; display: inline-block;
+  }
+  .badge.red   { background: var(--red-bg); color: var(--red); }
+  .badge.green { background: var(--green-bg); color: var(--green); }
+  .badge.blue  { background: #EFF6FF; color: var(--blue-dim); }
+  .badge.warn  { background: var(--warn-bg); color: var(--warn); }
+
+  /* ── PREDICTION BARS ── */
+  .pred-bars { margin: 1.5rem 0; display: flex; flex-direction: column; gap: 0.8rem; }
+  .pred-bar-row { display: flex; align-items: center; gap: 1rem; }
+  .pred-country {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem; color: var(--body-text);
+    width: 150px; flex-shrink: 0;
+  }
+  .pred-track {
+    flex: 1; height: 28px; background: var(--paper2);
+    border-radius: 4px; overflow: hidden; position: relative;
+  }
+  .pred-fill {
+    height: 100%; border-radius: 4px;
+    display: flex; align-items: center; padding-left: 0.6rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem; color: white; font-weight: 500;
+    min-width: 40px;
+    transition: width 1s ease;
+  }
+
+  /* ── ELASTICITY BOX ── */
+  .elasticity-box {
+    background: var(--slate); color: #C8D8E8;
+    border-radius: 8px; padding: 1.5rem;
+    margin: 1.2rem 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem; line-height: 1.9;
+  }
+  .elasticity-box .hl { color: #93C5FD; font-weight: 500; }
+  .elasticity-box .hl-green { color: #4ADE80; }
+  .elasticity-box .hl-red   { color: #F87171; }
+
+  /* ── LESSONS ── */
+  .lessons { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 1.2rem; }
+  .lesson {
+    background: white; border: 1px solid var(--rule);
+    border-radius: 6px; padding: 1rem 1.2rem;
+    display: flex; gap: 1rem; align-items: flex-start;
+  }
+  .lesson-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+  .lesson h3 { font-size: 0.88rem; font-weight: 600; color: var(--slate); margin-bottom: 0.2rem; }
+  .lesson p  { font-size: 0.83rem; color: var(--muted); margin: 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--slate); color: #4A6A8A;
+    text-align: center; padding: 2.5rem 2rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem; line-height: 1.9;
+    border-top: 1px solid #2d3f55;
+  }
+  footer a { color: var(--blue); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .diag-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .timeline-row { grid-template-columns: 1fr; }
+    .stat-row { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand"><a href="https://radulradul.github.io/">← Iliya Angelov Radulov — portfolio</a></span>
+  <div class="nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#iterations">Iterations</a>
+    <a href="#model">Final Model</a>
+    <a href="#results">Results</a>
+    <a href="#decision-tree">Decision Tree</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <p class="hero-eyebrow">Econometric Analysis · Python · OLS Regression</p>
+    <h1>Market Revenue Prediction<br><em>for New European Markets</em></h1>
+    <p class="hero-sub">
+      A full econometric investigation into which European markets to enter next — starting from a naive KNIME model that predicted negative revenue for Norway, through four model iterations, to a statistically rigorous log-log OLS with HAC-corrected standard errors.
+    </p>
+    <div class="hero-tags">
+      <span class="tag">statsmodels OLS</span>
+      <span class="tag">HAC / Newey-West</span>
+      <span class="tag">Log-Log Regression</span>
+      <span class="tag">Durbin-Watson</span>
+      <span class="tag">Breusch-Pagan</span>
+      <span class="tag">Shapiro-Wilk</span>
+      <span class="tag">Ridge Regression</span>
+      <span class="tag">KNIME</span>
+      <span class="tag">BigQuery</span>
+      <span class="tag">Decision Tree</span>
+    </div>
+  </div>
+</header>
+
+<!-- SIGNATURE: ITERATION TIMELINE -->
+<section class="timeline-section" id="iterations">
+  <h2>Model Iteration Log</h2>
+  <div class="timeline">
+    <div class="timeline-row header">
+      <div class="tc">Version</div>
+      <div class="tc">Model</div>
+      <div class="tc">DW stat</div>
+      <div class="tc">R²</div>
+      <div class="tc">Outcome</div>
+    </div>
+    <div class="timeline-row">
+      <div class="tc version">v0 · KNIME</div>
+      <div class="tc desc">Linear Regression, 6 training countries, raw GDP + population</div>
+      <div class="tc dw-fail">—</div>
+      <div class="tc r2">—</div>
+      <div class="tc issue fail">Negative revenue for Norway. Too few data points.</div>
+    </div>
+    <div class="timeline-row">
+      <div class="tc version">v1 · Python</div>
+      <div class="tc desc">Level OLS, 21 countries, GDP + population + stores</div>
+      <div class="tc dw-fail">0.664</div>
+      <div class="tc r2">0.81</div>
+      <div class="tc issue fail">Strong autocorrelation. High multicollinearity (Cond.No.=922).</div>
+    </div>
+    <div class="timeline-row">
+      <div class="tc version">v2</div>
+      <div class="tc desc">Level OLS + HAC standard errors (Newey-West, maxlags=1)</div>
+      <div class="tc dw-fail">0.664</div>
+      <div class="tc r2">0.81</div>
+      <div class="tc issue warn">SEs corrected. GDP & population significant. Negative store coef.</div>
+    </div>
+    <div class="timeline-row">
+      <div class="tc version">v3</div>
+      <div class="tc desc">Per-capita OLS + HAC (revenue/pop, gdp/pop, stores/pop)</div>
+      <div class="tc dw-warn">1.425</div>
+      <div class="tc r2">~0.81</div>
+      <div class="tc issue warn">DW improved. But store_per_capita coef still negative (p=0.002).</div>
+    </div>
+    <div class="timeline-row final">
+      <div class="tc version" style="color:#60A5FA">v4 · Final</div>
+      <div class="tc desc" style="color:#93C5FD;font-weight:500">Log-Log OLS + HAC · per-capita features</div>
+      <div class="tc dw-ok">1.195</div>
+      <div class="tc r2" style="color:#4ADE80">0.346</div>
+      <div class="tc issue ok">Cond.No.=32.6. All predictors significant. Interpretable elasticities.</div>
+    </div>
+  </div>
+
+                                  
+      <!-- <h2>A decision tree was also tested as an alternative approach — see  <a href="#decision-tree">Robustness Check</a> below for details.</h2> -->
+</section>
+
+<!-- CONTENT -->
+<main class="content">
+
+  <!-- PROBLEM -->
+  <section class="section" id="problem">
+    <p class="section-label">The Problem</p>
+    <h2>Where should the company expand next?</h2>
+    <p>
+      The company operates in 21 European and global markets. Four candidate markets have been identified — Norway, Czech Republic, Poland, and Portugal — and the question is: how much revenue can we realistically expect from each?
+    </p>
+    <p>
+      The dataset combines internal sales data from BigQuery (<code>go_explore_project.daily_sales</code> joined to <code>retailers</code>) with external macroeconomic indicators: GDP in EUR billions and population in millions.
+    </p>
+
+    <div class="callout fail">
+      <strong>The starting point:</strong> A KNIME linear regression trained on only 6 European countries (Sweden, Austria, Germany, France, Spain, Denmark) predicted <strong>negative revenue for Norway</strong>. Norway's GDP per capita of €105,454 sat far above any training example — the model extrapolated outside its range and produced a nonsense result.
+    </div>
+        <img src="KNIME_lin_reg.png" alt="The KNIME Linear Regression Model" style="width:100%;max-width:600px;margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+
+    <table>
+      <thead><tr><th>Country</th><th>Population (M)</th><th>GDP (B EUR)</th><th>GDP per capita</th><th>Market</th></tr></thead>
+      <tbody>
+        <tr><td>Norway</td><td class="mono">5.5</td><td class="mono">580</td><td class="mono">105,454</td><td><span class="badge blue">Target</span></td></tr>
+        <tr><td>Czech Republic</td><td class="mono">10.8</td><td class="mono">330</td><td class="mono">30,556</td><td><span class="badge blue">Target</span></td></tr>
+        <tr><td>Poland</td><td class="mono">36.8</td><td class="mono">860</td><td class="mono">23,370</td><td><span class="badge blue">Target</span></td></tr>
+        <tr><td>Portugal</td><td class="mono">10.4</td><td class="mono">270</td><td class="mono">25,962</td><td><span class="badge blue">Target</span></td></tr>
+        <tr><td>Sweden</td><td class="mono">10.5</td><td class="mono">590</td><td class="mono">56,190</td><td><span class="badge green">Existing</span></td></tr>
+        <tr><td>Germany</td><td class="mono">84.0</td><td class="mono">4,500</td><td class="mono">53,571</td><td><span class="badge green">Existing</span></td></tr>
+        <tr><td>Denmark</td><td class="mono">5.9</td><td class="mono">400</td><td class="mono">67,797</td><td><span class="badge green">Existing</span></td></tr>
+      </tbody>
+    </table>
+
+    <p>The fix was to expand the training set to <strong>21 countries</strong> and move to Python with <code>statsmodels</code> for proper statistical testing.</p>
+  </section>
+
+  <!-- ITERATION DETAIL -->
+  <section class="section">
+    <p class="section-label">Iteration Detail</p>
+    <h2>Why four model versions were needed</h2>
+
+    <p><strong>v1 — Level OLS:</strong> R² of 0.81 looked impressive but the Durbin-Watson of 0.664 revealed severe positive autocorrelation — residuals were not independent. The condition number of 922 also flagged multicollinearity between GDP and population (both large for large countries).</p>
+
+    <div class="stat-row">
+      <div class="stat"><span class="stat-val bad">0.664</span><span class="stat-label">Durbin-Watson v1</span></div>
+      <div class="stat"><span class="stat-val warn">922</span><span class="stat-label">Condition Number v1</span></div>
+      <div class="stat"><span class="stat-val good">0.81</span><span class="stat-label">R² v1 (misleading)</span></div>
+    </div>
+
+    <p><strong>v2 — HAC correction:</strong> Newey-West standard errors with <code>maxlags=1</code> corrected the standard error inflation from autocorrelation, making the significance tests trustworthy. GDP (p=0.025) and population (p=0.002) became clearly significant. But the store count coefficient was negative — counterintuitive.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+        <span>HAC Standard Errors — Newey-West correction</span>
+      </div>
+      <code>ols_model = <span class="fn">sm.OLS</span>(y_train, X_train_sm).<span class="fn">fit</span>(
+    cov_type=<span class="str">'HAC'</span>,
+    cov_kwds={<span class="str">'maxlags'</span>: <span class="num">1</span>}  <span class="cm"># Newey-West with 1 lag</span>
+)</code>
+    </div>
+
+    <p><strong>v3 — Per-capita transformation:</strong> Converting all variables to per-capita (dividing by population in millions) reduced multicollinearity — Condition Number dropped. DW improved to 1.425. But <code>store_per_capita</code> remained negative and highly significant (p=0.002), suggesting a real economic effect rather than a data artifact.</p>
+
+    <p><strong>v4 — Log-Log transformation:</strong> Taking the natural log of all variables and the target linearises the multiplicative relationship between economic scale and revenue. This is standard practice in cross-country economic analysis. Condition Number dropped to 32.6. Both predictors remained significant. R² fell from 0.81 to 0.35 — but this is not a regression: the level model was fitting scale, not economic relationships.</p>
+
+    <div class="callout info">
+      <strong>Why R² dropped from 0.81 to 0.35:</strong> The level model's high R² was driven by the fact that large countries (USA, Germany) dominate the variance. The log-log model fits the <em>proportional</em> relationship equally across all countries — a more honest fit for cross-country analysis. The F-statistic p-value of 0.022 confirms the model is globally significant.
+    </div>
+  </section>
+
+  <!-- FINAL MODEL -->
+  <section class="section" id="model">
+    <p class="section-label">Final Model</p>
+    <h2>Log-Log OLS with HAC standard errors</h2>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+        <span>Final model specification</span>
+      </div>
+      <code><span class="cm"># Feature engineering</span>
+df[<span class="str">'gdp_per_capita'</span>]   = df[<span class="str">'GDP_EUR_billion'</span>]     / df[<span class="str">'population_million'</span>]
+df[<span class="str">'store_per_capita'</span>] = df[<span class="str">'total_active_stores'</span>] / df[<span class="str">'population_million'</span>]
+
+<span class="cm"># Log-transform everything</span>
+X_train_log = <span class="fn">np.log</span>(train[[<span class="str">'gdp_per_capita'</span>, <span class="str">'store_per_capita'</span>]])
+y_train_log = <span class="fn">np.log</span>(train[<span class="str">'total_revenue'</span>])
+
+<span class="cm"># OLS with HAC-robust standard errors</span>
+X_sm      = <span class="fn">sm.add_constant</span>(X_train_log)
+ols_model = <span class="fn">sm.OLS</span>(y_train_log, X_sm).<span class="fn">fit</span>(
+    cov_type=<span class="str">'HAC'</span>, cov_kwds={<span class="str">'maxlags'</span>: <span class="num">1</span>}
+)
+
+<span class="cm"># Predict → convert back from log space</span>
+log_preds   = ols_model.<span class="fn">predict</span>(<span class="fn">sm.add_constant</span>(X_test_log))
+predictions = <span class="fn">np.exp</span>(log_preds)</code>
+    </div>
+
+    <div class="elasticity-box">
+      <div><span class="hl">Intercept:</span>              baseline log-revenue</div>
+      <div><span class="hl">gdp_per_capita</span> coef ≈ <span class="hl-green">+0.96</span> (p=0.011) → <span class="hl-green">1% ↑ GDP per capita = ~0.96% ↑ revenue</span></div>
+      <div><span class="hl">store_per_capita</span> coef ≈ <span class="hl-red">−0.52</span> (p=0.008) → <span class="hl-red">diminishing returns to retail density</span></div>
+      <div style="margin-top:0.8rem; color:#6B88A4; font-size:0.72rem">In log-log models, coefficients ARE elasticities — no unit conversion needed.</div>
+    </div>
+
+    <p>The negative <code>store_per_capita</code> coefficient is <strong>economically meaningful</strong>, not a bug. Markets with more stores per person are more saturated — each additional store generates less marginal revenue. The sensitivity analysis confirms this: opening more stores does increase total revenue, but at a decreasing rate per store.</p>
+
+    <h3 style="font-family:'IBM Plex Serif',serif; font-size:1.1rem; margin: 1.5rem 0 0.8rem; color:var(--slate);">Assumption test results</h3>
+
+    <table>
+      <thead><tr><th>Assumption</th><th>Test</th><th>Result</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Linearity</td><td class="mono">Residuals vs Fitted</td><td><span class="badge green">✅ PASS</span></td><td>Random scatter around zero</td></tr>
+        <tr><td>Normality</td><td class="mono">Shapiro-Wilk</td><td><span class="badge green">✅ PASS</span></td><td>p &gt; 0.05</td></tr>
+        <tr><td>Independence</td><td class="mono">Durbin-Watson</td><td><span class="badge warn">⚠ PARTIAL</span></td><td>DW=1.195 — HAC SEs applied</td></tr>
+        <tr><td>Homoscedasticity</td><td class="mono">Breusch-Pagan</td><td><span class="badge green">✅ PASS</span></td><td>p &gt; 0.05, constant variance</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="section" id="results">
+    <p class="section-label">Results</p>
+    <h2>Predicted revenue — 4 new markets (1 store baseline)</h2>
+
+    <div class="pred-bars">
+      <div class="pred-bar-row">
+        <div class="pred-country">🇳🇴 Norway</div>
+        <div class="pred-track">
+          <div class="pred-fill" style="width:95%;background:#1D4ED8">9.3M EUR</div>
+        </div>
+      </div>
+      <div class="pred-bar-row">
+        <div class="pred-country">🇵🇱 Poland</div>
+        <div class="pred-track">
+          <div class="pred-fill" style="width:75%;background:#2563EB">9.0M EUR</div>
+        </div>
+      </div>
+      <div class="pred-bar-row">
+        <div class="pred-country">🇨🇿 Czech Rep.</div>
+        <div class="pred-track">
+          <div class="pred-fill" style="width:55%;background:#3B82F6">5.4M EUR</div>
+        </div>
+      </div>
+      <div class="pred-bar-row">
+        <div class="pred-country">🇵🇹 Portugal</div>
+        <div class="pred-track">
+          <div class="pred-fill" style="width:48%;background:#60A5FA">4.7M EUR</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout ok">
+      <strong>Norway</strong> is the highest-potential target market despite its small population — because its GDP per capita is the highest of the four (€105K vs Poland's €23K). The model's near-unit elasticity on GDP per capita drives this result.
+    </div>
+
+    <h3 style="font-family:'IBM Plex Serif',serif; font-size:1.1rem; margin: 1.5rem 0 0.8rem; color:var(--slate);">Store count sensitivity</h3>
+    <p>Since the test data uses 1 store as baseline, the model was re-run for scenarios of 1–10 stores to inform the expansion decision:</p>
+
+    <table>
+      <thead><tr><th>Country</th><th>1 store</th><th>2 stores</th><th>3 stores</th><th>5 stores</th><th>10 stores</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>🇳🇴 Norway</td>
+          <td class="mono">9.3M</td><td class="mono">6.2M</td><td class="mono">4.9M</td><td class="mono">3.6M</td><td class="mono">2.4M</td>
+        </tr>
+        <tr>
+          <td>🇨🇿 Czech Rep.</td>
+          <td class="mono">5.4M</td><td class="mono">3.6M</td><td class="mono">2.8M</td><td class="mono">2.1M</td><td class="mono">1.4M</td>
+        </tr>
+        <tr>
+          <td>🇵🇱 Poland</td>
+          <td class="mono">9.0M</td><td class="mono">6.0M</td><td class="mono">4.7M</td><td class="mono">3.5M</td><td class="mono">2.3M</td>
+        </tr>
+        <tr>
+          <td>🇵🇹 Portugal</td>
+          <td class="mono">4.7M</td><td class="mono">3.1M</td><td class="mono">2.4M</td><td class="mono">1.8M</td><td class="mono">1.2M</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>Interpretation:</strong> The per-store revenue decreases as stores increase — consistent with the negative store_per_capita elasticity. Opening more stores cannibalises each other's catchment. A single flagship store per new market is the model's implied recommendation before market penetration data is available.
+    </div>
+  </section>
+  
+  <div class="section" id="decision-tree">
+
+  <div class="section-label">Robustness Check</div>
+  <h2>Can a decision tree recommend store count instead of revenue?</h2>
+
+  <p>
+    The log-log OLS model answers <em>how much</em> revenue to expect from each new
+    market. A natural follow-up is <em>how many stores</em> to open. A decision tree
+    was tested as a second, independent method — first as a regressor, then,
+    after it failed outright, repurposed as a classifier for store-count tiers.
+  </p>
+
+  <h3 style="font-family:'IBM Plex Serif',serif; font-size:1.1rem; font-weight:600; color:var(--slate); margin:1.8rem 0 0.6rem;">
+    First attempt: revenue regression failed
+  </h3>
+  <p>
+    A <span class="mono">DecisionTreeRegressor</span>
+    trained directly on revenue produced a textbook overfitting signature — a
+    perfect fit on training data and no predictive power on unseen data.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat">
+      <span class="stat-val bad">1.00</span>
+      <span class="stat-label">R² — Train</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val bad">~0.00</span>
+      <span class="stat-label">R² — Test</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val blue">21</span>
+      <span class="stat-label">Total Rows</span>
+    </div>
+  </div>
+
+  <div class="callout fail">
+    <strong>Diagnosis:</strong> with 21 countries and only 2–3 features, an
+    unconstrained tree splits until every leaf holds a single country — perfect
+    memorization, not a generalizable pattern. Same small-sample issue as the early
+    OLS iterations, but trees are far more sensitive to it than linear models.
+  </div>
+
+  <h3 style="font-family:'IBM Plex Serif',serif; font-size:1.1rem; font-weight:600; color:var(--slate); margin:1.8rem 0 0.6rem;">
+    Pivot: classification by store tier
+  </h3>
+  <p>
+    Rather than predicting an exact revenue figure, the tree was repurposed to
+    classify markets into store-count tiers — a coarser target better suited to a
+    small sample. Existing markets were grouped (<span class="mono">small: 5–9</span>,
+    <span class="mono">medium: 10–17</span>, <span class="mono">large: 18+</span>),
+    and a constrained classifier was fit on <span class="mono">gdp_per_capita</span>
+    and <span class="mono">population_million</span>.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span>store_tier_classifier.py</span>
+      <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    </div>
+    <code><span class="kw">from</span> sklearn.tree <span class="kw">import</span> DecisionTreeClassifier
+
+classifier = DecisionTreeClassifier(
+    max_depth=<span class="num">2</span>,
+    min_samples_leaf=<span class="num">3</span>,
+    random_state=<span class="num">1234</span>
+)
+model = classifier.fit(X, y)  <span class="cm"># y = store_tier, fit on the 21 known markets</span>
+
+targets[<span class="str">'predicted_tier'</span>] = model.predict(targets[[<span class="str">'gdp_per_capita'</span>, <span class="str">'population_million'</span>]])</code>
+  </div>
+
+  <!-- FIGURE: drop in your saved tree plot -->
+  <div style="margin: 1.5rem 0; border:1px solid var(--rule); border-radius:8px; overflow:hidden; background:white;">
+    <img src="decision_tree_plot.png" alt="Decision tree splitting rules for store tier classification" style="width:100%; display:block;">
+    <div style="padding:0.7rem 1rem; font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--muted); border-top:1px solid var(--rule);">
+      Decision tree trained on 21 existing markets — splits on GDP per capita and population.
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Country</th><th>GDP per capita</th><th>Population (M)</th><th>Predicted Tier</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>🇳🇴 Norway</td><td class="mono">105,454</td><td class="mono">5.5</td><td><span class="badge blue">small (5–9)</span></td></tr>
+      <tr><td>🇨🇿 Czech Republic</td><td class="mono">30,556</td><td class="mono">10.8</td><td><span class="badge blue">small (5–9)</span></td></tr>
+      <tr><td>🇵🇱 Poland</td><td class="mono">23,370</td><td class="mono">36.8</td><td><span class="badge blue">small (5–9)</span></td></tr>
+      <tr><td>🇵🇹 Portugal</td><td class="mono">25,962</td><td class="mono">10.4</td><td><span class="badge blue">small (5–9)</span></td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    All four candidate markets land in the smallest tier — a conservative result
+    that agrees directionally with the OLS sensitivity analysis, which also
+    recommended a single flagship store ahead of broader rollout, given the
+    negative <span class="mono">store_per_capita</span> elasticity (retail
+    saturation).
+  </p>
+
+  <h3 style="font-family:'IBM Plex Serif',serif; font-size:1.1rem; font-weight:600; color:var(--slate); margin:1.8rem 0 0.6rem;">
+    Sensitivity testing
+  </h3>
+  <p>
+    Before trusting this result, the tree was re-fit across a range of
+    <span class="mono">max_depth</span> and <span class="mono">min_samples_leaf</span>
+    settings, and across an alternative, finer-grained 4-tier binning scheme.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Setting</th><th>Tier Scheme</th><th>Result — All 4 Targets</th><th>Stability</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">depth 1–3, leaf 3–5</td>
+        <td>3-tier (original)</td>
+        <td>small (5–9) — unchanged</td>
+        <td><span class="badge green">Stable</span></td>
+      </tr>
+      <tr>
+        <td class="mono">depth 2–3, leaf 1</td>
+        <td>4-tier (finer)</td>
+        <td>xsmall / small — split by country</td>
+        <td><span class="badge warn">Sensitive</span></td>
+      </tr>
+      <tr>
+        <td class="mono">depth 2–3, leaf 2–3</td>
+        <td>4-tier (finer)</td>
+        <td>large (20+) — all four</td>
+        <td><span class="badge red">Unstable</span></td>
+      </tr>
+      <tr>
+        <td class="mono">depth 2–3, leaf 4</td>
+        <td>4-tier (finer)</td>
+        <td>xsmall (5–7) — all four</td>
+        <td><span class="badge red">Unstable</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>Finding:</strong> under the coarser 3-tier scheme, the classification
+    was stable across every hyperparameter combination tested. Under the finer
+    4-tier scheme, the prediction for all four countries swung between the
+    smallest and the <em>largest</em> available tier depending on a single
+    hyperparameter — a clear sign of overfitting noise rather than signal, given
+    only 21 training rows. Feature importance was similarly unstable, ranging from
+    roughly 55/45 to 82/18 between population and GDP per capita depending on
+    configuration.
+  </div>
+
+  <div class="callout info">
+    <strong>Interpretation:</strong> the decision tree is not robust enough to
+    support a precise, fine-grained recommendation. Read as a coarse, directional
+    signal, it agrees with the OLS-based finding that all four candidate markets
+    warrant a conservative initial footprint. It should not be read as ranking the
+    four markets against each other — the OLS revenue estimates (Norway 9.3M,
+    Poland 9.0M vs. Czech Republic 5.4M, Portugal 4.7M) remain the more granular
+    basis for that comparison.
+  </div>
+
+  </div>
+
+
+
+  <!-- LESSONS -->
+  <section class="section">
+    <p class="section-label">Key Learnings</p>
+    <h2>What this investigation taught</h2>
+
+    <div class="lessons">
+      <div class="lesson">
+        <div class="lesson-icon">📉</div>
+        <div>
+          <h3>High R² is not the goal</h3>
+          <p>The level model had R²=0.81 but was econometrically invalid. The log-log model's R²=0.35 is more honest and actually useful for prediction.</p>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-icon">🔁</div>
+        <div>
+          <h3>Autocorrelation in cross-sectional data is common</h3>
+          <p>Countries are not independent observations — they share economic history, trade links, and geography. HAC standard errors (Newey-West) are standard practice for cross-country regressions.</p>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-icon">📐</div>
+        <div>
+          <h3>Log-log is natural for economic scale variables</h3>
+          <p>GDP and revenue span orders of magnitude across countries. A log-log model fits proportional relationships and produces elasticity coefficients — directly interpretable without unit conversion.</p>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-icon">🏪</div>
+        <div>
+          <h3>A negative coefficient can be the finding</h3>
+          <p>The negative store_per_capita elasticity is not a flaw — it's evidence of retail saturation. It directly informs the recommendation to open single flagship stores rather than multi-store rollouts.</p>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-icon">🔬</div>
+        <div>
+          <h3>Document the dead ends</h3>
+          <p>Showing v0 through v4 with their failure modes is more valuable portfolio content than presenting only the final answer. It demonstrates diagnostic thinking, not just tool use.</p>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-icon">🌳</div>
+        <div>
+          <h3>Small-sample fragility is itself a finding</h3>
+          <p>The decision tree's classification flipped between the smallest and largest tier under minor hyperparameter changes when using finer tier bins. Diagnosing and reporting that instability — rather than cherry-picking a favorable run — is the more rigorous outcome.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STACK -->
+  <section class="section">
+    <p class="section-label">Stack</p>
+    <h2>Tools & methods used</h2>
+    <table>
+      <thead><tr><th>Tool / Method</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Google BigQuery</strong></td><td>Source data — daily_sales × retailers join for training revenue</td></tr>
+        <tr><td><strong>KNIME Analytics Platform</strong></td><td>v0 prototype — exposed the need for more training data</td></tr>
+        <tr><td><strong>statsmodels OLS</strong></td><td>Primary model with HAC-robust standard errors</td></tr>
+        <tr><td><strong>HAC / Newey-West</strong></td><td>Autocorrelation-robust standard error correction</td></tr>
+        <tr><td><strong>Shapiro-Wilk</strong></td><td>Normality test on residuals</td></tr>
+        <tr><td><strong>Durbin-Watson</strong></td><td>Independence / autocorrelation detection</td></tr>
+        <tr><td><strong>Breusch-Pagan</strong></td><td>Homoscedasticity test</td></tr>
+        <tr><td><strong>Ridge Regression (RidgeCV)</strong></td><td>Robustness check — confirmed OLS direction</td></tr>
+        <tr><td><strong>Python / Jupyter</strong></td><td>Full analysis pipeline</td></tr>
+        <tr><td><strong>Decision tree</strong></td><td>Regression and classification model</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- RESOURCES -->
+  <section class="section">
+    <p class="section-label">Resources</p>
+    <h2>Additional Resources</h2>
+    <p>Here you can download the Jupyter notebooks and the train and test datasets for this project:</p>
+    <ul>
+      <li class="icon">📓 <a href="revenue_prediction_clean.ipynb" download="revenue_prediction_clean.ipynb">Jupyter Notebook: Market Revenue Prediction</a></li>
+      <li class="icon">📊 <a  href="train.csv" download="train.csv">  Resource 1: Train Dataset</a></li> 
+      <li class="icon">📊 <a  href="test.csv" download="test.csv">Resource 2: Test Dataset</a></li>
+    </ul>
+  </section>
+
+  <!-- CERTIFICATE -->
+  <section class="section">
+    <p class="section-label">Certificate</p>
+    <h2>Completion Certificate</h2>
+    <img src="Certificate.png" alt="Certificate Anaconda Pandas for Data Science" style="width:100%;max-width:600px;margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+    <h2>Completion Certificate</h2>
+    <img src="Certificates.png" alt="Certificate Anaconda Pandas for Machine Learning" style="width:100%;max-width:600px;margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+  </section>
+
+
+</main>
+
+<footer>
+  <p>Iliya Radulov — Econometric Market Analysis</p>
+  <p style="margin-top:0.3rem">Log-Log OLS · HAC Standard Errors · Elasticity Analysis</p>
+  <p style="margin-top:0.8rem; font-size:0.65rem">
+    Part of a data stack portfolio —
+    <a href="knime-bigquery-portfolio.html">BigQuery setup</a> ·
+    <a href="knime-ml-portfolio.html">Sales prediction ML</a> ·
+    <a href="https://andreas-politzer.github.io/local-data-stack-guide/">Team guide</a>
+  </p>
+</footer>
+
+</body>
+</html>

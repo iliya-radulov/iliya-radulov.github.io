@@ -1,0 +1,5 @@
+Country,Population (M),GDP (B EUR),Stores,Predicted Revenue,CI Lower,CI Upper
+Norway,5.5,0.58,1,2949507,891133,9762387
+Czech Republic,10.8,0.33,1,1267933,721566,2228005
+Poland,36.8,0.86,1,1843861,812344,4185199
+Portugal,10.4,0.27,1,1062978,683179,1653917

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Name — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --phoenix:      #C8721A;   /* Phoenix Orange Metallic */
+      --phoenix-light:#E8924A;
+      --phoenix-glow: #F0A855;
+      --dark:         #121212;
+      --surface:      #1C1C1C;
+      --surface2:     #242424;
+      --border:       #2E2E2E;
+      --text:         #E8E0D8;
+      --text-muted:   #8A8078;
+      --sidebar-w:    280px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .profile-block {
+      padding: 40px 28px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .avatar {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 3px solid var(--phoenix);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .profile-block h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .profile-block .tagline {
+      font-size: 0.78rem;
+      color: var(--phoenix-light);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    /* social icons row */
+    .socials {
+      display: flex; gap: 10px;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .socials a {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      border-radius: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      transition: all 0.18s;
+    }
+
+    .socials a svg {
+      width: 16px; height: 16px;
+      fill: currentColor;
+    }
+
+    .socials a:hover {
+      background: var(--phoenix);
+      border-color: var(--phoenix);
+      color: #fff;
+    }
+
+    /* nav */
+    nav { padding: 20px 0; flex: 1; }
+
+    nav a, .nav-group > .nav-label {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 28px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+      user-select: none;
+    }
+
+    nav a:hover, .nav-group > .nav-label:hover { color: var(--text); background: var(--surface2); }
+    nav a.active { color: var(--phoenix-light); }
+
+    nav a .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    nav a.active .dot, nav a:hover .dot { background: var(--phoenix); }
+
+    /* dropdown groups */
+    .nav-group { position: relative; }
+    .nav-group > .nav-label { justify-content: space-between; }
+    .nav-group > .nav-label .arrow {
+      font-size: 0.65rem;
+      transition: transform 0.2s;
+    }
+    .nav-group.open > .nav-label .arrow { transform: rotate(90deg); }
+    .nav-group .sub-items {
+      display: none;
+      background: var(--surface2);
+    }
+    .nav-group.open .sub-items { display: block; }
+    .nav-group .sub-items a {
+      padding-left: 44px;
+      font-size: 0.82rem;
+      font-weight: 400;
+    }
+
+    /* ── MAIN ── */
+    main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 60px 64px;
+      max-width: calc(100vw - var(--sidebar-w));
+    }
+
+    /* section wrapper */
+    .section {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+    .section.active { display: block; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    /* section headings */
+    .section-head {
+      margin-bottom: 48px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-head .eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--phoenix);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .section-head h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+    }
+
+    .about-bio p {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .about-bio p strong { color: var(--text); }
+
+    .about-meta { display: flex; flex-direction: column; gap: 14px; }
+    .meta-row {
+      display: flex; flex-direction: column;
+      gap: 2px;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .meta-row .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--phoenix);
+      font-weight: 600;
+    }
+    .meta-row .value {
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .meta-row a { color: var(--phoenix-light); text-decoration: none; }
+    .meta-row a:hover { text-decoration: underline; }
+
+    /* ── RESUME ── */
+    .resume-block { margin-bottom: 48px; }
+    .resume-block h3 {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--phoenix);
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .tl-item {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 0 28px;
+      position: relative;
+      padding-bottom: 32px;
+    }
+    .tl-item:last-child { padding-bottom: 0; }
+
+    .tl-year {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      padding-top: 4px;
+      text-align: right;
+    }
+
+    .tl-body {
+      border-left: 2px solid var(--border);
+      padding-left: 24px;
+      position: relative;
+    }
+    .tl-body::before {
+      content: '';
+      position: absolute;
+      left: -5px; top: 6px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--phoenix);
+      border: 2px solid var(--dark);
+    }
+
+    .tl-body h4 { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .tl-body .where { font-size: 0.82rem; color: var(--phoenix-light); margin-bottom: 8px; }
+    .tl-body p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; }
+
+    /* skills */
+    .skills-grid {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .skill-tag {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+    .skill-tag:hover { border-color: var(--phoenix); color: var(--phoenix-light); }
+
+    /* ── PROJECTS ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .project-card:hover { border-color: var(--phoenix); transform: translateY(-2px); }
+
+    .project-card .tag {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--phoenix);
+      font-weight: 600;
+    }
+    .project-card h4 { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .project-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; flex: 1; }
+
+    .project-links { display: flex; gap: 10px; margin-top: 4px; }
+    .project-links a {
+      font-size: 0.78rem;
+      color: var(--phoenix-light);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .project-links a:hover { text-decoration: underline; }
+
+    /* ── GALLERY HUB ── */
+    .hub-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .hub-card {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 20px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .hub-card:hover {
+      border-color: var(--phoenix);
+      transform: translateX(4px);
+    }
+
+    .hub-thumb {
+      font-size: 2rem;
+      width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface2);
+      border-radius: 8px;
+      flex-shrink: 0;
+      /* swap emoji for a real cover image later:
+         background: url('../galleries/images/travels/cover.jpg') center/cover; */
+    }
+
+    .hub-info { flex: 1; }
+    .hub-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .hub-desc {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+    }
+
+    .hub-arrow {
+      font-size: 1.1rem;
+      color: var(--phoenix);
+      flex-shrink: 0;
+    }
+
+    /* ── MOBILE ── */
+    #menu-toggle {
+      display: none;
+      position: fixed; top: 16px; left: 16px;
+      z-index: 200;
+      background: var(--phoenix);
+      border: none; border-radius: 6px;
+      color: #fff; font-size: 1.2rem;
+      padding: 8px 12px; cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      #menu-toggle { display: block; }
+      #sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+      #sidebar.open { transform: translateX(0); }
+      main { margin-left: 0; padding: 72px 20px 40px; max-width: 100vw; }
+      .about-grid { grid-template-columns: 1fr; }
+      .tl-item { grid-template-columns: 70px 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<!-- ── SIDEBAR ── -->
+<aside id="sidebar">
+  <div class="profile-block">
+    <div class="avatar">🧑</div>
+    <h1>Your Name</h1>
+    <div class="tagline">Researcher &amp; Developer</div>
+  </div>
+
+  <div class="socials">
+    <a href="https://www.linkedin.com/in/yourprofile/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+      <svg class="icon icon-linkedin" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM.5 8.5H4.5V24H.5V8.5zM8 8.5h3.8v2.1h.1c.5-1 1.8-2.3 3.9-2.3 4.2 0 5 2.8 5 6.5V24h-4v-7.8c0-1.9 0-4.4-2.7-4.4s-3.1 2.1-3.1 4.3V24H8V8.5z"/>
+      </svg>
+    </a>
+    <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+      <svg class="icon icon-github" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.2.8-.5v-1.8c-3.3.7-4-1.4-4-1.4-.6-1.6-1.4-2-1.4-2-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.2 3 .9.1-.7.4-1.2.7-1.5-2.7-.3-5.5-1.4-5.5-6.1 0-1.3.5-2.4 1.3-3.2-.1-.4-.6-1.8.1-3.7 0 0 1.1-.3 3.6 1.3a12.4 12.4 0 0 1 6.6 0c2.5-1.7 3.6-1.3 3.6-1.3.7 1.9.2 3.3.1 3.7.8.8 1.3 1.9 1.3 3.2 0 4.7-2.8 5.8-5.5 6.1.4.4.8 1 .8 2.1v3.1c0 .3.2.6.8.5A12 12 0 0 0 12 .5z"/>
+      </svg>
+    </a>
+    <a href="https://codeberg.org/yourusername" target="_blank" rel="noopener noreferrer" aria-label="Codeberg">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 18.5V5.5c0-.8.7-1.5 1.5-1.5h15c.8 0 1.5.7 1.5 1.5v13c0 .8-.7 1.5-1.5 1.5h-15C3.7 20 3 19.3 3 18.5zM6 7v10l7-5-7-5z"/>
+      </svg>
+    </a>
+    <a href="https://orcid.org/0000-0000-0000-0000" target="_blank" rel="noopener noreferrer" aria-label="ORCID">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M8.2 19.5H6.1V4.5h2.1v15zm3.5-11.7c2.9 0 5.1 2.1 5.1 4.8 0 2.7-2.2 4.8-5.1 4.8H9.9V7.8h1.8zm0 7.8c1.7 0 3-1.2 3-3 0-1.8-1.3-3-3-3h-.8v6h.8zm5.8-7.8h2.1v15h-2.1v-15z"/>
+      </svg>
+    </a>
+    <a href="https://www.scopus.com/authid/detail.uri?authorId=yourID" target="_blank" rel="noopener noreferrer" aria-label="Scopus">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M5 4h10l4 4v12H5V4zm10 1.5V9h3.5L15 5.5zM8 12h8v1.8H8V12zm0 3h8v1.8H8V15zm0-6h4v1.8H8V9z"/>
+      </svg>
+    </a>
+  </div>
+
+  <nav>
+    <a href="#" class="active" onclick="show('about', this)">
+      <span class="dot"></span> About
+    </a>
+    <a href="#" onclick="show('resume', this)">
+      <span class="dot"></span> Résumé
+    </a>
+
+    <!-- Current Projects dropdown -->
+    <div class="nav-group" id="group-current">
+      <div class="nav-label" onclick="toggleGroup('group-current')">
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;"></span>
+          Current Projects
+        </span>
+        <span class="arrow">▶</span>
+      </div>
+      <div class="sub-items">
+        <a href="#" onclick="show('current', this, 'group-current')">Topic A</a>
+        <a href="#" onclick="show('current', this, 'group-current')">Topic B</a>
+        <a href="#" onclick="show('current', this, 'group-current')">Topic C</a>
+      </div>
+    </div>
+
+    <!-- Former Projects dropdown -->
+    <div class="nav-group" id="group-former">
+      <div class="nav-label" onclick="toggleGroup('group-former')">
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;"></span>
+          Former Projects
+        </span>
+        <span class="arrow">▶</span>
+      </div>
+      <div class="sub-items">
+        <a href="#" onclick="show('former', this, 'group-former')">Project X</a>
+        <a href="#" onclick="show('former', this, 'group-former')">Project Y</a>
+      </div>
+    </div>
+
+    <a href="#" onclick="show('gallery', this)">
+      <span class="dot"></span> Gallery
+    </a>
+  </nav>
+</aside>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- ABOUT -->
+  <section class="section active" id="about">
+    <div class="section-head">
+      <div class="eyebrow">Introduction</div>
+      <h2>About Me</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-bio">
+        <p>Hi — I'm <strong>Your Name</strong>, a researcher and developer based in [City]. I work on [your field], with a particular interest in [topics you care about].</p>
+        <p>This page collects my projects, publications, and a few things I do when I'm not at a keyboard.</p>
+        <p>Feel free to reach out via LinkedIn or explore my code on GitHub and Codeberg.</p>
+      </div>
+      <div class="about-meta">
+        <div class="meta-row">
+          <span class="label">Location</span>
+          <span class="value">Your City, Country</span>
+        </div>
+        <div class="meta-row">
+          <span class="label">Email</span>
+          <span class="value"><a href="mailto:you@example.com">you@example.com</a></span>
+        </div>
+        <div class="meta-row">
+          <span class="label">GitHub</span>
+          <span class="value"><a href="https://github.com/yourusername" target="_blank">github.com/yourusername</a></span>
+        </div>
+        <div class="meta-row">
+          <span class="label">Codeberg</span>
+          <span class="value"><a href="https://codeberg.org/yourusername" target="_blank">codeberg.org/yourusername</a></span>
+        </div>
+        <div class="meta-row">
+          <span class="label">ORCID</span>
+          <span class="value"><a href="https://orcid.org/0000-0000-0000-0000" target="_blank">0000-0000-0000-0000</a></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESUME -->
+  <section class="section" id="resume">
+    <div class="section-head">
+      <div class="eyebrow">Background</div>
+      <h2>Résumé</h2>
+    </div>
+
+    <div class="resume-block">
+      <h3>Education</h3>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-year">2020 – present</div>
+          <div class="tl-body">
+            <h4>PhD in [Field]</h4>
+            <div class="where">University Name</div>
+            <p>Brief description of your research focus.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2017 – 2019</div>
+          <div class="tl-body">
+            <h4>MSc in [Field]</h4>
+            <div class="where">University Name</div>
+            <p>Thesis topic or specialisation.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2014 – 2017</div>
+          <div class="tl-body">
+            <h4>BSc in [Field]</h4>
+            <div class="where">University Name</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="resume-block">
+      <h3>Experience</h3>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-year">2022 – now</div>
+          <div class="tl-body">
+            <h4>Role Title</h4>
+            <div class="where">Organisation / Lab</div>
+            <p>What you do here in one or two sentences.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2019 – 2022</div>
+          <div class="tl-body">
+            <h4>Previous Role</h4>
+            <div class="where">Organisation</div>
+            <p>What you did.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="resume-block">
+      <h3>Skills &amp; Tools</h3>
+      <div class="skills-grid">
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">R</span>
+        <span class="skill-tag">Git</span>
+        <span class="skill-tag">Linux</span>
+        <span class="skill-tag">LaTeX</span>
+        <span class="skill-tag">SQL</span>
+        <span class="skill-tag">Docker</span>
+        <span class="skill-tag">Your Tool</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CURRENT PROJECTS -->
+  <section class="section" id="current">
+    <div class="section-head">
+      <div class="eyebrow">Ongoing Work</div>
+      <h2>Current Projects</h2>
+    </div>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="tag">Active · 2024</div>
+        <h4>Project / Topic A</h4>
+        <p>Short description of what this project is about and what problem it addresses.</p>
+        <div class="project-links">
+          <a href="https://github.com/yourusername/repo" target="_blank">GitHub →</a>
+          <a href="#" target="_blank">Paper →</a>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="tag">Active · 2023</div>
+        <h4>Project / Topic B</h4>
+        <p>Short description of what this project is about.</p>
+        <div class="project-links">
+          <a href="https://codeberg.org/yourusername/repo" target="_blank">Codeberg →</a>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="tag">Active · 2023</div>
+        <h4>Topic C</h4>
+        <p>Short description.</p>
+        <div class="project-links">
+          <a href="#" target="_blank">GitHub →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORMER PROJECTS -->
+  <section class="section" id="former">
+    <div class="section-head">
+      <div class="eyebrow">Past Work</div>
+      <h2>Former Projects</h2>
+    </div>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="tag">Completed · 2022</div>
+        <h4>Project X</h4>
+        <p>What this was about and what was achieved.</p>
+        <div class="project-links">
+          <a href="#" target="_blank">GitHub →</a>
+          <a href="#" target="_blank">Publication →</a>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="tag">Completed · 2021</div>
+        <h4>Project Y</h4>
+        <p>What this was about.</p>
+        <div class="project-links">
+          <a href="#" target="_blank">GitHub →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section class="section" id="gallery">
+    <div class="section-head">
+      <div class="eyebrow">Personal</div>
+      <h2>Gallery</h2>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.92rem;margin-bottom:36px;line-height:1.7;">
+      A few things beyond the desk — places visited, things learned, and certificates collected along the way.
+    </p>
+    <div class="hub-grid">
+
+      <a class="hub-card" href="galleries/travels.html">
+        <div class="hub-thumb">✈️</div>
+        <div class="hub-info">
+          <div class="hub-title">Travels</div>
+          <div class="hub-desc">Photos from trips and places around the world.</div>
+        </div>
+        <div class="hub-arrow">→</div>
+      </a>
+
+      <a class="hub-card" href="galleries/hobbies.html">
+        <div class="hub-thumb">📷</div>
+        <div class="hub-info">
+          <div class="hub-title">Hobbies</div>
+          <div class="hub-desc">Things I do when not working.</div>
+        </div>
+        <div class="hub-arrow">→</div>
+      </a>
+
+      <a class="hub-card" href="galleries/certificates.html">
+        <div class="hub-thumb">📜</div>
+        <div class="hub-info">
+          <div class="hub-title">Certificates</div>
+          <div class="hub-desc">Courses, training, and credentials.</div>
+        </div>
+        <div class="hub-arrow">→</div>
+      </a>
+
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ── NAV ──
+  function show(sectionId, anchor, groupId) {
+    // hide all sections
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+
+    // clear active from all nav links
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+    if (anchor && anchor.tagName === 'A') anchor.classList.add('active');
+
+    if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+    return false;
+  }
+
+  function toggleGroup(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+
+</script>
+</body>
+</html>

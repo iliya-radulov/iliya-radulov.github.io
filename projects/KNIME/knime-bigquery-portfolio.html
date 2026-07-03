@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KNIME × BigQuery — Data Stack Project</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #0D1B2A;
+    --navy2:   #142233;
+    --blue:    #2D7DD2;
+    --blue-dim:#1A5FA3;
+    --off-white:#F0EDE6;
+    --slate:   #4A5568;
+    --rule:    #D6D2C8;
+    --tag-bg:  #E8F0FB;
+    --tag-fg:  #1A5FA3;
+    --code-bg: #111D2B;
+    --green:   #28A745;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--off-white);
+    color: var(--navy);
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem;
+    height: 52px;
+    border-bottom: 1px solid #1e3048;
+  }
+  .nav-brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.85rem; font-weight: 600;
+    color: var(--off-white); letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .nav-links { display: flex; gap: 1.8rem; }
+  .nav-links a {
+    color: #8fa8c4; font-size: 0.82rem; text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--off-white); }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy);
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; color: var(--blue);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 700; color: var(--off-white);
+    line-height: 1.15; margin-bottom: 1.2rem;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 span { color: var(--blue); }
+  .hero-sub {
+    max-width: 600px; margin: 0 auto 2.5rem;
+    color: #8fa8c4; font-size: 1.05rem; line-height: 1.7;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
+  .tag {
+    background: #142233; color: #8fa8c4;
+    border: 1px solid #1e3a54;
+    padding: 0.25rem 0.75rem; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+  }
+
+  /* ── STACK DIAGRAM (signature element) ── */
+  .stack-section {
+    background: var(--navy2);
+    padding: 3.5rem 2rem;
+    border-top: 1px solid #1e3048;
+    border-bottom: 1px solid #1e3048;
+  }
+  .stack-section h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem; color: var(--blue);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    text-align: center; margin-bottom: 2.5rem;
+  }
+  .stack-diagram {
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 0; max-width: 860px; margin: 0 auto;
+  }
+  .stack-node {
+    background: #0D1B2A;
+    border: 1px solid #2a4060;
+    border-radius: 8px;
+    padding: 1.1rem 1.4rem;
+    text-align: center; min-width: 130px;
+    position: relative;
+  }
+  .stack-node .node-icon {
+    font-size: 1.5rem; display: block; margin-bottom: 0.4rem;
+  }
+  .stack-node .node-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.85rem; font-weight: 600; color: var(--off-white);
+  }
+  .stack-node .node-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: #5a7a9a; margin-top: 0.2rem;
+  }
+  .stack-arrow {
+    color: var(--blue); font-size: 1.2rem;
+    padding: 0 0.5rem; flex-shrink: 0;
+  }
+  .stack-node.highlight { border-color: var(--blue); }
+  .stack-node.highlight .node-name { color: var(--blue); }
+
+  /* ── CONTENT ── */
+  .content {
+    max-width: 740px; margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .section { margin-bottom: 4rem; }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--blue);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--rule);
+  }
+
+  .section h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.55rem; font-weight: 700;
+    color: var(--navy); margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .section p { color: var(--slate); margin-bottom: 1rem; }
+  .section p:last-child { margin-bottom: 0; }
+
+  /* ── STEP CARDS ── */
+  .steps { display: flex; flex-direction: column; gap: 1.2rem; margin-top: 1.5rem; }
+  .step {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.3rem 1.5rem;
+    display: flex; gap: 1.2rem; align-items: flex-start;
+  }
+  .step-num {
+    background: var(--navy);
+    color: var(--off-white);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.8rem; font-weight: 700;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 0.1rem;
+  }
+  .step-body h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem; font-weight: 600;
+    color: var(--navy); margin-bottom: 0.3rem;
+  }
+  .step-body p { font-size: 0.9rem; color: var(--slate); margin: 0; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: var(--code-bg);
+    border-radius: 8px; overflow: hidden;
+    margin: 1.2rem 0;
+  }
+  .code-header {
+    background: #1a2d40;
+    padding: 0.5rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: #5a7a9a;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .code-header .dot-row { display: flex; gap: 5px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.r { background: #ff5f56; }
+  .dot.y { background: #ffbd2e; }
+  .dot.g { background: #27c93f; }
+  code {
+    display: block; padding: 1.1rem 1.2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; color: #a8c4df;
+    line-height: 1.7; white-space: pre; overflow-x: auto;
+  }
+  code .kw { color: #79b8ff; }
+  code .str { color: #9ecbff; }
+  code .cm { color: #4a6272; font-style: italic; }
+  code .fn { color: #b392f0; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    background: #e8f0fb;
+    border-left: 3px solid var(--blue);
+    border-radius: 0 6px 6px 0;
+    padding: 1rem 1.2rem;
+    margin: 1.2rem 0;
+    font-size: 0.9rem; color: #1a3a5c;
+  }
+  .callout strong { color: var(--navy); }
+
+  .callout.warn {
+    background: #fff8e6;
+    border-color: #f0a500;
+    color: #5c3d00;
+  }
+
+  /* ── IAM TABLE ── */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 1.2rem 0; font-size: 0.88rem;
+  }
+  th {
+    background: var(--navy); color: var(--off-white);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem; font-weight: 600;
+    padding: 0.7rem 1rem; text-align: left;
+    letter-spacing: 0.03em;
+  }
+  td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--slate);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: #f7f5f0; }
+  .badge {
+    display: inline-block;
+    background: var(--tag-bg); color: var(--tag-fg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+  }
+  .badge.green { background: #e6f4ea; color: #1a6b2e; }
+
+  /* ── OUTCOME ── */
+  .outcome-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem; margin-top: 1.5rem;
+  }
+  .outcome-card {
+    background: white; border: 1px solid var(--rule);
+    border-radius: 8px; padding: 1.3rem;
+  }
+  .outcome-card .oc-icon { font-size: 1.6rem; margin-bottom: 0.5rem; }
+  .outcome-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    color: var(--navy); margin-bottom: 0.3rem;
+  }
+  .outcome-card p { font-size: 0.83rem; color: var(--slate); margin: 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy); color: #4a6272;
+    text-align: center; padding: 2.5rem 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; line-height: 1.8;
+    border-top: 1px solid #1e3048;
+  }
+  footer a { color: var(--blue); text-decoration: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .stack-diagram { flex-direction: column; }
+    .stack-arrow { transform: rotate(90deg); }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand"><a href="https://radulradul.github.io/">← Iliya Angelov Radulov — portfolio</a></span>
+  <div class="nav-links">
+    <a href="#setup">Setup</a>
+    <a href="#auth">Auth</a>
+    <a href="#query">Querying</a>
+    <a href="#outcome">Outcome</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <p class="hero-eyebrow">Data Engineering Project</p>
+  <h1>Connecting <span>KNIME</span> to<br>Google BigQuery</h1>
+  <p class="hero-sub">
+    End-to-end setup of a visual analytics pipeline — from GCP service account configuration and JDBC driver registration to live SQL queries against a shared cloud dataset.
+  </p>
+  <div class="hero-tags">
+    <span class="tag">KNIME Analytics Platform</span>
+    <span class="tag">Google BigQuery</span>
+    <span class="tag">JDBC</span>
+    <span class="tag">IAM & Service Accounts</span>
+    <span class="tag">SQL</span>
+    <span class="tag">GCP</span>
+  </div>
+</header>
+
+<!-- STACK DIAGRAM -->
+<section class="stack-section">
+  <h2>Architecture</h2>
+  <div class="stack-diagram">
+    <div class="stack-node">
+      <span class="node-icon">☁️</span>
+      <div class="node-name">Google BigQuery</div>
+      <div class="node-sub">mystical-proj-500509</div>
+    </div>
+    <div class="stack-arrow">→</div>
+    <div class="stack-node">
+      <span class="node-icon">🔑</span>
+      <div class="node-name">Service Account</div>
+      <div class="node-sub">JSON key / IAM roles</div>
+    </div>
+    <div class="stack-arrow">→</div>
+    <div class="stack-node highlight">
+      <span class="node-icon">🔌</span>
+      <div class="node-name">Simba JDBC Driver</div>
+      <div class="node-sub">OAuthType=2</div>
+    </div>
+    <div class="stack-arrow">→</div>
+    <div class="stack-node">
+      <span class="node-icon">🟡</span>
+      <div class="node-name">KNIME Workflow</div>
+      <div class="node-sub">DB Query Reader</div>
+    </div>
+    <div class="stack-arrow">→</div>
+    <div class="stack-node">
+      <span class="node-icon">📊</span>
+      <div class="node-name">Analysis & Charts</div>
+      <div class="node-sub">go_explore_project</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<main class="content">
+
+  <!-- SECTION 1 — OVERVIEW -->
+  <section class="section">
+    <p class="section-label">Background</p>
+    <h2>What we built</h2>
+    <p>
+      The goal was to connect KNIME Analytics Platform — a node-based visual data tool — to a shared Google BigQuery project, so that data in the cloud could be queried, explored, and visualized locally without writing any application code.
+    </p>
+    <p>
+      This required three distinct layers of setup: GCP infrastructure (service account + IAM roles), a JDBC driver registration inside KNIME, and a working workflow with an authenticated connector node pointing at the right project.
+    </p>
+  </section>
+
+  <!-- SECTION 2 — GCP SETUP -->
+  <section class="section" id="setup">
+    <p class="section-label">Step 1 — GCP</p>
+    <h2>Service account & IAM roles</h2>
+    <p>
+      KNIME connects to BigQuery using a service account — a non-human identity with its own credentials and permissions. The key insight here is that the roles must be assigned to the <em>service account</em>, not just to the user's personal Google account.
+    </p>
+
+    <table>
+      <thead>
+        <tr><th>IAM Role</th><th>Purpose</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge">BigQuery Job User</span></td>
+          <td>Run queries and jobs against the project</td>
+          <td><span class="badge green">✓ Required</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge">BigQuery Data Viewer</span></td>
+          <td>Read tables and datasets</td>
+          <td><span class="badge green">✓ Required</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge">Service Usage Consumer</span></td>
+          <td>Use enabled GCP APIs (including BigQuery API)</td>
+          <td><span class="badge green">✓ Required</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>Common mistake:</strong> Assigning roles to a personal Gmail account instead of to the service account email (<code>test-911@mystical-proj-500509.iam.gserviceaccount.com</code>). KNIME authenticates as the service account — the personal account's roles have no effect on connector execution.
+    </div>
+
+    <img src="IAM_roles.png" alt="GCP IAM roles assigned to the service account" style="width:100%;max-width:600px;margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+
+    <p>After creating the service account, a JSON key file was downloaded from GCP Console → IAM & Admin → Service Accounts → Keys. This file is used by KNIME's Google Authenticator node.</p>
+  </section>
+
+  <!-- SECTION 3 — DRIVER -->
+  <section class="section" id="auth">
+    <p class="section-label">Step 2 — KNIME</p>
+    <h2>Registering the Simba JDBC driver</h2>
+    <p>
+      BigQuery's JDBC driver is not bundled with KNIME due to licensing restrictions. It must be downloaded separately from Google and registered manually before the BigQuery Connector node can use it.
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Download the Simba BigQuery JDBC driver</h3>
+          <p>From Google Cloud documentation → ODBC/JDBC drivers page. Extract the ZIP — it contains dozens of <code>.jar</code> files.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Open KNIME Preferences → Databases</h3>
+          <p>File → Preferences → KNIME → Databases → Register new driver.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Fill in the driver registration form</h3>
+          <p>Set an ID (e.g. <code>bigquery-driver</code>), select Database Type: <strong>Google BigQuery</strong>, and paste the URL template below.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Add all .jar files from the extracted folder</h3>
+          <p>Click "Add directory" and point to the unzipped Simba folder. Click "Find driver classes" — select <code>com.simba.googlebigquery.jdbc.Driver</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="dot-row"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+        <span>JDBC URL Template</span>
+      </div>
+      <code><span class="kw">jdbc:bigquery://</span><span class="str">&lt;host&gt;</span>:<span class="str">&lt;port&gt;</span>;ProjectId=<span class="str">&lt;database&gt;</span>;OAuthType=<span class="fn">2</span>;</code>
+    </div>
+  
+    <img src="driver.png" alt="BigQuery JDBC Driver Registration" style="width:100%;max-width:600px;margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+
+    <div class="callout">
+      <strong>OAuthType=2</strong> tells the driver to use a pre-generated access token — exactly what the Google Authenticator node provides. This is what links the authentication node to the connector node.
+    </div>
+  </section>
+
+  <!-- SECTION 4 — CONNECTOR SETTINGS -->
+  <section class="section">
+    <p class="section-label">Step 3 — KNIME</p>
+    <h2>Configuring the BigQuery Connector node</h2>
+    <p>With the driver registered, the BigQuery Connector node (Node 2) is configured with the following connection settings:</p>
+
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Database Driver</td><td><span class="badge">BigQuery</span> (registered driver)</td></tr>
+        <tr><td>Hostname</td><td><code>https://www.googleapis.com/bigquery/v2</code></td></tr>
+        <tr><td>Port</td><td><code>443</code></td></tr>
+        <tr><td>Database Name</td><td><code>mystical-proj-500509</code> (GCP Project ID)</td></tr>
+      </tbody>
+    </table>
+
+    <img src="Connector_Settings.png" alt="BigQuery Connector Settings" style="width:100%;max-width:600px;margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+
+    <p>The Google Authenticator node (Node 1) is connected to the input port of the BigQuery Connector. It loads the service account JSON key file and generates the OAuth token consumed by the JDBC driver.</p>
+  </section>
+
+  <!-- SECTION 5 — QUERYING -->
+  <section class="section" id="query">
+    <p class="section-label">Step 4 — Querying</p>
+    <h2>Running SQL against the dataset</h2>
+    <p>
+      With the connector node showing a green status light, a <strong>DB Query Reader</strong> node is attached. The left panel of the node dialog shows the full database metadata tree — all datasets and tables are visible and browsable without leaving KNIME.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="dot-row"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+        <span>DB Query Reader — SQL Statement</span>
+      </div>
+      <code><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> <span class="str">`mystical-proj-500509.go_explore_project.products`</span>
+<span class="kw">LIMIT</span> <span class="fn">100</span></code>
+    </div>
+
+    <img src="DB_Query_Reader.png" alt="DB Query Reader Settings" style="width:100%;max-width:600px;margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+
+    <div class="callout">
+      <strong>BigQuery SQL tip:</strong> Table names must be wrapped in backticks (<code>` `</code>), not single quotes. The full path is always <code>project.dataset.table</code>.
+    </div>
+
+    <img src="Full_Workflow.png" alt="Full Workflow" style="width:100%;max-width:600px;margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+
+    <p>
+      The preview panel returned live data immediately — product lines, categories, and pricing across the <code>go_explore_project</code> dataset. The full workflow produces a KNIME data table that can be connected to any downstream analysis or visualization node.
+    </p>
+    
+  </section>
+
+  <!-- SECTION 6 — WORKFLOW -->
+  <section class="section">
+    <p class="section-label">Final Workflow</p>
+    <h2>The complete node chain</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Google Authenticator</h3>
+          <p>Loads the service account JSON key and authenticates with Google APIs. Passes an OAuth token to downstream nodes.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Google BigQuery Connector</h3>
+          <p>Establishes a JDBC connection to <code>mystical-proj-500509</code> using the Simba driver and the token from Node 1.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>DB Query Reader</h3>
+          <p>Executes a SQL query against any table in the project. Results are loaded into a KNIME data table for further processing.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Analysis nodes (Table View, Statistics, Charts…)</h3>
+          <p>Any KNIME analysis or visualization node can be connected to the query output — no additional configuration needed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7 — OUTCOME -->
+  <section class="section" id="outcome">
+    <p class="section-label">Outcome</p>
+    <h2>What this enables</h2>
+
+    <div class="outcome-grid">
+      <div class="outcome-card">
+        <div class="oc-icon">🔗</div>
+        <h3>Live cloud connection</h3>
+        <p>Query the shared BigQuery dataset directly from KNIME — no data export or manual download needed.</p>
+      </div>
+      <div class="outcome-card">
+        <div class="oc-icon">🧩</div>
+        <h3>No-code SQL interface</h3>
+        <p>The metadata browser lets you explore tables visually and build queries with auto-complete.</p>
+      </div>
+      <div class="outcome-card">
+        <div class="oc-icon">📈</div>
+        <h3>Visual analytics pipeline</h3>
+        <p>Results flow directly into KNIME's chart, statistics, and machine learning nodes.</p>
+      </div>
+      <div class="outcome-card">
+        <div class="oc-icon">🔒</div>
+        <h3>Secure by design</h3>
+        <p>IAM roles enforce least-privilege access. The service account only has the permissions it needs.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8 — TOOLS -->
+  <section class="section">
+    <p class="section-label">Tools Used</p>
+    <h2>Tech stack</h2>
+    <table>
+      <thead>
+        <tr><th>Tool</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>KNIME Analytics Platform</strong></td><td>Visual workflow engine and SQL client</td></tr>
+        <tr><td><strong>Google BigQuery</strong></td><td>Cloud data warehouse hosting the <code>go_explore_project</code> dataset</td></tr>
+        <tr><td><strong>Simba JDBC Driver</strong></td><td>BigQuery-to-KNIME connection layer</td></tr>
+        <tr><td><strong>GCP IAM</strong></td><td>Service account authentication and access control</td></tr>
+        <tr><td><strong>Docker + Metabase</strong></td><td>Local dashboard layer (separate World 1 setup)</td></tr>
+        <tr><td><strong>DuckDB + VS Code</strong></td><td>Local SQL on flat files (separate World 1 setup)</td></tr>
+      </tbody>
+    </table>
+  </section>
+  
+  <!-- SECTION 9 — CERTIFICATE -->
+  <section class="section">
+    <p class="section-label">Certificate</p>
+    <h2>Completion Certificate</h2>
+    <img src="Certificate.png" alt="BigQuery Connector Settings" style="width:100%;max-width:600px;margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+  </section>
+</main>
+
+<footer>
+  <p>Iliya Radulov — Data Stack Project</p>
+  <p style="margin-top:0.4rem;">KNIME × Google BigQuery × GCP IAM × JDBC</p>
+  <p style="margin-top:0.8rem; font-size:0.68rem;">
+    Part of a broader local data stack — see also
+    <a href="https://andreas-politzer.github.io/local-data-stack-guide/">the team setup guide</a>
+    by Andreas Politzer.
+  </p>
+</footer>
+
+</body>
+</html>

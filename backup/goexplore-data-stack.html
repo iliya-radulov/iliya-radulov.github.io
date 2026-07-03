@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoExplore Data Stack — Local Analytics Project</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3a;
+      --accent: #6c8ef5;
+      --accent2: #50c8a8;
+      --accent3: #f5a623;
+      --text: #e8eaf0;
+      --muted: #8b8fa8;
+      --code-bg: #12151f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(15,17,23,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    nav .brand { font-size: 0.85rem; color: var(--muted); }
+    nav .links { display: flex; gap: 1.5rem; font-size: 0.85rem; }
+    nav .links a { color: var(--muted); }
+    nav .links a:hover { color: var(--text); }
+
+    /* HERO */
+    .hero {
+      max-width: 860px; margin: 0 auto;
+      padding: 5rem 2rem 3rem;
+      text-align: center;
+    }
+    .hero .label {
+      display: inline-block;
+      background: rgba(108,142,245,0.12);
+      border: 1px solid rgba(108,142,245,0.3);
+      color: var(--accent);
+      font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.3rem 0.9rem; border-radius: 20px; margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 1.2rem;
+    }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero p { font-size: 1.1rem; color: var(--muted); max-width: 600px; margin: 0 auto 2rem; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 3rem; }
+    .tag {
+      background: var(--surface); border: 1px solid var(--border);
+      font-size: 0.78rem; padding: 0.3rem 0.75rem; border-radius: 6px; color: var(--muted);
+    }
+
+    /* STATS */
+    .stats {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; max-width: 600px; margin: 0 auto 4rem;
+    }
+    .stat {
+      background: var(--surface); padding: 1.5rem; text-align: center;
+    }
+    .stat .val { font-size: 2rem; font-weight: 700; color: var(--accent); }
+    .stat .lab { font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* SECTIONS */
+    section { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
+    section + section { border-top: 1px solid var(--border); }
+
+    .section-label {
+      font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.5rem;
+    }
+    h2 { font-size: 1.7rem; font-weight: 700; margin-bottom: 1rem; }
+    h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    p { color: var(--muted); margin-bottom: 1rem; }
+
+    /* ARCHITECTURE */
+    .arch {
+      display: flex; align-items: center; gap: 0.5rem;
+      flex-wrap: wrap; margin: 2rem 0;
+    }
+    .arch-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.9rem 1.2rem; text-align: center;
+      min-width: 130px;
+    }
+    .arch-box .icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+    .arch-box .name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .arch-box .desc { font-size: 0.72rem; color: var(--muted); }
+    .arch-arrow { color: var(--border); font-size: 1.4rem; }
+
+    /* STEPS */
+    .steps { display: flex; flex-direction: column; gap: 1.5rem; margin: 2rem 0; }
+    .step { display: flex; gap: 1.2rem; }
+    .step-num {
+      flex-shrink: 0; width: 32px; height: 32px;
+      background: rgba(108,142,245,0.12); border: 1px solid rgba(108,142,245,0.3);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; color: var(--accent);
+    }
+    .step-body h3 { margin-bottom: 0.25rem; }
+    .step-body p { margin: 0; }
+
+    /* CODE */
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.2rem 1.5rem;
+      overflow-x: auto; margin: 1.2rem 0;
+      font-size: 0.82rem; line-height: 1.6;
+    }
+    code { font-family: 'SF Mono', 'Fira Code', monospace; }
+    .kw { color: #c084fc; }
+    .fn { color: #60a5fa; }
+    .str { color: #86efac; }
+    .cm { color: #4b5563; }
+    .num { color: #fbbf24; }
+
+    /* KPI CARDS */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    .kpi-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+    }
+    .kpi-card .kpi-num {
+      font-size: 0.75rem; font-weight: 700; color: var(--accent);
+      letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem;
+    }
+    .kpi-card h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+    .kpi-card p { font-size: 0.85rem; margin: 0; }
+    .kpi-card .formula {
+      margin-top: 0.75rem;
+      background: var(--code-bg); border-radius: 6px;
+      padding: 0.4rem 0.7rem; font-size: 0.75rem;
+      font-family: 'SF Mono', monospace; color: var(--accent2);
+    }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.88rem; }
+    th { text-align: left; padding: 0.6rem 1rem; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+    td { padding: 0.7rem 1rem; border-bottom: 1px solid rgba(42,45,58,0.5); color: var(--muted); }
+    td:first-child { color: var(--text); font-weight: 500; }
+
+    /* LEARNINGS */
+    .learnings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    .learning {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem;
+    }
+    .learning .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .learning h3 { font-size: 0.9rem; margin-bottom: 0.4rem; }
+    .learning p { font-size: 0.82rem; margin: 0; }
+
+    /* INSIGHT BOX */
+    .insight {
+      background: rgba(80,200,168,0.07); border: 1px solid rgba(80,200,168,0.25);
+      border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0;
+      font-size: 0.88rem; color: var(--text);
+    }
+    .insight strong { color: var(--accent2); }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center; padding: 2.5rem;
+      font-size: 0.82rem; color: var(--muted);
+    }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">Iliya Angelov Radulov — Portfolio</span>
+  <div class="links">
+    <a href="#stack">Stack</a>
+    <a href="#docker">Docker</a>
+    <a href="#data">Data</a>
+    <a href="#kpis">KPIs</a>
+    <a href="#queries">Queries</a>
+    <a href="#learnings">Learnings</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="label">Data Engineering Project</div>
+  <h1>GDPR-Compliant <em>Open Source</em><br/>Local Data Stack</h1>
+  <p>Replaced Google's cloud ecosystem with a fully self-hosted analytics pipeline — Docker, Postgres, Metabase, and VS Code — running entirely on local infrastructure.</p>
+  <div class="tags">
+    <span class="tag">Docker</span>
+    <span class="tag">PostgreSQL 18</span>
+    <span class="tag">Metabase</span>
+    <span class="tag">VS Code + SQLTools</span>
+    <span class="tag">SQL</span>
+    <span class="tag">GDPR Compliant</span>
+    <span class="tag">Open Source</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="val">4</div><div class="lab">CSV datasets loaded</div></div>
+    <div class="stat"><div class="val">3</div><div class="lab">KPI dashboards built</div></div>
+    <div class="stat"><div class="val">21</div><div class="lab">Countries analysed</div></div>
+  </div>
+</div>
+
+<!-- BACKGROUND -->
+<section id="stack">
+  <div class="section-label">Background</div>
+  <h2>Why replace the Google stack?</h2>
+  <p>The GoExplore project originally relied on Google Sheets, BigQuery, and Looker Studio — all US-hosted cloud services. For a European team processing retail sales data, this creates GDPR exposure: data leaves the EU, vendor lock-in is real, and costs scale unpredictably.</p>
+  <p>The goal was to rebuild the same analytical capability — data storage, SQL querying, and KPI dashboards — using only open source tools running locally, with zero dependency on any external cloud provider.</p>
+
+  <div class="arch">
+    <div class="arch-box">
+      <div class="icon">📁</div>
+      <div class="name">CSV Files</div>
+      <div class="desc">GoExplore datasets</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">
+      <div class="icon">🐘</div>
+      <div class="name">PostgreSQL 18</div>
+      <div class="desc">Local Mac install</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">
+      <div class="icon">🐳</div>
+      <div class="name">Metabase</div>
+      <div class="desc">Docker container</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">
+      <div class="icon">📊</div>
+      <div class="name">Dashboards</div>
+      <div class="desc">localhost:3000</div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Google Tool</th><th>Open Source Replacement</th><th>Hosting</th></tr>
+    <tr><td>Google Sheets</td><td>PostgreSQL 18 + CSV upload</td><td>Local Mac</td></tr>
+    <tr><td>BigQuery</td><td>PostgreSQL 18 (Postgres.app)</td><td>Local Mac</td></tr>
+    <tr><td>Looker Studio</td><td>Metabase Community Edition</td><td>Docker</td></tr>
+    <tr><td>Cloud SQL editor</td><td>VS Code + SQLTools</td><td>Local</td></tr>
+  </table>
+</section>
+
+<!-- DOCKER -->
+<section id="docker">
+  <div class="section-label">Docker Setup</div>
+  <h2>Cleaning the environment &amp; deploying Metabase</h2>
+  <p>Before building anything, the local Docker environment was in a messy state — a legacy Apache Superset stack left over from a previous attempt, plus several orphaned containers holding onto ports. Getting to a clean slate was the first real engineering challenge.</p>
+
+  <h3>Problem 1 — Port conflicts</h3>
+  <p>The first nginx container launch failed immediately on port 8080. The second attempt on port 8081 failed too. Both ports were held by stopped (but not removed) containers — a common Docker pitfall.</p>
+
+  <pre><code><span class="cm"># Error on port 8080</span>
+docker run --name website -p 8080:80 nginx
+<span class="cm">→ Bind for 0.0.0.0:8080 failed: port is already allocated</span>
+
+<span class="cm"># Error on port 8081 too</span>
+docker run --name website -p 8081:80 nginx
+<span class="cm">→ Bind for 0.0.0.0:8081 failed: port is already allocated</span>
+
+<span class="cm"># Diagnosis: find what owns the port</span>
+lsof -i :8080
+docker ps -a  <span class="cm"># stopped containers still hold ports</span></code></pre>
+
+  <h3>Problem 2 — Legacy Superset stack</h3>
+  <p>A full Apache Superset installation was discovered: 11 containers (running and stopped), ~8GB of images across 14 image layers, and 11 named volumes. The decision was to remove everything and start clean.</p>
+
+  <div class="kpi-grid" style="grid-template-columns: repeat(3,1fr); margin: 1.5rem 0;">
+    <div class="kpi-card">
+      <div class="kpi-num">Removed</div>
+      <h3>11 containers</h3>
+      <p>Including superset, worker, worker-beat, websocket, init, node, nginx, redis, postgres</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">Freed</div>
+      <h3>~8 GB images</h3>
+      <p>superset (1.48GB ×4), superset-node (697MB), apache/superset (785MB), latest-dev (1.32GB)</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">Cleared</div>
+      <h3>11 volumes</h3>
+      <p>superset_db_home, superset_redis, superset_superset_data, superset_home + 7 anonymous volumes</p>
+    </div>
+  </div>
+
+  <pre><code><span class="cm"># Stop and remove all containers</span>
+docker rm -f $(docker ps -aq)
+
+<span class="cm"># Remove Superset images</span>
+docker rmi apache/superset:latest \
+  superset-superset:latest \
+  superset-superset-worker:latest \
+  superset-superset-init:latest \
+  superset-superset-node:latest \
+  superset-superset-websocket:latest
+
+<span class="cm"># Remove all Superset volumes</span>
+docker volume rm superset_db_home superset_redis \
+  superset_superset_data superset_superset_home
+
+<span class="cm"># Final clean state: only nginx, postgres:17, redis:7 remain</span>
+docker images</code></pre>
+
+  <div class="insight">
+    <strong>Result:</strong> From 14 images and 11 containers down to 3 lightweight base images. ~8GB freed in under 2 minutes.
+  </div>
+
+  <h3>Deploying Metabase with docker-compose</h3>
+  <p>With a clean environment, Metabase was deployed as a single container pointed at the native Postgres 18 instance. The critical networking detail: Docker containers on Mac cannot reach <code>localhost</code> — they must use <code>host.docker.internal</code> instead.</p>
+
+  <pre><code><span class="cm"># docker-compose.yml</span>
+services:
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    ports:
+      - <span class="str">"3000:3000"</span>
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: <span class="num">5432</span>
+      MB_DB_USER: postgres
+      MB_DB_PASS: postgres123
+      MB_DB_HOST: host.docker.internal  <span class="cm"># Mac bridge — not localhost!</span>
+    restart: unless-stopped</code></pre>
+
+  <pre><code><span class="cm"># Create the Metabase app database first</span>
+psql -h localhost -U postgres -c <span class="str">"CREATE DATABASE metabase;"</span>
+
+<span class="cm"># Launch</span>
+docker compose up -d
+
+<span class="cm"># Watch for "Metabase Initialization COMPLETE"</span>
+docker logs -f metabase</code></pre>
+
+  <div class="insight">
+    <strong>Metabase initialized in 8 seconds</strong> and ran 1,125 database migrations against Postgres 18 on first boot. Available at <code>http://localhost:3000</code> immediately after.
+  </div>
+</section>
+
+<!-- DATA -->
+<section id="data">
+  <div class="section-label">Data Setup</div>
+  <h2>Loading the GoExplore dataset</h2>
+  <p>The GoExplore dataset consists of four CSV files covering retail sales activity across 21 countries. Rather than uploading to a cloud warehouse, all files were loaded directly into a local Postgres 18 instance via Metabase's built-in CSV upload — no ETL pipeline required.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Docker environment cleanup</h3>
+        <p>Removed a legacy Apache Superset stack (~8GB of images) and 11 orphaned containers, leaving only nginx, postgres:17, and redis as base images.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Metabase deployment</h3>
+        <p>Single <code>docker-compose.yml</code> with Metabase pointing at the native Postgres 18 instance via <code>host.docker.internal</code> — the Docker bridge to the Mac's localhost.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>CSV upload → Postgres tables</h3>
+        <p>Four CSV files uploaded via Metabase's UI. Each becomes a Postgres table automatically — no schema definition needed.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>VS Code SQL connection</h3>
+        <p>SQLTools + PostgreSQL driver installed. Connected directly to the <code>metabase</code> database where the <code>go_</code> tables live.</p>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="cm">-- Four tables created from CSV upload</span>
+<span class="kw">SELECT</span> table_name, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> rows
+<span class="kw">FROM</span> information_schema.tables t
+<span class="kw">JOIN</span> (
+  <span class="kw">SELECT</span> table_name, <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> go_daily_sales_20260625183936 <span class="kw">UNION ALL</span>
+  <span class="kw">SELECT</span> table_name, <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> go_products_20260625183647 <span class="kw">UNION ALL</span>
+  <span class="kw">SELECT</span> table_name, <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> go_retailers_20260625183636 <span class="kw">UNION ALL</span>
+  <span class="kw">SELECT</span> table_name, <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> go_methods_20260625184054
+) counts <span class="kw">ON</span> t.table_name = counts.table_name
+<span class="kw">WHERE</span> t.table_name <span class="kw">LIKE</span> <span class="str">'go_%'</span>;</code></pre>
+
+  <p>The four tables join on three keys:</p>
+  <pre><code>go_daily_sales  →  go_products    <span class="cm">(via product_number)</span>
+go_daily_sales  →  go_retailers   <span class="cm">(via retailer_code)</span>
+go_daily_sales  →  go_methods     <span class="cm">(via order_method_code)</span></code></pre>
+</section>
+
+<!-- KPIs -->
+<section id="kpis">
+  <div class="section-label">Analysis</div>
+  <h2>KPIs built for the GoExplore case</h2>
+  <p>Three KPIs were selected to answer the two business questions: new market potential (European expansion) and channel performance (specialty vs. general retailers).</p>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-num">KPI 1</div>
+      <h3>Avg Order Value by Country</h3>
+      <p>Baseline metric for the expansion project. Shows which existing markets generate the most revenue per order — a benchmark for the 4 new target countries.</p>
+      <div class="formula">AVG(quantity × unit_sale_price) GROUP BY country</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">KPI 2</div>
+      <h3>Specialty vs General Retailer</h3>
+      <p>Directly answers the Head of Retailer Connections' question. Compares AOV and order volume across all 7 store types.</p>
+      <div class="formula">AVG(quantity × unit_sale_price) GROUP BY type</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">KPI 3</div>
+      <h3>Avg Product Price by Category</h3>
+      <p>Explains why AOV differs across channels. Golf Equipment leads — specialty stores carry premium products, which drives their higher order values.</p>
+      <div class="formula">AVG(unit_price) GROUP BY product__line</div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <strong>Key insight:</strong> Singapore and Mexico lead in average order value. Golf Equipment is the highest-priced category by a significant margin — explaining why Golf Shops show the strongest AOV among specialty retailers.
+  </div>
+</section>
+
+<!-- QUERIES -->
+<section id="queries">
+  <div class="section-label">SQL</div>
+  <h2>Queries behind the dashboards</h2>
+  <p>All three KPIs are powered by SQL queries written in VS Code and executed directly in Metabase. No ORM, no abstraction layer — plain SQL against Postgres.</p>
+
+  <h3>KPI 1 — Average Order Value by Country</h3>
+  <pre><code><span class="kw">SELECT</span>
+  r.country,
+  <span class="fn">ROUND</span>(<span class="fn">AVG</span>(s.quantity * s.unit_sale_price), <span class="num">2</span>) <span class="kw">AS</span> avg_order_value,
+  <span class="fn">COUNT</span>(*) <span class="kw">AS</span> total_orders
+<span class="kw">FROM</span> go_daily_sales_20260625183936 s
+<span class="kw">JOIN</span> go_retailers_20260625183636 r
+  <span class="kw">ON</span> s.retailer_code = r.retailer_code
+<span class="kw">GROUP BY</span> r.country
+<span class="kw">ORDER BY</span> avg_order_value <span class="kw">DESC</span>;</code></pre>
+
+  <h3>KPI 2 — Specialty vs General Retailer Performance</h3>
+  <pre><code><span class="kw">SELECT</span>
+  r.type,
+  <span class="fn">ROUND</span>(<span class="fn">AVG</span>(s.quantity * s.unit_sale_price), <span class="num">2</span>) <span class="kw">AS</span> avg_order_value,
+  <span class="fn">COUNT</span>(*) <span class="kw">AS</span> total_orders
+<span class="kw">FROM</span> go_daily_sales_20260625183936 s
+<span class="kw">JOIN</span> go_retailers_20260625183636 r
+  <span class="kw">ON</span> s.retailer_code = r.retailer_code
+<span class="kw">GROUP BY</span> r.type
+<span class="kw">ORDER BY</span> avg_order_value <span class="kw">DESC</span>;</code></pre>
+
+  <h3>KPI 3 — Average Product Price by Category</h3>
+  <pre><code><span class="kw">SELECT</span>
+  p.product__line,
+  <span class="fn">ROUND</span>(<span class="fn">AVG</span>(p.unit_price), <span class="num">2</span>) <span class="kw">AS</span> avg_price
+<span class="kw">FROM</span> go_products_20260625183647 p
+<span class="kw">GROUP BY</span> p.product__line
+<span class="kw">ORDER BY</span> avg_price <span class="kw">DESC</span>;</code></pre>
+</section>
+
+<!-- LEARNINGS -->
+<section id="learnings">
+  <div class="section-label">Key Learnings</div>
+  <h2>What this project taught</h2>
+
+  <div class="learnings">
+    <div class="learning">
+      <div class="icon">🐳</div>
+      <h3>Docker networking on Mac</h3>
+      <p>Containers can't reach Mac's localhost directly. <code>host.docker.internal</code> is the required bridge — not documented prominently but essential.</p>
+    </div>
+    <div class="learning">
+      <div class="icon">🧹</div>
+      <h3>Clean environment first</h3>
+      <p>Removing 8GB of legacy Superset images before starting saved confusion. A clean Docker state makes debugging much faster.</p>
+    </div>
+    <div class="learning">
+      <div class="icon">📊</div>
+      <h3>Metabase CSV upload</h3>
+      <p>CSV → Postgres in seconds via Metabase's UI. No ETL pipeline needed for small datasets — a practical shortcut for rapid prototyping.</p>
+    </div>
+    <div class="learning">
+      <div class="icon">🔒</div>
+      <h3>GDPR by architecture</h3>
+      <p>When data never leaves your machine, compliance becomes structural rather than procedural. No DPA, no data transfer agreements needed.</p>
+    </div>
+    <div class="learning">
+      <div class="icon">⚡</div>
+      <h3>SQL over GUI tools</h3>
+      <p>Writing KPI queries in VS Code then running them in Metabase is faster and more reproducible than building charts through a visual drag-and-drop interface.</p>
+    </div>
+    <div class="learning">
+      <div class="icon">💰</div>
+      <h3>Zero cost, full capability</h3>
+      <p>The entire stack — Postgres, Metabase, VS Code — is free and open source. No subscription, no query costs, no vendor lock-in.</p>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Tool</th><th>Role</th><th>License</th></tr>
+    <tr><td>PostgreSQL 18 (Postgres.app)</td><td>Primary data store — all GoExplore tables</td><td>PostgreSQL License (free)</td></tr>
+    <tr><td>Docker Desktop</td><td>Container runtime for Metabase</td><td>Free for personal use</td></tr>
+    <tr><td>Metabase Community Edition</td><td>SQL editor + KPI dashboards</td><td>AGPL (free)</td></tr>
+    <tr><td>VS Code + SQLTools</td><td>SQL development environment</td><td>MIT (free)</td></tr>
+    <tr><td>SQLTools PG Driver</td><td>Postgres connection from VS Code</td><td>MIT (free)</td></tr>
+  </table>
+</section>
+
+<footer>
+  Iliya Radulov — Data Stack Project<br/>
+  Docker · PostgreSQL 18 · Metabase · VS Code · SQL<br/><br/>
+  Part of a broader open source data stack —
+  <a href="https://andreas-politzer.github.io/go_explore/">team guide by Andreas Politzer</a> ·
+  <a href="https://radulradul.github.io/projects/KNIME/knime-ml-portfolio.html">see also: KNIME ML project</a>
+</footer>
+
+</body>
+</html>

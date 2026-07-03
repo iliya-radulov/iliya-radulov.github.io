@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magnetocaloric Materials — Iliya Angelov Radulov</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0a08;
+    --bg-elev:#171310;
+    --bg-elev-2:#1f1a15;
+    --phoenix:#C8721A;
+    --phoenix-glow:#F0A855;
+    --text:#f2ede4;
+    --muted:#a89d8c;
+    --muted-2:#6f6558;
+    --line:#332a20;
+    --line-soft:#241d16;
+    --serif: 'Fraunces', serif;
+    --sans: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-weight:300;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--phoenix); color:#0c0a08; }
+
+  a{ color:var(--phoenix-glow); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+  }
+
+  :focus-visible{ outline:2px solid var(--phoenix); outline-offset:3px; }
+
+  .wrap{ max-width:920px; margin:0 auto; padding:0 28px; }
+
+  /* -------- Back link -------- */
+  .backbar{
+    position:sticky; top:0; z-index:40;
+    background:rgba(12,10,8,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .backbar .wrap{ display:flex; align-items:center; justify-content:space-between; padding:14px 28px; }
+  .backbar a.home{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.04em; color:var(--muted);
+  }
+  .backbar a.home:hover{ color:var(--phoenix); text-decoration:none; }
+  .backbar .tag{
+    font-family:var(--mono); font-size:11px; color:var(--muted-2); letter-spacing:.08em; text-transform:uppercase;
+  }
+
+  /* -------- Hero -------- */
+  .hero{
+    position:relative;
+    padding:96px 0 64px;
+    overflow:hidden;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .hero-loop{
+    position:absolute;
+    right:-120px; top:-60px;
+    width:560px; height:560px;
+    opacity:0.55;
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--phoenix);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:""; width:26px; height:1px; background:var(--phoenix); display:inline-block;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:clamp(2.4rem, 6vw, 3.9rem);
+    line-height:1.04;
+    letter-spacing:-0.01em;
+    margin:0 0 26px;
+    max-width:11ch;
+  }
+  h1.title em{
+    font-style:italic;
+    font-weight:400;
+    color:var(--phoenix);
+  }
+  .dek{
+    font-size:1.15rem;
+    font-weight:300;
+    color:var(--muted);
+    max-width:58ch;
+    margin:0;
+  }
+  .dek strong{ color:var(--text); font-weight:500; }
+
+  /* -------- Stat strip -------- */
+  .statstrip{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    border-top:1px solid var(--line-soft);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .stat{
+    padding:30px 24px;
+    border-right:1px solid var(--line-soft);
+  }
+  .stat:last-child{ border-right:none; }
+  .stat .num{
+    font-family:var(--serif);
+    font-size:2.1rem;
+    font-weight:500;
+    color:var(--phoenix);
+    line-height:1;
+    display:block;
+    margin-bottom:8px;
+  }
+  .stat .lbl{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--muted);
+    line-height:1.5;
+    letter-spacing:.01em;
+  }
+
+  @media (max-width: 720px){
+    .statstrip{ grid-template-columns:repeat(2,1fr); }
+    .stat{ border-bottom:1px solid var(--line-soft); }
+    .stat:nth-child(2n){ border-right:none; }
+  }
+
+  /* -------- Section framing -------- */
+  section.block{ padding:76px 0; border-bottom:1px solid var(--line-soft); }
+  section.block:last-of-type{ border-bottom:none; }
+
+  .section-head{
+    display:flex; align-items:baseline; gap:18px;
+    margin-bottom:36px;
+  }
+  .section-head .idx{
+    font-family:var(--mono); font-size:13px; color:var(--muted-2);
+  }
+  .section-head h2{
+    font-family:var(--serif); font-weight:500; font-size:1.9rem;
+    margin:0; letter-spacing:-0.005em;
+  }
+  .section-head::after{
+    content:""; flex:1; height:1px; background:var(--line);
+  }
+
+  p{ margin:0 0 20px; color:var(--text); font-size:1.02rem; }
+  .lede{ font-size:1.12rem; color:var(--muted); max-width:68ch; }
+  .prose{ max-width:68ch; }
+  .prose p{ color:#d9d2c6; }
+
+  .pull{
+    font-family:var(--serif);
+    font-style:italic;
+    font-weight:400;
+    font-size:1.5rem;
+    line-height:1.42;
+    color:var(--phoenix-glow);
+    border-left:2px solid var(--phoenix);
+    padding:4px 0 4px 26px;
+    margin:36px 0;
+    max-width:56ch;
+  }
+
+  /* -------- Dilemma two-column -------- */
+  .dilemma{
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:0; border:1px solid var(--line); margin-top:8px;
+  }
+  .dilemma .col{ padding:28px 26px; }
+  .dilemma .col:first-child{ border-right:1px solid var(--line); }
+  .dilemma .col h3{
+    font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    margin:0 0 12px; display:flex; align-items:center; gap:8px;
+  }
+  .dilemma .col.heavy h3{ color:var(--phoenix); }
+  .dilemma .col.light h3{ color:var(--phoenix-glow); }
+  .dilemma .col p{ font-size:.95rem; color:var(--muted); margin:0; }
+  .dilemma .col .els{ font-family:var(--mono); font-size:.9rem; color:var(--text); margin-bottom:10px; }
+  @media (max-width:640px){
+    .dilemma{ grid-template-columns:1fr; }
+    .dilemma .col:first-child{ border-right:none; border-bottom:1px solid var(--line); }
+  }
+
+  /* -------- Contributions list -------- */
+  .contrib{
+    counter-reset: contrib;
+    display:flex; flex-direction:column;
+  }
+  .contrib-item{
+    counter-increment: contrib;
+    position:relative;
+    padding:30px 0 30px 64px;
+    border-top:1px solid var(--line-soft);
+  }
+  .contrib-item:first-child{ border-top:none; }
+  .contrib-item::before{
+    content: counter(contrib, decimal-leading-zero);
+    position:absolute; left:0; top:30px;
+    font-family:var(--mono); font-size:13px; color:var(--phoenix);
+  }
+  .contrib-item h3{
+    font-family:var(--sans); font-weight:500; font-size:1.08rem;
+    color:var(--text); margin:0 0 8px;
+  }
+  .contrib-item p{
+    color:var(--muted); font-size:.98rem; max-width:64ch; margin:0;
+  }
+
+  /* -------- Impact grid -------- */
+  .impact-grid{
+    display:grid; grid-template-columns:1.3fr 1fr; gap:28px;
+  }
+  .impact-card{
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    padding:26px 24px;
+  }
+  .impact-card h3{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 14px;
+  }
+  .impact-card .big{
+    font-family:var(--serif); font-size:2.6rem; color:var(--phoenix); line-height:1; margin-bottom:10px;
+  }
+  .impact-card p{ color:var(--muted); font-size:.92rem; margin:0; }
+  @media (max-width:720px){ .impact-grid{ grid-template-columns:1fr; } }
+
+  /* -------- References -------- */
+  .refs{
+    font-family:var(--mono);
+    font-size:.83rem;
+    color:var(--muted);
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .refs .ref{ display:flex; gap:14px; }
+  .refs .ref .n{ color:var(--phoenix); flex:0 0 28px; }
+  .refs .ref .t{ line-height:1.6; }
+
+  footer{
+    padding:56px 0 80px;
+    text-align:center;
+  }
+  footer .backhome{
+    font-family:var(--mono); font-size:13px; color:var(--muted);
+    border:1px solid var(--line); padding:12px 22px; display:inline-block;
+  }
+  footer .backhome:hover{ color:var(--phoenix); border-color:var(--phoenix); text-decoration:none; }
+
+  .divider-loop{
+    display:block; margin:0 auto; width:120px; height:40px; opacity:.5;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="backbar">
+  <div class="wrap">
+    <a class="home" href="https://radulradul.github.io/">← Iliya Angelov Radulov</a>
+    <span class="tag">Lab Research</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <svg class="hero-loop" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M 60 200 C 60 120, 140 60, 200 60 C 280 60, 340 110, 340 180 C 340 240, 290 260, 230 250 C 170 240, 120 260, 120 210 C 120 170, 170 150, 220 165 C 270 180, 290 220, 260 250"
+      fill="none" stroke="#ff6a1f" stroke-width="1.4" opacity="0.9"/>
+    <path d="M 80 220 C 80 150, 150 90, 205 90 C 275 90, 325 135, 325 195 C 325 245, 280 262, 228 253"
+      fill="none" stroke="#ffb347" stroke-width="1" opacity="0.5"/>
+    <circle cx="200" cy="200" r="2.5" fill="#ff6a1f"/>
+  </svg>
+  <div class="wrap">
+    <div class="eyebrow">Magnetocaloric Materials</div>
+    <h1 class="title">Cooling by <em>magnetic field</em>, not gas compression</h1>
+    <p class="dek">Solid-state refrigeration built on the magnetocaloric effect (MCE): align magnetic moments with a field and the material heats; remove the field and it <strong>cools below where it started</strong>. My work develops the alloys, processing routes, and diagnostic tools that turn this effect into usable technology — from room-temperature cooling to hydrogen liquefaction.</p>
+  </div>
+</header>
+
+<div class="statstrip">
+  <div class="stat"><span class="num">+35%</span><span class="lbl">energy efficiency vs. vapor-compression cooling</span></div>
+  <div class="stat"><span class="num">23%</span><span class="lbl">efficiency of conventional Joule-Thomson H₂ liquefaction</span></div>
+  <div class="stat"><span class="num">&gt;60%</span><span class="lbl">theoretical efficiency of magnetocaloric H₂ liquefaction</span></div>
+  <div class="stat"><span class="num">200 K</span><span class="lbl">Curie temperature of pure La(Fe,Si)₁₃ — needs tuning to room temp</span></div>
+</div>
+
+<main class="wrap">
+
+  <section class="block" id="principle">
+    <div class="section-head"><span class="idx">01</span><h2>The material system</h2></div>
+    <div class="prose">
+      <p class="lede">A central focus of my work is La(Fe,Si)₁₃-based alloys — recognized for their giant magnetocaloric effect, high magnetization, and low cost, which makes them strong candidates for real magnetic refrigeration devices.</p>
+      <p>The scientific challenge is twofold: tuning the Curie temperature up from the pure compound's ~200 K to near room temperature, and taming the thermal hysteresis that comes with the alloy's first-order phase transition. I've approached both problems through systematic chemical substitution — Mn, Co, Ni, and Cr — and through hydrogenation of the material.</p>
+    </div>
+    <div class="pull">Magnetic refrigeration trades gaseous refrigerants and compressors for a solid alloy and a magnet — quieter, and built on water instead of gas.</div>
+  </section>
+
+  <section class="block" id="hydrogen">
+    <div class="section-head"><span class="idx">02</span><h2>Why it matters beyond the lab</h2></div>
+    <div class="prose">
+      <p class="lede">Liquid hydrogen is central to a carbon-neutral energy system, but making it is inefficient. Conventional Joule-Thomson expansion liquefaction runs at only about 23% efficiency — too costly for large-scale use.</p>
+      <p>Magnetocaloric liquefaction changes that math: theoretical models put its efficiency above 60%, which is what makes affordable liquid hydrogen production plausible at scale. The catch is materials — this needs alloys with large magnetic entropy and adiabatic temperature change across the 77 K (nitrogen) to 20 K (hydrogen) range, under magnetic fields that are practical to generate commercially.</p>
+    </div>
+  </section>
+
+  <section class="block" id="dilemma">
+    <div class="section-head"><span class="idx">03</span><h2>The materials dilemma</h2></div>
+    <p class="lede">Materials selection for magnetocaloric hydrogen liquefaction runs into a hard trade-off between performance and resource criticality.</p>
+    <div class="dilemma">
+      <div class="col heavy">
+        <h3>⬤ High performance</h3>
+        <div class="els">Gd · Tb · Dy · Ho · Er · Tm</div>
+        <p>Heavy rare-earth intermetallics deliver superior magnetocaloric performance — but these elements are highly critical in terms of resource availability.</p>
+      </div>
+      <div class="col light">
+        <h3>◯ High availability</h3>
+        <div class="els">La · Ce · Pr · Nd</div>
+        <p>Light rare earths are relatively abundant and far less critical — but their alloys generally show weaker magnetocaloric properties.</p>
+      </div>
+    </div>
+    <p style="margin-top:24px; color:var(--muted); font-size:.95rem;">This performance-versus-criticality trade-off is central to scaling magnetocaloric technology for widespread adoption — and it's the throughline across the contributions below.</p>
+  </section>
+
+  <section class="block" id="contributions">
+    <div class="section-head"><span class="idx">04</span><h2>Key contributions</h2></div>
+    <div class="contrib">
+
+      <div class="contrib-item">
+        <h3>Faster, better sample processing</h3>
+        <p>Combining induction melting with suction casting shortened the annealing time of La(Fe,Si)₁₃ compounds by an order of magnitude — improving processing efficiency and widening the range of obtainable NaZn₁₃-type structures. This became the foundation for the systematic substitution studies that followed.</p>
+      </div>
+
+      <div class="contrib-item">
+        <h3>Ni substitution: tuning the transition order</h3>
+        <p>Ni addition raises the transition temperature and, more importantly, converts the phase transition from first-order to second-order. DFT calculations showed Ni atoms preferentially occupy 96i sites without materially changing the total magnetic moment — giving a theoretical basis for the experimental result.</p>
+      </div>
+
+      <div class="contrib-item">
+        <h3>Cr substitution: a counterintuitive result</h3>
+        <p>La(Fe,Cr,Si)₁₃ compounds retain both the magnetocaloric response and the first-order character of the transition despite a significant drop in magnetic moment — challenging the assumption that magnetocaloric performance and moment size must track together.</p>
+      </div>
+
+      <div class="contrib-item">
+        <h3>Mn doping: atomic-scale structure</h3>
+        <p>Using XMCD, EXAFS, and DFT together, this work resolved how Mn doping reshapes the local magnetic and geometric structure of La(Fe,Si)₁₃ — atomic-scale insight into a macroscopic property.</p>
+      </div>
+
+      <div class="contrib-item">
+        <h3>A sharper criterion for transition order</h3>
+        <p>Co-developed a quantitative criterion for classifying magnetic phase transition order from the magnetocaloric effect itself — more accurate than the conventional Banerjee criterion, especially for compositions sitting near the critical point where the transition order is ambiguous.</p>
+      </div>
+
+      <div class="contrib-item">
+        <h3>Mastering hysteresis</h3>
+        <p>Co-authored a comprehensive review on reducing thermal and magnetic hysteresis in first-order magnetocaloric materials — one of the main obstacles between lab-grade material and a device that can cycle reliably.</p>
+      </div>
+
+      <div class="contrib-item">
+        <h3>Composites that survive a real device</h3>
+        <p>Most room-temperature magnetocaloric materials are brittle and corrosion-prone — hard to put directly into a cooling machine. I developed polymer-bonded and metal-bonded composites of La(Fe,Mn,Si)₁₃Hₓ for active magnetic regenerators, systematically mapping how powder particle size, adhesive type and concentration, and compaction pressure affect performance — and introduced a low-melting Field's-metal binder to solve the fatigue issues polymer binders suffer from the material's large magnetovolume effect.</p>
+      </div>
+
+      <div class="contrib-item">
+        <h3>Multi-property probing of the transition</h3>
+        <p>Contributed to simultaneous multi-property probing techniques that combine element-specific and macroscopic hysteresis characterization during magneto-structural phase transitions — giving a more complete picture of what happens inside the material as it switches.</p>
+      </div>
+
+      <div class="contrib-item">
+        <h3>Beyond magnetic field: pressure and multicaloric effects</h3>
+        <p>Ongoing work on the pressure dependence of the MCE and on multicaloric effects — stimulating the material with more than one field at once. In FeRh, exploiting thermal hysteresis across multi-stimuli cycles that combine pulsed magnetic fields with uniaxial load points toward devices that need a smaller, cheaper magnetic field to do the same job.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="block" id="stakes">
+    <div class="section-head"><span class="idx">05</span><h2>The supply-chain stakes</h2></div>
+    <p class="lede">This isn't only a materials-science problem — it sits inside a real geopolitical bottleneck.</p>
+    <div class="impact-grid">
+      <div class="impact-card">
+        <h3>China's share of NdFeB production</h3>
+        <div class="big">85–90%</div>
+        <p>China controls this share of global NdFeB magnet production and dominates midstream rare-earth separation and metal conversion — a critical choke point for Europe and North America.</p>
+      </div>
+      <div class="impact-card">
+        <h3>Rare earth magnet market by 2028</h3>
+        <div class="big">$17.44B</div>
+        <p>Projected market size, driven by the accelerating shift to electric vehicles, wind power, and other clean-energy technologies.</p>
+      </div>
+    </div>
+    <p style="margin-top:24px; color:var(--muted); font-size:.95rem; max-width:64ch;">In response, the European wind industry — with the German Federal Ministry for Economic Affairs and Energy — has set a resilience roadmap targeting 30% of permanent magnets from alternative sources by 2030, rising to 50% by 2035. Research that reduces reliance on critical heavy rare earths, or reduces the field strength a device needs in the first place, feeds directly into that roadmap.</p>
+  </section>
+
+  <section class="block" id="references">
+    <div class="section-head"><span class="idx">06</span><h2>Literature</h2></div>
+    <div class="refs">
+      <div class="ref"><span class="n">[1]</span><span class="t">A. Vinod, D. Arvindha Babu, M. Wuppulluri, "A Short Review on the Evolution of Magnetocaloric La(Fe,Si)13 and Its Fabrication through Melt Spinning," ACS Omega, 2024.</span></div>
+      <div class="ref"><span class="n">[2]</span><span class="t">V. Paul-Boncour, L. Bessais, "Tuning the Magnetocaloric Properties of the La(Fe,Si)13 Compounds by Chemical Substitution and Light Element Insertion," Magnetochemistry, 7(1), p.13, 2021.</span></div>
+      <div class="ref"><span class="n">[3]</span><span class="t">I.A. Radulov, K.P. Skokov, D.Y. Karpenkov, T. Gottschall, O. Gutfleisch, "On the preparation of La(Fe,Mn,Si)13Hx polymer-composites with optimized magnetocaloric properties," J. Magn. Magn. Mater., 396, 228–236, 2015.</span></div>
+      <div class="ref"><span class="n">[4]</span><span class="t">T. Gottschall, K.P. Skokov, M. Fries, A. Taubel, I. Radulov, F. Scheibel, D. Benke, S. Riegg, O. Gutfleisch, "Making a Cool Choice: The Materials Library of Magnetic Refrigeration," Adv. Energy Mater., 2019.</span></div>
+      <div class="ref"><span class="n">[5]</span><span class="t">L.M. Moreno-Ramírez, C. Romero-Muñiz, J.Y. Law, V. Franco, A. Conde, I.A. Radulov, F. Maccari, K.P. Skokov, O. Gutfleisch, "The role of Ni in modifying the order of the phase transition of La(Fe,Ni,Si)13," Acta Mater., 160, 137–146, 2018.</span></div>
+      <div class="ref"><span class="n">[6]</span><span class="t">B. Eggert, J. Lill, D. Günzing, A. Terwey, I.A. Radulov, F. Wilhelm, A. Rogalev, M. Rovezzi, K. Skokov, K. Ollefs, O. Gutfleisch, M.E. Gruner, H. Wende, "Local magnetic and geometric structure in Mn-doped La(Fe,Si)13," J. Alloys Compd., 1031, 180586, 2025.</span></div>
+      <div class="ref"><span class="n">[7]</span><span class="t">L.M. Moreno-Ramírez, C. Romero-Muñiz, J.Y. Law, V. Franco, A. Conde, I.A. Radulov, F. Maccari, K.P. Skokov, O. Gutfleisch, "Tunable first order transition in La(Fe,Cr,Si)13 compounds," Acta Mater., 175, 406–414, 2019.</span></div>
+      <div class="ref"><span class="n">[8]</span><span class="t">I.A. Radulov, D.Y. Karpenkov, K.P. Skokov, A.Y. Karpenkov, T. Braun, V. Brabänder, T. Gottschall, M. Pabst, B. Stoll, O. Gutfleisch, "Production and properties of metal-bonded La(Fe,Mn,Si)13Hx composite material," Acta Mater., 127, 389–399, 2017.</span></div>
+      <div class="ref"><span class="n">[9]</span><span class="t">I.A. Radulov, D.Y. Karpenkov, M. Specht, T. Braun, A.Y. Karpenkov, K.P. Skokov, O. Gutfleisch, "Heat Exchangers from Metal-Bonded La(Fe,Mn,Si)13Hx Powder," IEEE Trans. Magn., 53(11), 2017.</span></div>
+      <div class="ref"><span class="n">[10]</span><span class="t">A. Aubert, K. Skokov, G. Gomez, A. Chirkova, I. Radulov, F. Wilhelm, A. Rogalev, H. Wende, O. Gutfleisch, K. Ollefs, "Simultaneous Multi-Property Probing During Magneto-Structural Phase Transitions," IEEE Trans. Instrum. Meas., 71, 1–9, 2022.</span></div>
+      <div class="ref"><span class="n">[11]</span><span class="t">O. Gutfleisch, T. Gottschall, M. Fries, D. Benke, I. Radulov, K.P. Skokov, H. Wende, M. Gruner, M. Acet, P. Entel, M. Farle, "Mastering hysteresis in magnetocaloric materials," Phil. Trans. R. Soc. A, 374(2074), 2016.</span></div>
+      <div class="ref"><span class="n">[12]</span><span class="t">"Magnetic energy conversion," in Comprehensive Energy Systems, 2025.</span></div>
+      <div class="ref"><span class="n">[13]</span><span class="t">Bundesministerium für Wirtschaft und Energie, "Für mehr Versorgungssicherheit bei Permanentmagneten," Press Release, Aug. 5, 2025.</span></div>
+      <div class="ref"><span class="n">[14]</span><span class="t">E. Righetti, V. Rizos, "Understanding the barriers to recycling critical raw materials for the energy transition," Energy Reports, 12, 1673–1682, 2024.</span></div>
+      <div class="ref"><span class="n">[15]</span><span class="t">G. Li et al., "Rare earth permanent magnets for the green energy transition," Resources, Conservation and Recycling, 2024.</span></div>
+      <div class="ref"><span class="n">[16]</span><span class="t">"Rare Earth Magnet Global Market Insights 2025, Analysis and Forecast to 2030," Research and Markets Report, Nov. 2025.</span></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <svg class="divider-loop" viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M 30 60 C 30 20, 100 10, 150 20 C 220 34, 260 60, 260 90 C 260 105, 220 108, 190 100"
+      fill="none" stroke="#ff6a1f" stroke-width="1.4"/>
+  </svg>
+  <a class="backhome" href="https://radulradul.github.io/">← Back to portfolio</a>
+</footer>
+
+</body>
+</html>

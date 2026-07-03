@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SHOP NOW Button: A/B or Multivariate? — Iliya Angelov Radulov</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --phoenix: #C8721A;
+  --phoenix-light:#E8924A;
+  --phoenix-glow: #F0A855;
+  --dark: #121212;
+  --surface: #1C1C1C;
+  --surface2: #242424;
+  --border: #2E2E2E;
+  --text: #E8E0D8;
+  --text-muted: #8A8078;
+  --content-w: 800px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: var(--text); line-height: 1.6; }
+
+#topbar { position: sticky; top: 0; z-index: 50; background: rgba(18,18,18,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+#topbar .inner { max-width: var(--content-w); margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+#topbar .back { font-size: 0.82rem; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+#topbar .back:hover { color: var(--phoenix-light); }
+#topbar nav { display: flex; gap: 20px; flex-wrap: wrap; }
+#topbar nav a { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); text-decoration: none; font-weight: 600; white-space: nowrap; }
+#topbar nav a:hover { color: var(--phoenix-light); }
+
+header.hero { max-width: var(--content-w); margin: 0 auto; padding: 64px 24px 40px; border-bottom: 1px solid var(--border); }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--phoenix); font-weight: 600; margin-bottom: 14px; }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; line-height: 1.2; color: var(--text); margin-bottom: 18px; }
+.tool-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; }
+.pill { padding: 5px 13px; border-radius: 20px; font-size: 0.76rem; font-weight: 500; background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); }
+.first-person { font-size: 1rem; color: var(--text-muted); line-height: 1.8; max-width: 62ch; }
+.first-person strong { color: var(--text); font-weight: 600; }
+.collab-note { margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+.collab-note a { color: var(--phoenix-light); text-decoration: none; font-weight: 600; }
+
+main { max-width: var(--content-w); margin: 0 auto; padding: 0 24px 80px; }
+.section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+.section:last-of-type { border-bottom: none; }
+.section-label { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--phoenix); font-weight: 600; margin-bottom: 10px; }
+.section h2 { font-family: 'Playfair Display', serif; font-size: 1.55rem; color: var(--text); margin-bottom: 18px; line-height: 1.25; }
+.section p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 16px; max-width: 65ch; }
+.section p strong { color: var(--text); font-weight: 600; }
+
+/* callout: the reframe */
+.reframe-box { margin-top: 20px; padding: 18px 20px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--phoenix); border-radius: 8px; }
+.reframe-box .label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--phoenix-light); font-weight: 700; margin-bottom: 8px; display: block; }
+.reframe-box p { font-size: 0.9rem; margin-bottom: 0; }
+
+/* 2x2 grid diagram */
+.grid2x2-wrap { margin-top: 24px; display: flex; gap: 10px; }
+.grid2x2-yaxis { display: flex; flex-direction: column; justify-content: space-around; gap: 10px; padding-top: 34px; }
+.grid2x2-yaxis span { font-size: 0.76rem; color: var(--text-muted); font-weight: 600; text-align: right; width: 70px; }
+.grid2x2-main { flex: 1; }
+.grid2x2-xaxis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; text-align: center; font-size: 0.76rem; color: var(--text-muted); font-weight: 600; }
+.grid2x2 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
+.grid-cell { border-radius: 10px; padding: 18px; display: flex; flex-direction: column; justify-content: center; min-height: 110px; border: 1px solid var(--border); }
+.grid-cell .v-name { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--text); margin-bottom: 4px; }
+.grid-cell .v-desc { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px; }
+.grid-cell .v-ctr { font-family: 'DM Mono', monospace; font-size: 1.1rem; color: var(--phoenix-glow); font-weight: 500; }
+.grid-cell .v-ctr-lbl { font-size: 0.68rem; color: var(--text-muted); }
+.cell-a { background: var(--surface); }
+.cell-b { background: rgba(200,114,26,0.08); }
+.cell-c { background: rgba(200,114,26,0.16); border-color: var(--phoenix); }
+.cell-d { background: var(--surface); }
+
+/* MVT design questions */
+.q-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+.q-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.q-card .q-title { font-size: 0.86rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.q-card .q-body { font-size: 0.8rem; color: var(--text-muted); }
+
+/* findings */
+.finding { margin-bottom: 44px; }
+.finding:last-child { margin-bottom: 0; }
+.finding-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.finding-num { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--phoenix); border: 1px solid var(--border); background: var(--surface2); border-radius: 5px; padding: 2px 8px; flex-shrink: 0; }
+.finding-head h3 { font-size: 1.06rem; font-weight: 600; color: var(--text); }
+.stat-row { display: flex; gap: 14px; flex-wrap: wrap; margin: 16px 0; }
+.stat-box { flex: 1; min-width: 130px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.stat-box .num { font-family: 'DM Mono', monospace; font-size: 1.3rem; color: var(--phoenix-light); font-weight: 500; }
+.stat-box .lbl { font-size: 0.74rem; color: var(--text-muted); margin-top: 4px; }
+.verdict { margin-top: 14px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--phoenix); border-radius: 6px; font-size: 0.88rem; }
+.verdict .label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--phoenix-light); font-weight: 700; margin-right: 8px; }
+.verdict span.copy { color: var(--text); }
+
+/* pairwise table */
+.pw-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.84rem; }
+.pw-table th { text-align: left; padding: 8px 10px; color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
+.pw-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+.pw-table tr:last-child td { border-bottom: none; }
+.sig-yes { color: var(--phoenix-light); font-weight: 600; }
+.sig-no { color: var(--text-muted); }
+
+/* recs */
+.rec-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+.rec-item { padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; }
+.rec-item strong { color: var(--phoenix-light); }
+.rec-item.avoid { border-left: 3px solid #B23A3A; }
+.rec-item.avoid strong { color: #D97A7A; }
+
+/* closing */
+.closing-quote { font-family: 'Playfair Display', serif; font-size: 1.1rem; line-height: 1.6; color: var(--text); padding: 24px 26px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--phoenix); border-radius: 10px; margin-top: 6px; }
+.closing-quote .attr { display: block; margin-top: 16px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: var(--text-muted); font-style: normal; letter-spacing: 0.03em; }
+
+/* resources */
+.resource-links { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.resource-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; transition: border-color 0.15s; }
+.resource-link:hover { border-color: var(--phoenix); }
+.resource-link .rl-text { font-size: 0.88rem; color: var(--text); font-weight: 500; }
+.resource-link .rl-sub { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
+.resource-link .rl-arrow { color: var(--phoenix-light); font-size: 1rem; flex-shrink: 0; }
+
+footer { max-width: var(--content-w); margin: 0 auto; padding: 40px 24px 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+footer .byline { font-size: 0.82rem; color: var(--text-muted); }
+footer .byline strong { color: var(--text); }
+footer .foot-links { display: flex; gap: 18px; }
+footer .foot-links a { font-size: 0.82rem; color: var(--phoenix-light); text-decoration: none; font-weight: 500; }
+footer .foot-links a:hover { text-decoration: underline; }
+
+@media (max-width: 720px) {
+  .hero h1 { font-size: 1.6rem; }
+  #topbar .inner { flex-direction: column; align-items: flex-start; }
+  #topbar nav { gap: 12px; }
+  .stat-row { flex-direction: column; }
+  .q-grid { grid-template-columns: 1fr; }
+  .grid2x2-wrap { flex-direction: column; }
+  .grid2x2-yaxis { flex-direction: row; justify-content: space-between; padding-top: 0; padding-left: 0; }
+  .grid2x2-yaxis span { width: auto; text-align: left; }
+  .pw-table { font-size: 0.76rem; }
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="inner">
+    <a class="back" href="../../index.html">&larr; Back to portfolio</a>
+    <nav>
+      <a href="#setup">Setup</a>
+      <a href="#design">Design</a>
+      <a href="#findings">Findings</a>
+      <a href="#recommendations">Recommendations</a>
+      <a href="#resources">Resources</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="eyebrow">Former Project · Experimental Design</div>
+  <h1>SHOP NOW Button: A/B Test,<br>or Something More?</h1>
+  <div class="tool-pills">
+    <span class="pill">Python</span>
+    <span class="pill">Pandas</span>
+    <span class="pill">SciPy</span>
+    <span class="pill">Chi-Square Test</span>
+    <span class="pill">Regex</span>
+  </div>
+  <p class="first-person">Eniac wanted to know whether tweaking their "SHOP NOW" button — color, copy, or both — would improve click-through rate. The obvious framing is "A/B test it." But with two variables and four combinations, this is technically a <strong>2×2 multivariate test</strong>, not a simple A/B test — and that distinction turned out to matter, because the two changes didn't just add up, they fought each other. We ran this under our tutor's supervision, and the numbers below are the ones we stand behind.</p>
+  <div class="collab-note">
+    <span>👥</span>
+    <span>Built together with Alon Dar<!-- <a href="ALON_LINK_HERE" target="_blank" rel="noopener">Alon Dar</a> --> — link coming soon.</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- SETUP -->
+  <section class="section" id="setup">
+    <div class="section-label">The Brief</div>
+    <h2>Four button versions, one question</h2>
+    <p>Eniac's "SHOP NOW" button was tested in four variants across roughly <strong>100,000 visits over two weeks</strong>, tracking click-through rate (CTR) as the primary metric.</p>
+    <div class="reframe-box">
+      <span class="label">Not quite A/B</span>
+      <p>Two independent variables — button <strong>color</strong> (original vs. red) and button <strong>copy</strong> ("SHOP NOW" vs. "SEE DEALS") — were combined into four versions. That's a 2×2 factorial design: a multivariate test (MVT) wearing an A/B test's clothes. The difference matters because an MVT can reveal <em>interaction effects</em> — cases where two changes don't just add together, but actively work against each other. A simple A/B test would never catch that.</p>
+    </div>
+
+    <div class="grid2x2-wrap">
+      <div class="grid2x2-yaxis">
+        <span>Original Color</span>
+        <span>Red Color</span>
+      </div>
+      <div class="grid2x2-main">
+        <div class="grid2x2-xaxis">
+          <span>Original Copy</span>
+          <span>"SEE DEALS" Copy</span>
+        </div>
+        <div class="grid2x2">
+          <div class="grid-cell cell-a">
+            <div class="v-name">Version A</div>
+            <div class="v-desc">Control</div>
+            <div class="v-ctr">2.02%</div>
+            <div class="v-ctr-lbl">CTR · 512 / 25,326</div>
+          </div>
+          <div class="grid-cell cell-c">
+            <div class="v-name">Version C</div>
+            <div class="v-desc">New copy only</div>
+            <div class="v-ctr">2.12%</div>
+            <div class="v-ctr-lbl">CTR · 527 / 24,876</div>
+          </div>
+          <div class="grid-cell cell-b">
+            <div class="v-name">Version B</div>
+            <div class="v-desc">Red color only</div>
+            <div class="v-ctr">1.14%</div>
+            <div class="v-ctr-lbl">CTR · 281 / 24,747</div>
+          </div>
+          <div class="grid-cell cell-d">
+            <div class="v-name">Version D</div>
+            <div class="v-desc">Both changes</div>
+            <div class="v-ctr">0.76%</div>
+            <div class="v-ctr-lbl">CTR · 193 / 25,233</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DESIGN -->
+  <section class="section" id="design">
+    <div class="section-label">Getting Started</div>
+    <h2>Key design questions before launching</h2>
+    <p>Before touching the data, we had to answer a handful of design questions — the kind that determine whether the results mean anything at all.</p>
+    <div class="q-grid">
+      <div class="q-card"><div class="q-title">📊 A/B or Multivariate?</div><div class="q-body">2 variables × 4 combinations = a 2×2 factorial design, not a simple A/B test.</div></div>
+      <div class="q-card"><div class="q-title">🎯 What metric?</div><div class="q-body">Primary KPI: click-through rate — a discrete, binomial metric. That points straight to a chi-square test.</div></div>
+      <div class="q-card"><div class="q-title">⚖️ How to split traffic?</div><div class="q-body">Random assignment per visitor, so exposure is equal and unbiased across all four versions.</div></div>
+      <div class="q-card"><div class="q-title">🔬 Guarding against chance?</div><div class="q-body">Significance threshold set at α = 0.05 before launch — not after peeking at results.</div></div>
+      <div class="q-card"><div class="q-title">⏱️ How long to run?</div><div class="q-body">Ran for the full ~2 weeks needed to hit sample size — no early stopping.</div></div>
+      <div class="q-card"><div class="q-title">🛒 What else could we test?</div><div class="q-body">Hero section, search, and pricing UX all get more traffic — but one variable at a time keeps results interpretable.</div></div>
+    </div>
+  </section>
+
+  <!-- FINDINGS -->
+  <section class="section" id="findings">
+    <div class="section-label">Getting Further</div>
+    <h2>What the test actually showed</h2>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-num">01</span><h3>The differences are real, not noise</h3></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="num">203.5</div><div class="lbl">chi-square statistic</div></div>
+        <div class="stat-box"><div class="num">3</div><div class="lbl">degrees of freedom</div></div>
+        <div class="stat-box"><div class="num">6.8×10⁻⁴⁷</div><div class="lbl">p-value</div></div>
+      </div>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">A p-value this small leaves no doubt — the four versions do not perform equally. Something about color or copy is genuinely driving the difference.</span></div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-num">02</span><h3>Copy wins, color backfires</h3></div>
+      <p>Changing only the text to "SEE DEALS" (Version C) nudged CTR slightly above control. Changing only the color to red (Version B) — the "obvious" high-contrast move — actually made things worse.</p>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">The common assumption that red buttons convert better didn't hold up. Copy mattered; color, on its own, hurt.</span></div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-num">03</span><h3>Combining both changes made things worse, not better</h3></div>
+      <p>Version D — red color <em>and</em> new copy — didn't land between B and C. It scored lowest of all four versions, well below even Version B alone.</p>
+      <div class="verdict"><span class="label">Verdict</span><span class="copy">This is the interaction effect an A/B test would have missed entirely: the two changes don't add, they actively undercut each other.</span></div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-num">04</span><h3>Pairwise comparisons, Bonferroni-corrected</h3></div>
+      <p>To see exactly which versions differ from which, we ran pairwise chi-square tests with a Bonferroni-corrected threshold (α = 0.05 / 6 = 0.00833) to avoid false positives from multiple comparisons.</p>
+      <table class="pw-table">
+        <tr><th>Comparison</th><th>P-value</th><th>Significant?</th></tr>
+        <tr><td>A vs B</td><td>7.20×10⁻¹⁵</td><td class="sig-yes">✓ Significant</td></tr>
+        <tr><td>A vs C</td><td>0.474</td><td class="sig-no">✗ Not significant</td></tr>
+        <tr><td>A vs D</td><td>2.28×10⁻³²</td><td class="sig-yes">✓ Significant</td></tr>
+        <tr><td>B vs C</td><td>2.33×10⁻¹⁷</td><td class="sig-yes">✓ Significant</td></tr>
+        <tr><td>B vs D</td><td>2.82×10⁻⁵</td><td class="sig-no">✗ Not significant*</td></tr>
+        <tr><td>C vs D</td><td>6.48×10⁻³⁶</td><td class="sig-yes">✓ Significant</td></tr>
+      </table>
+      <p style="font-size:0.78rem; margin-top:10px; margin-bottom:0;">*B vs D misses the Bonferroni-corrected threshold, even though the raw p-value looks small — a good reminder of why the correction matters when running six comparisons at once.</p>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATIONS -->
+  <section class="section" id="recommendations">
+    <div class="section-label">So What</div>
+    <h2>What we recommended</h2>
+    <div class="rec-list">
+      <div class="rec-item"><strong>Roll out Version C.</strong> "SEE DEALS" is a simple copy change with the best measured CTR — low effort, real (if modest) upside.</div>
+      <div class="rec-item avoid"><strong>Don't ship Version D.</strong> The combination underperforms every other version, including the ones it was built from.</div>
+      <div class="rec-item"><strong>Investigate why red hurt.</strong> It contradicts the usual "high-contrast CTA" assumption — worth testing other colors (green, orange, blue) rather than writing off color changes entirely.</div>
+      <div class="rec-item"><strong>Keep testing combinations, not just single changes.</strong> The interaction effect here only showed up because we tested a full 2×2 grid instead of one variable at a time.</div>
+    </div>
+  </section>
+
+  <!-- CLOSING -->
+  <section class="section">
+    <div class="section-label">Conclusion</div>
+    <h2>My take</h2>
+    <div class="closing-quote">
+      "The statistics weren't the hard part — the hard part was noticing that this wasn't a simple A/B test in the first place. Once we named it correctly as a 2×2 design, the interaction effect between color and copy was the most interesting finding in the whole project, and it's exactly the kind of thing a naive A/B mindset would have missed."
+      <span class="attr">— Iliya, on finishing this project</span>
+    </div>
+  </section>
+
+  <!-- RESOURCES -->
+  <section class="section" id="resources" style="border-bottom:none;">
+    <div class="section-label">Explore Further</div>
+    <h2>Presentation &amp; analysis</h2>
+    <div class="resource-links">
+      <a class="resource-link" href="presentation/AB_Testing_SHOP_NOW_v2.pdf" download="AB_Testing_SHOP_NOW.pdf" rel="noopener">
+        <div><div class="rl-text">Full presentation deck</div><div class="rl-sub">presentation/AB_Testing_SHOP_NOW_v2.pdf</div></div>
+        <span class="rl-arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="byline">By <strong>Iliya Angelov Radulov</strong> with <strong>Alon Dar</strong>.</div>
+  <div class="foot-links">
+    <a href="../../index.html">More projects</a>
+  </div>
+</footer>
+
+</body>
+</html>

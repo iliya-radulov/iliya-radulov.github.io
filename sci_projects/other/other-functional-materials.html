@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Other Functional Materials — Iliya Angelov Radulov</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0a08;
+    --bg-elev:#171310;
+    --bg-elev-2:#1f1a15;
+    --phoenix:#C8721A;
+    --phoenix-glow:#F0A855;
+    --text:#f2ede4;
+    --muted:#a89d8c;
+    --muted-2:#6f6558;
+    --line:#332a20;
+    --line-soft:#241d16;
+    --serif: 'Fraunces', serif;
+    --sans: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-weight:300;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--phoenix); color:#0c0a08; }
+  a{ color:var(--phoenix-glow); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+  }
+
+  :focus-visible{ outline:2px solid var(--phoenix); outline-offset:3px; }
+
+  .wrap{ max-width:920px; margin:0 auto; padding:0 28px; }
+
+  .backbar{
+    position:sticky; top:0; z-index:40;
+    background:rgba(12,10,8,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .backbar .wrap{ display:flex; align-items:center; justify-content:space-between; padding:14px 28px; }
+  .backbar a.home{ font-family:var(--mono); font-size:12.5px; letter-spacing:.04em; color:var(--muted); }
+  .backbar a.home:hover{ color:var(--phoenix); text-decoration:none; }
+  .backbar .tag{ font-family:var(--mono); font-size:11px; color:var(--muted-2); letter-spacing:.08em; text-transform:uppercase; }
+
+  /* -------- Hero -------- */
+  .hero{ position:relative; padding:96px 0 60px; overflow:hidden; border-bottom:1px solid var(--line-soft); }
+  .hero-motif{ position:absolute; right:-100px; top:-50px; width:540px; height:540px; opacity:0.55; pointer-events:none; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--phoenix); display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .eyebrow::before{ content:""; width:26px; height:1px; background:var(--phoenix); display:inline-block; }
+  h1.title{
+    font-family:var(--serif); font-weight:500; font-size:clamp(2.3rem, 5.8vw, 3.7rem);
+    line-height:1.06; letter-spacing:-0.01em; margin:0 0 26px; max-width:13ch;
+  }
+  h1.title em{ font-style:italic; font-weight:400; color:var(--phoenix); }
+  .dek{ font-size:1.15rem; font-weight:300; color:var(--muted); max-width:60ch; margin:0 0 20px; }
+  .dek strong{ color:var(--text); font-weight:500; }
+  .dek2{ font-size:1rem; color:var(--muted-2); max-width:60ch; margin:0; font-family:var(--mono); }
+
+  /* -------- Timeline -------- */
+  .timeline{
+    display:flex; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft);
+  }
+  .tl-item{
+    flex:1; padding:26px 24px; border-right:1px solid var(--line-soft); position:relative;
+  }
+  .tl-item:last-child{ border-right:none; }
+  .tl-item::before{
+    content:""; position:absolute; top:0; left:0; width:100%; height:2px; background:var(--line);
+  }
+  .tl-item.active::before{ background:var(--phoenix); }
+  .tl-year{ font-family:var(--mono); font-size:11.5px; color:var(--phoenix); letter-spacing:.04em; margin-bottom:10px; display:block; }
+  .tl-item h4{ font-family:var(--sans); font-weight:500; font-size:.98rem; margin:0 0 6px; color:var(--text); }
+  .tl-item p{ font-size:.85rem; color:var(--muted); margin:0; }
+  @media (max-width:720px){
+    .timeline{ flex-direction:column; }
+    .tl-item{ border-right:none; border-bottom:1px solid var(--line-soft); }
+  }
+
+  /* -------- Sections -------- */
+  section.block{ padding:76px 0; border-bottom:1px solid var(--line-soft); }
+  section.block:last-of-type{ border-bottom:none; }
+
+  .section-head{ display:flex; align-items:baseline; gap:18px; margin-bottom:14px; }
+  .section-head .idx{ font-family:var(--mono); font-size:13px; color:var(--muted-2); }
+  .section-head h2{ font-family:var(--serif); font-weight:500; font-size:1.85rem; margin:0; letter-spacing:-0.005em; }
+  .section-head::after{ content:""; flex:1; height:1px; background:var(--line); }
+  .section-sub{
+    font-family:var(--mono); font-size:11.5px; color:var(--muted-2); text-transform:uppercase;
+    letter-spacing:.06em; margin-bottom:30px;
+  }
+
+  p{ margin:0 0 20px; color:var(--text); font-size:1.02rem; }
+  .lede{ font-size:1.12rem; color:var(--muted); max-width:68ch; }
+  .prose{ max-width:66ch; }
+  .prose p{ color:#d9d2c6; }
+
+  .pull{
+    font-family:var(--serif); font-style:italic; font-weight:400; font-size:1.45rem; line-height:1.42;
+    color:var(--phoenix-glow); border-left:2px solid var(--phoenix); padding:4px 0 4px 26px; margin:32px 0; max-width:56ch;
+  }
+
+  /* -------- Explainer box -------- */
+  .explainer{
+    background:var(--bg-elev); border:1px solid var(--line); padding:22px 24px; margin:28px 0;
+    display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:start;
+  }
+  .explainer .mark{
+    font-family:var(--serif); font-size:1.6rem; color:var(--phoenix); line-height:1;
+  }
+  .explainer h4{
+    font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--phoenix-glow); margin:0 0 8px;
+  }
+  .explainer p{ font-size:.92rem; color:var(--muted); margin:0; }
+  @media (max-width:560px){ .explainer{ grid-template-columns:1fr; } }
+
+  /* -------- Result cards (thermoelectrics) -------- */
+  .results{ display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:8px; }
+  .result-card{ background:var(--bg-elev); border:1px solid var(--line); padding:26px 24px; }
+  .result-card h3{ font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0 0 14px; }
+  .result-card .big{ font-family:var(--serif); font-size:2.4rem; color:var(--phoenix); line-height:1; margin-bottom:10px; }
+  .result-card p{ color:var(--muted); font-size:.92rem; margin:0; }
+  @media (max-width:720px){ .results{ grid-template-columns:1fr; } }
+
+  /* -------- Compound tags -------- */
+  .tagrow{ display:flex; flex-wrap:wrap; gap:10px; margin:20px 0 8px; }
+  .tag-chip{
+    font-family:var(--mono); font-size:12px; color:var(--text); border:1px solid var(--line);
+    background:var(--bg-elev); padding:7px 14px;
+  }
+  .tag-chip .re{ color:var(--phoenix); }
+
+  /* -------- References -------- */
+  .refs{ font-family:var(--mono); font-size:.83rem; color:var(--muted); display:flex; flex-direction:column; gap:14px; }
+  .refs .ref{ display:flex; gap:14px; }
+  .refs .ref .n{ color:var(--phoenix); flex:0 0 28px; }
+  .refs .ref .t{ line-height:1.6; }
+
+  footer{ padding:56px 0 80px; text-align:center; }
+  footer .backhome{
+    font-family:var(--mono); font-size:13px; color:var(--muted); border:1px solid var(--line);
+    padding:12px 22px; display:inline-block;
+  }
+  footer .backhome:hover{ color:var(--phoenix); border-color:var(--phoenix); text-decoration:none; }
+
+  .divider-motif{ display:block; margin:0 auto; width:140px; height:44px; opacity:.55; }
+
+  .closing{
+    max-width:66ch; margin:0 auto; text-align:left;
+  }
+</style>
+</head>
+<body>
+
+<div class="backbar">
+  <div class="wrap">
+    <a class="home" href="https://radulradul.github.io/">← Iliya Angelov Radulov</a>
+    <span class="tag">Lab Research</span>
+  </div>
+</div>
+
+<header class="hero">
+  <svg class="hero-motif" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- phonon / wave-scattering motif: concentric waves breaking on a lattice of atoms -->
+    <g fill="none" stroke="#ff6a1f" stroke-width="1.1" opacity="0.85">
+      <circle cx="200" cy="210" r="30"/>
+      <circle cx="200" cy="210" r="60"/>
+      <circle cx="200" cy="210" r="92"/>
+      <circle cx="200" cy="210" r="126"/>
+    </g>
+    <g fill="none" stroke="#ffb347" stroke-width="0.8" opacity="0.5">
+      <circle cx="200" cy="210" r="46"/>
+      <circle cx="200" cy="210" r="76"/>
+      <circle cx="200" cy="210" r="110"/>
+    </g>
+    <g fill="#ff6a1f">
+      <circle cx="200" cy="210" r="4.5"/>
+      <circle cx="120" cy="140" r="2.4" opacity="0.8"/>
+      <circle cx="280" cy="140" r="2.4" opacity="0.8"/>
+      <circle cx="120" cy="290" r="2.4" opacity="0.8"/>
+      <circle cx="290" cy="285" r="2.4" opacity="0.8"/>
+      <circle cx="90" cy="215" r="2.4" opacity="0.8"/>
+      <circle cx="320" cy="205" r="2.4" opacity="0.8"/>
+    </g>
+  </svg>
+  <div class="wrap">
+    <div class="eyebrow">Other Functional Materials</div>
+    <h1 class="title">Materials that move <em>heat, charge, and order</em> where you want them</h1>
+    <p class="dek">Two decades of research that sits outside magnetics proper but shares its purpose: functional materials for energy applications. The thread runs from <strong>coupled magnetic and electric order</strong> in multiferroic oxides, through <strong>phonon transport</strong> in thermoelectrics, to the exotic thermal physics of materials near complex phase transitions.</p>
+    <p class="dek2">// multiferroics — thermoelectrics — resonant phonon scattering</p>
+  </div>
+</header>
+
+<div class="timeline">
+  <div class="tl-item active">
+    <span class="tl-year">Early career</span>
+    <h4>Multiferroic oxides</h4>
+    <p>Magnetostriction and magnetoelectric coupling in ReMn₂O₅ manganites.</p>
+  </div>
+  <div class="tl-item active">
+    <span class="tl-year">Ongoing</span>
+    <h4>Thermoelectric processing</h4>
+    <p>Stability and novel synthesis of SnSe and ZrNiSn thermoelectric alloys.</p>
+  </div>
+  <div class="tl-item active">
+    <span class="tl-year">Recent</span>
+    <h4>Resonant phonon scattering</h4>
+    <p>Anomalous thermal conductivity in EuTiO₃ near its structural transitions.</p>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <section class="block" id="intro">
+    <div class="section-head"><span class="idx">01</span><h2>A career built on functional oxides and alloys</h2></div>
+    <div class="prose">
+      <p class="lede">My research extends beyond magnetocalorics and magnetics to cover other functional materials for energy applications. Across more than two decades, that's meant working on a genuinely diverse set of materials systems — from multiferroic oxides to thermoelectrics — each contributing to both the fundamental physics and the technological readiness of the field.</p>
+      <p>What connects them isn't a single material class but a single question asked repeatedly in different contexts: how do you get a material's internal order — magnetic, electric, vibrational — to do useful work, reliably, at the temperatures and timescales a real device demands?</p>
+    </div>
+  </section>
+
+  <section class="block" id="multiferroics">
+    <div class="section-head"><span class="idx">02</span><h2>Multiferroics: coupling magnetism to polarization</h2></div>
+    <div class="section-sub">ReMn₂O₅ (Re = Ho, Tb) · orthorhombic manganites</div>
+    <div class="prose">
+      <p class="lede">My early research focused on multiferroic materials — systems where magnetic and electric order parameters are coupled, so that one can, in principle, be controlled through the other.</p>
+      <p>I investigated magnetostriction in orthorhombic manganites ReMn₂O₅, where inherent magnetic frustration — competing magnetic interactions that can't all be simultaneously satisfied — is lifted by small lattice distortions. That relief of frustration gives rise to canted antiferroelectric phases: the electric dipoles tilt away from perfect antiparallel alignment rather than cancelling out cleanly.</p>
+      <p>In both the holmium and terbium compounds, I observed a colossal magnetostriction effect — a change in the material's physical dimensions in response to a magnetic field, far larger than in ordinary magnetic materials — and constructed novel phase transition diagrams that mapped the correlation between magnetostriction and polarization directly.</p>
+    </div>
+    <div class="explainer">
+      <span class="mark">§</span>
+      <div>
+        <h4>Why couple magnetism and polarization at all?</h4>
+        <p>A material where an electric field can flip a magnetic state, or vice versa, opens the door to memory and sensor technologies that switch electrically but store magnetically — lower power, no moving parts. Understanding exactly how frustration, lattice distortion, and polarization interact in real oxides like ReMn₂O₅ is the groundwork that any such device eventually rests on.</p>
+      </div>
+    </div>
+    <div class="tagrow">
+      <span class="tag-chip"><span class="re">HoMn₂O₅</span> · canted antiferroelectric phase</span>
+      <span class="tag-chip"><span class="re">TbMn₂O₅</span> · colossal magnetostriction</span>
+    </div>
+  </section>
+
+  <section class="block" id="thermoelectrics">
+    <div class="section-head"><span class="idx">03</span><h2>Thermoelectrics: turning waste heat into electricity</h2></div>
+    <div class="section-sub">SnSe stability · ZrNiSn via Electro-Sinter Forging</div>
+    <div class="prose">
+      <p class="lede">Thermoelectric materials convert heat directly into electricity — and waste heat is everywhere: engines, industrial processes, even electronics running warm. Harvesting even a fraction of it is a real lever on overall energy efficiency.</p>
+      <p>The physics that makes a good thermoelectric is almost a contradiction: you want a material that conducts electricity well but conducts heat poorly, so a temperature difference across it persists long enough to do work instead of equalizing instantly. Strong anharmonicity in the crystal lattice — atoms vibrating in ways that don't scale linearly, scattering each other's vibrations (phonons) — is one of the most reliable ways to suppress thermal conductivity without sacrificing electrical performance.</p>
+      <p>My work on SnSe-based thermoelectric compounds tackles the practical side of that promise: SnSe is prized for its intrinsically ultralow thermal conductivity, but its long-term stability under operating conditions has remained a genuine open problem. My research on the stability of SnSe-based compounds addresses that gap directly — the difference between a material that performs well in a single lab measurement and one that survives in a device.</p>
+    </div>
+
+    <div class="pull">A thermoelectric only pays for itself if it still works after ten thousand thermal cycles — stability isn't a footnote, it's the whole engineering problem.</div>
+
+    <div class="prose">
+      <p>Alongside stability, I've explored how a material gets made in the first place. Electro-Sinter Forging is a novel processing route for producing ZrNiSn thermoelectric alloys — faster and more energy-efficient than conventional routes, which matters because thermoelectric device fabrication shouldn't cost more energy than the device ever recovers.</p>
+    </div>
+    <div class="results">
+      <div class="result-card">
+        <h3>Thermal conductivity, vs. spark plasma sintering</h3>
+        <div class="big">−46%</div>
+        <p>Reduction achieved in Electro-Sinter Forged ZrNiSn samples compared to conventionally Spark Plasma Sintered material — a direct win for thermoelectric efficiency from processing alone.</p>
+      </div>
+      <div class="result-card">
+        <h3>Peak figure of merit, ZT</h3>
+        <div class="big">0.39 <span style="font-size:1rem; color:var(--muted); font-family:var(--mono);">at 900 K</span></div>
+        <p>The maximum ZT achieved — the standard metric for how efficiently a thermoelectric converts a temperature gradient into usable electrical power.</p>
+      </div>
+    </div>
+    <div class="explainer">
+      <span class="mark">§</span>
+      <div>
+        <h4>What is the figure of merit, ZT?</h4>
+        <p>ZT combines electrical conductivity, thermal conductivity, and the Seebeck coefficient (how much voltage a temperature difference generates) into one number. Higher ZT means more of a temperature difference converts to usable electricity instead of just leaking through as heat — it's the single figure engineers use to compare thermoelectrics across very different material families.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="eutio3">
+    <div class="section-head"><span class="idx">04</span><h2>EuTiO₃: when scattering becomes the story</h2></div>
+    <div class="prose">
+      <p class="lede">My work on EuTiO₃ looks at its anomalous thermal conductivity, induced by resonant scattering — a case where the transport physics itself, not just the number it produces, is the interesting result.</p>
+      <p>Materials with complex magnetic and structural phase transitions, like EuTiO₃, often develop exotic thermal and transport properties right around those transitions: local vibrational or magnetic modes can resonate with lattice phonons and scatter them selectively, producing thermal conductivity behavior that a simple model wouldn't predict. That's scientifically fascinating in its own right, and technologically promising — resonant scattering is a mechanism that, once understood, can potentially be engineered into other materials on purpose to suppress thermal conductivity where it isn't wanted, or preserve it where it is.</p>
+      <p>Probing this in EuTiO₃ feeds into the broader field of thermal management in energy materials and devices — the same underlying physics that shapes a thermoelectric's performance also governs heat flow in packaging, sensors, and power electronics.</p>
+    </div>
+  </section>
+
+  <section class="block" id="why">
+    <div class="section-head"><span class="idx">05</span><h2>Why this matters for the supply chain, too</h2></div>
+    <div class="prose closing">
+      <p class="lede">Functional materials research has a role to play in critical-material dependence that goes beyond permanent magnets.</p>
+      <p>Thermoelectric materials based on abundant elements can enable waste-heat recovery without relying on critical raw materials — a direct alternative pathway to energy efficiency that doesn't compete for the same constrained resources as rare-earth magnets or battery chemistries. Similarly, materials engineered for enhanced thermal management can improve the efficiency and reliability of electronic devices, reducing the overall materials demand for power electronics and cooling systems downstream.</p>
+      <p>In that sense, this strand of research is less a departure from the magnetics and magnetocalorics work than a different angle on the same problem: build materials that do more, with less that's scarce.</p>
+    </div>
+  </section>
+
+  <section class="block" id="references">
+    <div class="section-head"><span class="idx">06</span><h2>Literature</h2></div>
+    <div class="refs">
+      <div class="ref"><span class="n">[1]</span><span class="t">M. Thiem, A.-K. Emmerich, I. Radulov, A. Weidenkaff, W. Xie, "Stability of SnSe-Based Thermoelectric Compounds," Materials, 18, 2025.</span></div>
+      <div class="ref"><span class="n">[2]</span><span class="t">V.G. Arachchige, S. Recalcati, J. Rossa, S. Yoon, K. Skokov, I. Radulov, S. Klemenz, "Thermoelectric properties of Electro-Sinter Forged ZrNiSn," J. Alloys Compd., 1045, 2025.</span></div>
+      <div class="ref"><span class="n">[3]</span><span class="t">X. Xiao et al., "Anomalous thermal conductivity of alkaline-earth-metal-substituted EuTiO₃ induced by resonant scattering," Mater. Today Phys., 35, 2023.</span></div>
+      <div class="ref"><span class="n">[4]</span><span class="t">I. Radulov, V. Lovchinov, D. Dimitrov, A. Apostolov, "Magnetostriction in orthorhombic manganites," J. Phys.: Conf. Ser., 153, 012064, 2009.</span></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <svg class="divider-motif" viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g fill="none" stroke="#ff6a1f" stroke-width="1.1" opacity="0.8">
+      <circle cx="200" cy="60" r="16"/>
+      <circle cx="200" cy="60" r="32"/>
+      <circle cx="200" cy="60" r="50"/>
+    </g>
+  </svg>
+  <a class="backhome" href="https://radulradul.github.io/">← Back to portfolio</a>
+</footer>
+
+</body>
+</html>
