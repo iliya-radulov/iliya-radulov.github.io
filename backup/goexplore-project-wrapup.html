@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoExplore Analytics — Project Wrap-Up</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --ink:#14161c;
+    --muted:#5b6270;
+    --line:#e6e8ee;
+    --panel:#f7f8fb;
+    --blue:#2354e6;
+    --blue-dim:#e8edfd;
+    --navy:#0f1a3d;
+    --code-bg:#101426;
+    --code-ink:#dbe4ff;
+    --good:#1a7f4e;
+    --amber:#b1690b;
+    --radius:10px;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    font-size:16px;
+  }
+  a{color:var(--blue);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px;}
+
+  /* Top nav */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar .wrap{
+    display:flex;flex-wrap:wrap;gap:4px 18px;
+    align-items:center;padding-top:14px;padding-bottom:14px;
+  }
+  .topbar .back{font-size:13.5px;color:var(--muted);margin-right:auto;}
+  .topbar nav{display:flex;gap:18px;flex-wrap:wrap;}
+  .topbar nav a{font-size:13.5px;color:var(--ink);opacity:.75;}
+  .topbar nav a:hover{opacity:1;text-decoration:none;color:var(--blue);}
+
+  /* Hero */
+  .kicker{
+    text-transform:uppercase;letter-spacing:.08em;font-size:12.5px;
+    color:var(--blue);font-weight:600;margin:40px 0 10px;
+  }
+  h1{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:44px;
+    line-height:1.12;
+    margin:0 0 18px;
+    letter-spacing:-.01em;
+  }
+  h1 em{font-style:italic;color:var(--blue);}
+  .lede{font-size:18px;color:var(--muted);max-width:680px;margin:0 0 26px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:44px;}
+  .chip{
+    font-size:12.5px;padding:5px 11px;border-radius:99px;
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+  }
+
+  /* Team strip */
+  .team-strip{
+    display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;
+    padding:16px 0 44px;border-bottom:1px solid var(--line);margin-bottom:44px;
+    font-size:14px;color:var(--muted);
+  }
+  .team-strip b{color:var(--ink);}
+  .avatars{display:flex;gap:6px;}
+  .avatar{
+    width:26px;height:26px;border-radius:50%;background:var(--blue-dim);
+    color:var(--blue);font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid #fff;box-shadow:0 0 0 1px var(--line);
+  }
+
+  section{margin:64px 0;}
+  .eyebrow{
+    text-transform:uppercase;letter-spacing:.08em;font-size:12px;
+    color:var(--blue);font-weight:700;margin-bottom:8px;
+  }
+  h2{font-family:var(--serif);font-size:28px;font-weight:600;margin:0 0 18px;letter-spacing:-.01em;}
+  h3{font-size:17px;font-weight:700;margin:0 0 8px;}
+  p{margin:0 0 14px;}
+  .sub{color:var(--muted);}
+
+  /* Stat row */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0 8px;}
+  .stat{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;text-align:center;
+  }
+  .stat .n{font-size:26px;font-weight:700;font-family:var(--serif);color:var(--navy);}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  /* Pipeline diagram */
+  .flow{
+    display:flex;align-items:center;flex-wrap:wrap;gap:10px;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;margin:22px 0;
+  }
+  .flow-step{flex:1;min-width:140px;text-align:center;}
+  .flow-step .ic{font-size:26px;}
+  .flow-step .t{font-weight:700;font-size:14px;margin-top:4px;}
+  .flow-step .s{font-size:12px;color:var(--muted);}
+  .flow-arrow{color:var(--muted);font-size:20px;padding:0 4px;}
+
+  /* Callout */
+  .callout{
+    border-left:3px solid var(--blue);background:var(--blue-dim);
+    border-radius:0 8px 8px 0;padding:16px 18px;margin:22px 0;font-size:14.5px;
+  }
+  .callout.warn{border-left-color:var(--amber);background:#fdf3e4;}
+  .callout b{display:block;margin-bottom:4px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;}
+  .callout.warn b{color:var(--amber);}
+  .callout:not(.warn) b{color:var(--blue);}
+
+  /* Cards grid for the four deep-dives */
+  .deepdives{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px;}
+  .dd-card{
+    border:1px solid var(--line);border-radius:var(--radius);padding:20px;
+    display:flex;flex-direction:column;gap:8px;background:#fff;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .dd-card:hover{border-color:var(--blue);box-shadow:0 4px 14px rgba(35,84,230,.08);}
+  .dd-tag{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);font-weight:700;}
+  .dd-card h3{margin:0;font-size:16px;}
+  .dd-card p{font-size:13.5px;color:var(--muted);margin:0;}
+  .dd-metric{
+    display:inline-block;margin-top:4px;font-family:var(--mono);font-size:12px;
+    background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--navy);
+  }
+  .dd-card a.go{font-size:13px;font-weight:600;margin-top:6px;}
+
+  /* Recommendation table */
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;}
+  tr.rank1 td:first-child{color:var(--good);font-weight:700;}
+  .rank-pill{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:50%;background:var(--blue-dim);color:var(--blue);
+    font-size:11px;font-weight:700;margin-right:8px;
+  }
+
+  /* Limitations grid */
+  .limits{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+  .limit{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;font-size:13.5px;}
+  .limit .ic{font-size:18px;margin-bottom:6px;}
+  .limit b{display:block;font-size:13.5px;margin-bottom:3px;}
+  .limit span{color:var(--muted);}
+
+  /* Team section */
+  .team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;}
+  .member{
+    border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-align:center;
+  }
+  .member .badge{
+    width:44px;height:44px;border-radius:50%;margin:0 auto 10px;
+    background:var(--blue-dim);color:var(--blue);font-weight:700;font-size:16px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .member .name{font-weight:700;font-size:14px;}
+  .member .role{font-size:12px;color:var(--muted);margin-top:2px;}
+  .member .links{margin-top:8px;font-size:12px;}
+
+  /* Footer / certificate-style close */
+  footer{
+    margin-top:70px;padding:26px 0 60px;border-top:1px solid var(--line);
+    font-size:13px;color:var(--muted);
+  }
+  footer .name{color:var(--ink);font-weight:700;}
+  footer .stackline{margin-top:4px;}
+
+  code, .code-inline{font-family:var(--mono);background:var(--panel);border:1px solid var(--line);
+    border-radius:5px;padding:1px 6px;font-size:12.5px;}
+
+  @media(max-width:720px){
+    h1{font-size:32px;}
+    .stat-row{grid-template-columns:1fr 1fr;}
+    .deepdives{grid-template-columns:1fr;}
+    .limits{grid-template-columns:1fr;}
+    .team-grid{grid-template-columns:1fr 1fr;}
+    .flow{flex-direction:column;}
+    .flow-arrow{transform:rotate(90deg);}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a class="back" href="https://radulradul.github.io/">← Iliya Angelov Radulov — portfolio</a>
+    <nav>
+      <a href="#brief">Brief</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#beyond">Beyond the Brief</a>
+      <a href="#recommendation">Recommendation</a>
+      <a href="#team">Team</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="kicker">Project Wrap-Up · GoExplore Analytics</div>
+  <h1>From a Two-Week Brief<br>to Four <em>Deep Dives</em></h1>
+  <p class="lede">
+    A team analytics project for GoExplore, a European camping &amp; hiking retailer — and the story of how
+    answering it properly meant going past the brief we were actually given.
+  </p>
+  <div class="chips">
+    <span class="chip">Google Sheets → BigQuery → Data Studio</span>
+    <span class="chip">KNIME Analytics Platform</span>
+    <span class="chip">Random Forest Regression</span>
+    <span class="chip">Log-Log OLS · HAC</span>
+    <span class="chip">GDPR-Compliant Local Stack</span>
+  </div>
+
+  <div class="team-strip">
+    <div class="avatars">
+      <div class="avatar">B</div><div class="avatar">A</div><div class="avatar">I</div><div class="avatar">A</div>
+    </div>
+    <div><b>The Lobster Lookers</b> — Blessy · Ayo · Iliya · Andreas — a 10-day BI project set by CEO Sabah after GoExplore's data scientist left without notice.</div>
+  </div>
+
+  <!-- BRIEF -->
+  <section id="brief">
+    <div class="eyebrow">The Brief</div>
+    <h2>Two questions, one spreadsheet, ten days</h2>
+    <p>
+      GoExplore handed us a single spreadsheet — 22,020 orders across 21 countries and 6 store types,
+      spanning January 2015 to July 2018 — and two business questions to answer for the CEO:
+    </p>
+    <div class="stat-row">
+      <div class="stat"><div class="n">22,020</div><div class="l">Orders analyzed</div></div>
+      <div class="stat"><div class="n">21</div><div class="l">Countries</div></div>
+      <div class="stat"><div class="n">6</div><div class="l">Store types</div></div>
+      <div class="stat"><div class="n">42</div><div class="l">Months of data</div></div>
+    </div>
+    <div class="limits" style="margin-top:22px;">
+      <div class="limit">
+        <div class="ic">🎯</div>
+        <b>Market Expansion</b>
+        <span>Which of four candidate countries — Norway, Poland, Czech Republic, Portugal — offers the strongest revenue potential?</span>
+      </div>
+      <div class="limit">
+        <div class="ic">🏬</div>
+        <b>Retail Performance</b>
+        <span>Which store concepts — specialty vs. general retail — generate the most business value?</span>
+      </div>
+    </div>
+    <p style="margin-top:18px;" class="sub">
+      The full 10-day roadmap and all five official KPI definitions are documented in
+      <a href="https://andreas-politzer.github.io/go_explore/index2.html">Andreas's team blueprint</a>.
+    </p>
+  </section>
+
+  <!-- OFFICIAL PIPELINE -->
+  <section id="pipeline">
+    <div class="eyebrow">What We Delivered to the CEO</div>
+    <h2>The official pipeline: Sheets → BigQuery → Data Studio</h2>
+    <p>
+      Working entirely inside Google's ecosystem, the team turned a messy spreadsheet into a live,
+      filterable dashboard — the artefact Sabah actually clicked through in the final presentation.
+    </p>
+    <div class="flow">
+      <div class="flow-step"><div class="ic">📄</div><div class="t">Google Sheets</div><div class="s">Raw data + manual GDP/population lookup</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="ic">☁️</div><div class="t">BigQuery</div><div class="s">Joins, KPI queries, saved views</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="ic">📊</div><div class="t">Data Studio</div><div class="s">Interactive dashboard, filters, geo chart</div></div>
+    </div>
+    <p>The dashboard shipped five pages: revenue by country, retail performance by store type, a YoY multidimensional
+      revenue trend (2015–2018), a prediction-analysis view, and a final prioritized market-entry recommendation.</p>
+    <p class="sub">
+      <em>Dashboard screenshots to insert here — export the 5 Data Studio pages as PNGs and drop them at
+      <code>/projects/goexplore-summary/dashboard-*.png</code>, matching the pattern used on the
+      <a href="https://radulradul.github.io/projects/metabase/goexplore-data-stack.html">local data stack page</a>.</em>
+    </p>
+  </section>
+
+  <!-- BEYOND THE BRIEF -->
+  <section id="beyond">
+    <div class="eyebrow">Why We Kept Going</div>
+    <h2>Where the official pipeline hit a wall</h2>
+    <p>
+      Data Studio is a genuinely strong tool for what it's built for: turning already-computed metrics into
+      something a non-technical stakeholder can filter and explore in real time. What it does not do natively
+      is run a regression or generate a forecast — there is no modeling layer behind the charts, only aggregation.
+    </p>
+    <div class="callout">
+      <b>The gap</b>
+      The Prediction Analysis page needed actual forecasted revenue with confidence intervals for four markets
+      GoExplore had never operated in. That number doesn't exist anywhere in the raw data — it has to be modeled.
+      So the modeling moved outside Data Studio, into KNIME and Python, and the dashboard became the
+      presentation layer for numbers computed upstream rather than the place those numbers were produced.
+    </div>
+    <p>
+      That single gap opened into four separate technical threads, each documented as its own deep dive:
+    </p>
+
+    <div class="deepdives">
+      <div class="dd-card">
+        <span class="dd-tag">Data Engineering</span>
+        <h3>GDPR-Compliant Local Stack</h3>
+        <p>Rebuilt the entire Sheets → BigQuery → Data Studio chain with self-hosted, open-source tools — Postgres, Metabase, VS Code — so a European team has a zero-cloud-dependency option on the table.</p>
+        <span class="dd-metric">0 → 3 KPI dashboards, fully local</span>
+        <a class="go" href="https://radulradul.github.io/projects/metabase/goexplore-data-stack.html">Read the build →</a>
+      </div>
+      <div class="dd-card">
+        <span class="dd-tag">Data Engineering</span>
+        <h3>Connecting KNIME to BigQuery</h3>
+        <p>Wired a visual, node-based analytics tool into the shared cloud warehouse — service account, IAM roles, JDBC driver — so modeling nodes could reach live GoExplore data with no code.</p>
+        <span class="dd-metric">Service Account → JDBC → Live query</span>
+        <a class="go" href="https://radulradul.github.io/projects/KNIME/knime-bigquery-portfolio.html">Read the setup →</a>
+      </div>
+      <div class="dd-card">
+        <span class="dd-tag">Machine Learning</span>
+        <h3>Predicting Sales Quantity</h3>
+        <p>A regression pipeline on live BigQuery data, iterating from a naive linear baseline to a Random Forest model that explains two-thirds of the variance in units sold.</p>
+        <span class="dd-metric">R² 0.197 → 0.685 (3.5×)</span>
+        <a class="go" href="https://radulradul.github.io/projects/KNIME/knime-ml-portfolio.html">Read the model →</a>
+      </div>
+      <div class="dd-card">
+        <span class="dd-tag">Econometrics</span>
+        <h3>Market Revenue Prediction</h3>
+        <p>The number behind the dashboard's expansion recommendation: five model iterations from a broken KNIME baseline to a HAC-corrected log-log OLS with interpretable elasticities, cross-checked against a decision tree.</p>
+        <span class="dd-metric">v0 → v4, Cond. No. 922 → 32.6</span>
+        <a class="go" href="https://radulradul.github.io/projects/market_prediction/market-revenue-prediction.html">Read the analysis →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommendation">
+    <div class="eyebrow">The Answer We Gave Sabah</div>
+    <h2>Prioritized market-entry recommendation</h2>
+    <p>Combining the dashboard's retail-performance findings with the modeled revenue potential, the team's
+      final recommendation ranked the four candidate markets as follows:</p>
+    <table>
+      <thead><tr><th>Rank</th><th>Country</th><th>Read</th></tr></thead>
+      <tbody>
+        <tr class="rank1"><td><span class="rank-pill">1</span>Norway</td><td>Highest revenue potential</td><td class="sub">Strong predicted performance with high confidence — GDP per capita drives the result despite a small population.</td></tr>
+        <tr><td><span class="rank-pill">2</span>Poland</td><td>Second-highest potential</td><td class="sub">High revenue potential backed by solid demographic and market indicators.</td></tr>
+        <tr><td><span class="rank-pill">3</span>Czech Republic</td><td>Strong potential</td><td class="sub">Attractive market with a positive revenue outlook and clear growth drivers.</td></tr>
+        <tr><td><span class="rank-pill">4</span>Portugal</td><td>Solid potential</td><td class="sub">Good revenue potential under favorable market conditions.</td></tr>
+      </tbody>
+    </table>
+    <p class="sub">Exact figures were refined across several model iterations — see the
+      <a href="https://radulradul.github.io/projects/market_prediction/market-revenue-prediction.html">econometric deep dive</a>
+      for the full log-log elasticities and per-store sensitivity analysis behind this ranking.</p>
+
+    <div class="callout warn">
+      <b>Flagged to the instructor</b>
+      Without a real Order ID column, "one order" was approximated as a unique Date + Retailer combination —
+      a reasonable stand-in, but it slightly inflates Average Order Value if a store placed two orders on the
+      same day. Documented and disclosed rather than smoothed over.
+    </div>
+  </section>
+
+  <!-- TEAM -->
+  <section id="team">
+    <div class="eyebrow">Credit Where Due</div>
+    <h2>The Lobster Lookers</h2>
+    <p>This was a four-person project. The official pipeline, KPI definitions, and 10-day delivery plan were
+      a team effort from day one — the deep dives above are my individual extension on top of that shared foundation.</p>
+    <div class="team-grid">
+      <div class="member"><div class="badge">B</div><div class="name">Blessy</div><div class="role">Team member</div></div>
+      <div class="member"><div class="badge">A</div><div class="name">Ayo</div><div class="role">Team member</div></div>
+      <div class="member"><div class="badge">I</div><div class="name">Iliya</div><div class="role">Data stack, KNIME, ML &amp; econometrics</div></div>
+      <div class="member">
+        <div class="badge">A</div><div class="name">Andreas</div><div class="role">Team blueprint &amp; local stack guide</div>
+        <div class="links"><a href="https://andreas-politzer.github.io/go_explore/index2.html">Blueprint</a> · <a href="https://andreas-politzer.github.io/local-data-stack-guide/">Stack guide</a></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="name">Iliya Radulov — GoExplore Analytics, Project Wrap-Up</div>
+    <div class="stackline">Google Sheets · BigQuery · Data Studio · KNIME · Random Forest · Log-Log OLS · Local GDPR Stack</div>
+    <div class="stackline">Team: The Lobster Lookers — Blessy · Ayo · Iliya · Andreas</div>
+  </div>
+</footer>
+
+</body>
+</html>
