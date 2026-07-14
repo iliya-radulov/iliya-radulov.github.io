@@ -479,20 +479,12 @@
       <li>Accepts natural formula notation, atomic % or weight %</li>
       <li>Supports pre-alloys (master alloys) as building blocks, not just pure elements</li>
       <li>Compensates for evaporation losses during melting with an adjustable excess %, without altering the recorded target composition</li>
-      <li>Also handles the reverse case: already have 13 g of a master alloy on the bench and just want to know how much of the remaining elements to add — solves for the total from the fixed pre-alloy mass instead of the other way around</li>
     </ul>
     <pre>Fe65Nd30Co5 → 10 g target
 
 Fe   4.40 g
 Nd   5.24 g
 Co   0.36 g</pre>
-
-    <div class="shot">
-      <span class="cam">
-      <img src="screens/screen_new_entry.jpg" alt="New Entry with option to calculate from pre-alloy and skip literature checks" width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-      </span>
-      Screenshot: New Entry tab, with option to calculate from a pre-alloy and skip literature checks
-    </div>
   </section>
 
   <section id="screening">
@@ -581,7 +573,7 @@ Co   0.36 g</pre>
     </p>
 
     <div class="shot">
-      <img src="screens/screen_vsm_xrd.jpg" alt="VSM hysteresis loop and XRD pattern fast visualization" width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+      <img src="screens/screen_vsm_xrd.png" alt="VSM hysteresis loop and XRD pattern fast visualization" width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
       Screenshot: XRD pattern and VSM hysteresis loop rendered in the Data Viewer
     </div>
 
@@ -639,6 +631,7 @@ Co   0.36 g</pre>
     </div>
     <div class="shot">
       <img src="screens/screen_data_import.jpg" alt="Data import interface" width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+      <em>Dashboard 6 shows the final prioritized market-entry strategy recommendation.</em>
       Screenshot: Data import interface — XRD, VSM, and SEM characterization data imported directly into the database
     </div>
     <div class="shot">
@@ -700,17 +693,6 @@ Co   0.36 g</pre>
            XRD, ICP, Origin projects — into organized subfolders in one
            pass. The second motivation for this project, resolved.</p>
       </div>
-      <div class="learning">
-        <div class="icon">📦</div>
-        <h3>.gitignore doesn't undo the past</h3>
-        <p>A large folder of raw data (and, more importantly, some
-           unpublished drafts) turned out to still be fully committed to
-           git — even though it was correctly listed in .gitignore. Adding
-           a rule only stops <em>new</em> files from being tracked; it does
-           nothing for files already committed before the rule existed.
-           Caught and fixed with a full history rewrite before the
-           repository stayed public.</p>
-      </div>
     </div>
   </section>
 
@@ -750,7 +732,6 @@ Co   0.36 g</pre>
     <p>Here you can download the presentation of the project in pdf format :</p>
     <ul>
       <li class="icon">📓 <a href="Alloy_Lab_Database_Stage1.pdf" download="Alloy_Lab_Database_Stage1.pdf">Presentation: Alloy Lab Database Stage 1</a></li>
-      <li class="icon">📓 <a href="https://github.com/iliya-radulov/my_db_project">Repository: Alloy Lab Database</a></li>
     </ul>
   </section>
 
@@ -761,7 +742,7 @@ Co   0.36 g</pre>
       release. In the meantime, this write-up covers the architecture,
       the real data behind it, and what building it actually taught.
     </p>
-        <svg class="wave foot-wave" viewBox="0 0 1200 42" preserveAspectRatio="none" style="transform:scaleY(-1.5);"><path d="M0 18C150 30 300 4 450 14C600 24 750 32 900 18C1050 4 1150 12 1200 18V34H0V18Z" fill="#cc7a2e"></path></svg>
+    <svg class="wave foot-wave" viewBox="0 0 1200 42" preserveAspectRatio="none" style="transform:scaleY(-1.5);"><path d="M0 18C150 30 300 4 450 14C600 24 750 32 900 18C1050 4 1150 12 1200 18V34H0V18Z" fill="#cc7a2e"></path></svg>
       <div class="wrap foot-inner">
         <span class="back">
           <a href="https://iliya-radulov.github.io/">Iliya Angelov Radulov -> portfolio</a>
