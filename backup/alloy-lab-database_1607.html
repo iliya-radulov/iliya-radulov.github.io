@@ -288,7 +288,7 @@
   /* ---------- Status ---------- */
   .status-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin: 24px 0;
   }
@@ -498,7 +498,7 @@ Co   0.36 g</pre>
   <section id="screening">
     <p class="eyebrow">Physics</p>
     <h2>A cheap first filter</h2>
-    <p class="lede">Before any melting: four composition-only numbers, computed instantly, no lab work required.</p>
+    <p class="lede">Before any melting: three composition-only numbers, computed instantly, no lab work required.</p>
     <div class="cards">
       <div class="card">
         <div class="tag-label">VEC</div>
@@ -515,32 +515,7 @@ Co   0.36 g</pre>
         <h3>Mixing enthalpy</h3>
         <p>Predicts compound-forming tendency between elements.</p>
       </div>
-      <div class="card">
-        <div class="tag-label">Stage 2 addition</div>
-        <h3>Synthesis feasibility</h3>
-        <p>A different question from the other three: not "will this form a solid solution," but "can this even be melted together" — using each element's melting and boiling point.</p>
-      </div>
     </div>
-    <p>
-      The insight behind the fourth check: melting-point <em>spread</em> alone
-      isn't the right signal. What actually matters is whether homogenizing
-      the melt requires heating past the <strong>boiling point</strong> of
-      the most volatile constituent — at that point, the element doesn't
-      just risk some evaporation, it boils away before the alloy can
-      homogenize. Three tiers, deliberately not collapsed into one
-      confidence level: a hard physical block (suggests mechanical alloying
-      or sintering instead), a flagged "genuinely uncertain" zone (pure
-      composition data isn't sufficient — check literature or run a small
-      test melt), and a comfortable "no concern" case.
-    </p>
-    <table>
-      <thead><tr><th>Example composition</th><th>Result</th><th>Why</th></tr></thead>
-      <tbody>
-        <tr><td>W + Mg</td><td>🚫 Blocked</td><td>Melting W (3695 K) is far above Mg's boiling point (1363 K)</td></tr>
-        <tr><td>Fe + Nb</td><td>⚠️ Caution</td><td>Only 384 K margin — pure-element numbers alone can't call this either way</td></tr>
-        <tr><td>Fe + Co + Ni</td><td>✅ OK</td><td>Comfortable margin, no volatility concern</td></tr>
-      </tbody>
-    </table>
   </section>
 
   <section id="literature">
@@ -726,17 +701,6 @@ Co   0.36 g</pre>
            pass. The second motivation for this project, resolved.</p>
       </div>
       <div class="learning">
-        <div class="icon">🔬</div>
-        <h3>One matching criterion isn't enough</h3>
-        <p>Two XRD peaks looked like a textbook Kα1/Kα2 instrumental
-           doublet — their positions matched the predicted split to within
-           0.1°. But their independently-fit intensity ratio was ~1.1, not
-           the physically fixed ~0.5 the real effect requires. A second,
-           independent check caught what position matching alone would
-           have called a confirmed doublet — more likely a real
-           crystallographic feature instead.</p>
-      </div>
-      <div class="learning">
         <div class="icon">📦</div>
         <h3>.gitignore doesn't undo the past</h3>
         <p>A large folder of raw data (and, more importantly, some
@@ -766,19 +730,11 @@ Co   0.36 g</pre>
           <li>Data sorter, tested on real files</li>
         </ul>
       </div>
-      <div class="status-box next" style="background: var(--copper); color: #fff;">
-        <h3 style="color:#fff;">🚧 Stage 2 — done so far</h3>
-        <ul style="color: #fdf1e6;">
-          <li>Synthesis feasibility check (melt/boil), added to screening and wired into the GUI, confirmation dialog included</li>
-          <li>XRD peak-fitting pipeline: neighbor-aware fitting, fit-quality (R²), Scherrer crystallite size, Kα2 stripping</li>
-          <li>ML-oriented XRD peak/feature table design</li>
-        </ul>
-      </div>
       <div class="status-box next">
-        <h3>🔜 Stage 2 — still ahead</h3>
+        <h3>🔜 Stage 2</h3>
         <ul>
           <li>Element-fraction table, restructured for ML-style queries</li>
-          <li>Deeper VSM/SEM feature extraction, to match the XRD pipeline</li>
+          <li>Deeper peak-fitting and feature extraction from raw curves</li>
           <li>Patent-record cross-checking</li>
           <li>Consolidating the CLI and GUI into one primary interface</li>
         </ul>
