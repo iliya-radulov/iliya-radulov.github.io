@@ -1,0 +1,263 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technical Retrospective: RP5 to RP6v2 — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <a class="back-link" href="classic-robotics-progression.html">← Back to the full progression</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Technical Deep-Dive</div>
+    <h1>Technical Retrospective: The Evolution of a Tracked Robotic Fleet</h1>
+    <p class="subtitle">From the Conrad Robby RP5 to the Arexx RP6v2 Modular System</p>
+
+    <div class="abstract-box">
+      This retrospective covers a four-robot tracked fleet spanning roughly a decade of embedded robotics development: a baseline Conrad Robby RP5 and three distinct architectural configurations of the Arexx RP6v2 platform. All four share an identical rubber-tracked mechanical chassis, but represent a genuine paradigm shift underneath — from interpreted, open-loop 8-bit automation to distributed, closed-loop multi-processor control.
+      <div class="kw"><strong>Keywords:</strong> Embedded Systems, Robby RP5, Arexx RP6v2, ATmega32, Closed-Loop Odometry, Fixed-Point Arithmetic, Cooperative Multitasking</div>
+    </div>
+
+    <h2>1. Introduction &amp; Historical Context</h2>
+    <p>Consumer and educational robotics between the early 2000s and 2010s went through a fundamental transition — away from rigid, proprietary logic controllers and toward open, bare-metal programmable platforms. At the center of that shift was a rugged, rubber-tracked tank chassis, originally released by Conrad Electronic as the <strong>Robby RP5</strong> (Conrad CCRP5). When Arexx Engineering later developed the <strong>RP6</strong> and <strong>RP6v2</strong>, they kept the same dependable mechanical layout and completely re-engineered the electronics inside it.</p>
+    <p>This fleet — one baseline RP5 and three differently configured RP6v2 units — documents that architectural evolution directly.</p>
+
+    <h2>2. The Architectural Shift</h2>
+    <p>The mechanical continuity between the RP5 and RP6v2 reflects a simple engineering principle: when a chassis works, don't touch it — upgrade the electronics instead. Both share the same dual-DC-motor drivetrain; what changed completely is what's driving it.</p>
+
+    <div class="diagram-box">
+      <div class="diagram-col">
+        <div class="diagram-title">Robby RP5 (2000s)</div>
+        <ul>
+          <li>Motorola-based C-Control I module</li>
+          <li>Tokenized CCBASIC language</li>
+          <li>Open-loop (no encoders)</li>
+        </ul>
+      </div>
+      <div class="diagram-col">
+        <div class="diagram-title">RP6v2 (2010s)</div>
+        <ul>
+          <li>Atmel ATmega32 (RISC)</li>
+          <li>Native C / C++</li>
+          <li>Closed-loop (odometry)</li>
+        </ul>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:-14px;">Same tracked chassis and dual DC gearboxes on both sides — the mechanics stayed constant.</p>
+
+    <table>
+      <tr><th>Feature</th><th>Robby RP5 (Conrad CCRP5)</th><th>Arexx RP6 System (v2)</th></tr>
+      <tr><td>Primary brain</td><td>Motorola-based C-Control I unit</td><td>Atmel ATmega32 (8-bit RISC)</td></tr>
+      <tr><td>Clock speed</td><td>~4 MHz</td><td>8 MHz</td></tr>
+      <tr><td>Execution performance</td><td>Low (interpreted bytecode loops)</td><td>8 MIPS (deterministic)</td></tr>
+      <tr><td>Programming language</td><td>CCBASIC (proprietary, interpreted)</td><td>Native C / C++ (GCC toolchain)</td></tr>
+      <tr><td>Odometry tracking</td><td>None (blind open-loop timing)</td><td>Dual optical wheel encoders</td></tr>
+      <tr><td>Bus architecture</td><td>Rigid proprietary I/O rails</td><td>Master/slave I²C bus</td></tr>
+      <tr><td>Sensors (out of box)</td><td>Light sensors, IR anti-collision, bumper</td><td>ACS (IR proximity), bumpers, light, current</td></tr>
+    </table>
+
+    <h2>3. The Fleet Breakdown</h2>
+    <p>Four physical units, each representing a step in the same progression:</p>
+
+    <h3>3.1 Unit 1 — The Baseline Conrad Robby RP5</h3>
+    <p>The original Motorola-driven C-Control module, running timed open-loop execution blocks. Serves as the historical control model against which the closed-loop RP6v2 units are contrasted.</p>
+
+    <h3>3.2 Unit 2 — The RP6v2 Base Sensor Specialist</h3>
+    <p>An Atmel ATmega32 8-bit RISC processor delivering 8 MIPS at 8 MHz, managing real-time tasks through its native out-of-box sensor suite:</p>
+    <ul>
+      <li><strong>Optical encoders:</strong> dual high-resolution infrared interrupters tracking gearbox rotation to calculate velocity</li>
+      <li><strong>Infrared Anti-Collision System (ACS):</strong> modulated IR emitters/receivers detecting obstacles before impact</li>
+      <li><strong>Ambient telemetry:</strong> dual LDRs for phototaxis, plus micro-switch bumper feedback</li>
+    </ul>
+
+    <h3>3.3 Unit 3 — The I²C Modular Expansion Build</h3>
+    <p>Steps past the physical I/O pin limits of the 40-pin ATmega32 by using the integrated I²C bus (via the hardware TWI lines, SDA and SCL). An expansion board acts as an infrastructure layer, letting the master board offload tasks or read peripheral sensors without disrupting the high-frequency interrupt loops driving the motors.</p>
+
+    <h3>3.4 Unit 4 — The Multi-Processor Master Setup (M128 Configuration)</h3>
+    <p>The most advanced unit in the fleet. Mounting the official RP6 CONTROL M128 expansion module relegates the base ATmega32 board to an I²C motor/sensor slave, while a secondary ATmega128 becomes the master brain — handling higher-level state machines and expanded memory.</p>
+
+    <div class="diagram-box">
+      <div class="diagram-col">
+        <div class="diagram-title">Base board system (slaves)</div>
+        <ul>
+          <li>ACS (IR obstacle)</li>
+          <li>Encoders</li>
+          <li>Light / bump sensors</li>
+        </ul>
+      </div>
+      <div class="diagram-col">
+        <div class="diagram-title">I²C expansion subsystem</div>
+        <ul>
+          <li>Custom logic</li>
+          <li>Added sensors</li>
+          <li>Telemetry</li>
+        </ul>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:-14px;">Both branches hang off the ATmega32 master core (8 MHz / 8 MIPS) via the I²C / TWI bus.</p>
+
+    <h2>4. Generational Contrast — Open-Loop vs. Closed-Loop</h2>
+    <h3>4.1 The RP5's "blind" navigation (open-loop)</h3>
+    <p>The RP5 had no hardware mechanism to measure actual track rotation or wheel slip. Driving straight required hardcoded calibration values inside the CCBASIC script to balance left/right motor voltages — and as battery voltage degraded over a session, those ratios drifted, and so did the robot's path.</p>
+    <h3>4.2 The RP6v2's active feedback (closed-loop)</h3>
+    <p>The RP6v2 resolved this with integrated optical encoders: hardware interrupts continuously monitor wheel velocity, and a software PID loop adjusts motor power in real time. Hit an obstacle or lose traction, and the loop corrects power delivery immediately to hold the intended path.</p>
+
+    <h2>5. The Software Toolchain Transition</h2>
+    <h3>5.1 The RP5 execution model</h3>
+    <p>Programmed inside the proprietary Conrad C-Control IDE using CCBASIC, compiled to compressed bytecode and transmitted over an RS-232 serial cable. The onboard microcontroller ran a permanent interpreter loop, fetching tokens from an external EEPROM — a real computational overhead that capped execution speed.</p>
+    <h3>5.2 The RP6v2 execution model</h3>
+    <p>A shift to compiled, native C/C++ via the open-source WinAVR toolchain (or Atmel Studio) and the AVR-GCC cross-compiler, with Makefiles tuned for size (<code>-Os</code>) to fit the ATmega32's 32KB flash limit. Direct hardware register access pushed execution to a deterministic 8 MIPS.</p>
+    <h3>5.3 Flashing and telemetry via RP6Loader v2</h3>
+    <p>The old DB9 serial link gave way to a USB-to-UART bridge (FTDI). Code was uploaded with RP6Loader, a cross-platform Java tool that triggers the bootloader via the DTR line — and since the Arexx library redirects standard C <code>printf()</code> output straight to UART, live sensor telemetry streams directly back to a PC terminal.</p>
+
+    <h2>6. Code Architecture Showcase — Multi-Tasking on Bare Metal</h2>
+    <p>With no OS or threading available, the ATmega32 relies on cooperative multitasking driven by hardware interrupts and non-blocking software timers. The example below runs real-time safety telemetry and a navigation state machine concurrently, without either one blocking the other:</p>
+    <pre><code>#include "RP6RobotBaseLib.h"
+#include &lt;avr/pgmspace.h&gt;
+
+#define TELEMETRY_INTERVAL  500
+
+typedef enum {
+    STATE_FORWARD,
+    STATE_EVADING,
+    STATE_STOPPED
+} RobotState;
+
+RobotState currentState = STATE_FORWARD;
+uint32_t lastTelemetryTime = 0;
+
+// Callback fired when the Anti-Collision System detects an obstacle
+void acsStateChangedHandler(void) {
+    if (obstacle_left || obstacle_right) {
+        currentState = STATE_EVADING;
+        moveAtSpeed(0, 0); // halt immediately
+    } else {
+        currentState = STATE_FORWARD;
+    }
+}
+
+// Non-blocking task: streams motor telemetry over UART
+void runTelemetryTask(void) {
+    if (getTimerTicks() - lastTelemetryTime >= TELEMETRY_INTERVAL) {
+        lastTelemetryTime = getTimerTicks();
+        writeString_P(PSTR("[TELEMETRY] Left Speed: "));
+        writeInteger(getLeftSpeed(), DEC);
+        writeString_P(PSTR(" | Right Speed: "));
+        writeInteger(getRightSpeed(), DEC);
+        writeString_P(PSTR(" | Battery mV: "));
+        writeInteger(adcBattery, DEC);
+        writeChar('\n');
+    }
+}
+
+// Navigation state transitions, without stalling execution
+void runNavigationStateMachine(void) {
+    switch (currentState) {
+        case STATE_FORWARD:
+            changeDirection(FORWARD);
+            moveAtSpeed(60, 60); // regulated via closed-loop PID
+            break;
+        case STATE_EVADING:
+            changeDirection(LEFT);
+            moveAtSpeed(40, 40);
+            break;
+        case STATE_STOPPED:
+        default:
+            moveAtSpeed(0, 0);
+            break;
+    }
+}
+
+int main(void) {
+    initRobotBase();
+    ACS_setStateChangedHandler(acsStateChangedHandler);
+    setLEDs(0b001001);
+    powerON();
+    writeString_P(PSTR("\n--- RP6v2 Firmware Initialized ---\n"));
+
+    while(1) {
+        task_RP6System();          // background library routines
+        runTelemetryTask();        // decoupled, non-blocking
+        runNavigationStateMachine();
+    }
+    return 0;
+}</code></pre>
+
+    <h2>7. Ecosystem Retrospective — Legacy vs. Modern Edge AI</h2>
+    <p>Contrasting this platform with something like a Raspberry Pi 5 or NVIDIA Jetson running ROS 2 shows how far the paradigm has moved:</p>
+
+    <div class="diagram-box">
+      <div class="diagram-col">
+        <div class="diagram-title">Past: Arexx RP6v2</div>
+        <ul>
+          <li>Single-threaded super-loop</li>
+          <li>8-bit bare-metal C</li>
+          <li>2KB SRAM / 32KB flash</li>
+          <li>Deterministic, microsecond-accurate</li>
+        </ul>
+      </div>
+      <div class="diagram-col">
+        <div class="diagram-title">Present: modern robotics</div>
+        <ul>
+          <li>Distributed nodes (ROS 2)</li>
+          <li>High-level Linux (Python/C++)</li>
+          <li>Gigabytes of RAM / NVMe storage</li>
+          <li>Asynchronous, non-real-time OS</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>7.1 Resource scarcity vs. abundance</h3>
+    <p>Working on the RP6 meant a constant resource-optimization puzzle — 32KB of flash and 2KB of SRAM forced minimal variable sizes, bitmask packing, and storing text in flash via <code>PROGMEM</code>. Modern platforms abstract memory constraints away almost entirely.</p>
+    <h3>7.2 Monolithic super-loops vs. distributed nodes</h3>
+    <p>The RP6v2 runs one sequential loop — an I²C bus fault or a hung routine freezes the whole system, a real physical collision risk. ROS 2 instead splits logic into independent Nodes communicating via publish-subscribe; if a high-level mapping node crashes, the motor driver node keeps running its own safe-stop procedure.</p>
+    <h3>7.3 Thresholds vs. dense spatial awareness</h3>
+    <p>The RP5/RP6 read the world through simple numeric thresholds — binary bumper triggers, analog IR spikes. Modern platforms build rich 3D point clouds via LiDAR or depth cameras and use SLAM to map and localize down to millimeter accuracy.</p>
+    <h3>7.4 The enduring value of legacy systems</h3>
+    <p>Despite the huge processing gap, a full Linux OS is fundamentally non-deterministic — it can pause application code at any millisecond for background tasks. That's exactly why the RP6v2's design principles still matter: modern robotics architectures are hybrids, pairing a high-level computer for vision/planning with an independent, real-time microcontroller — doing exactly what the ATmega32 did — dedicated to deterministic, microsecond-accurate motor control and emergency interrupt handling.</p>
+
+    <h2>Appendix A: Odometry Calculations</h2>
+    <p>Firmware translates raw encoder counts into linear distance using fixed constants derived from the chassis geometry.</p>
+    <ul>
+      <li><strong>Encoder resolution (R):</strong> 120 interrupts per full drive-sprocket rotation</li>
+      <li><strong>Drive sprocket diameter (D):</strong> 4.0 cm (40 mm)</li>
+      <li><strong>Circumference:</strong> C = π × D = 3.14159 × 4.0 cm ≈ 12.566 cm</li>
+      <li><strong>Distance per tick:</strong> C ÷ R = 12.566 cm ÷ 120 ≈ 0.1047 cm (1.047 mm)</li>
+    </ul>
+    <p><em>Engineering guideline:</em> roughly 9.55 encoder ticks correspond to exactly 1.0 cm of travel.</p>
+    <p>Because the 8-bit ATmega32 has no hardware floating-point unit, real-time speed-control loops use fixed-point integer arithmetic instead of floats to avoid processing bottlenecks:</p>
+    <pre><code>// Converts raw encoder ticks to millimeters without float variables.
+// Multiplies by 1047 and divides by 1000 to keep high cycle efficiency.
+uint32_t calculateDistanceInMM(uint32_t rawEncoderTicks) {
+    return (rawEncoderTicks * 1047) / 1000;
+}</code></pre>
+
+    <h2>Appendix B: Glossary</h2>
+    <dl class="glossary">
+      <dt>ACS (Anti-Collision System)</dt><dd>Optical proximity setup pulsing an IR emitter and monitoring reflections to detect obstacles before contact.</dd>
+      <dt>ATmega32</dt><dd>8-bit, low-power RISC microcontroller from Atmel (Microchip), the main processor of the RP6 base platform.</dd>
+      <dt>AVR-GCC</dt><dd>Open-source GNU cross-compiler translating C/C++ into machine code for the AVR architecture.</dd>
+      <dt>C-Control</dt><dd>Legacy Conrad Electronic microcontroller board series; the original Robby RP5 used the C-Control I module.</dd>
+      <dt>CCBASIC</dt><dd>Token-based BASIC dialect used to program early Conrad hardware.</dd>
+      <dt>Closed-loop system</dt><dd>A control structure that monitors its own output via sensor feedback to adjust dynamically.</dd>
+      <dt>Dead reckoning</dt><dd>Estimating current position from prior position, elapsed time, and wheel rotation counts.</dd>
+      <dt>I²C (Inter-Integrated Circuit)</dt><dd>Synchronous serial bus enabling master/slave communication over two wires (SDA, SCL).</dd>
+      <dt>ISR (Interrupt Service Routine)</dt><dd>Code block that pauses the main loop instantly when triggered by a hardware event.</dd>
+      <dt>MIPS</dt><dd>Million instructions per second — the 8 MHz ATmega32 delivers a deterministic 8 MIPS.</dd>
+      <dt>Odometry</dt><dd>Using sensor data from wheels/tracks to calculate relative change in position over time.</dd>
+      <dt>Open-loop system</dt><dd>A control structure that outputs power without verifying the mechanical result.</dd>
+      <dt>PID controller</dt><dd>Proportional-Integral-Derivative feedback loop that regulates motor speed and trajectory smoothly.</dd>
+      <dt>PROGMEM</dt><dd>AVR-GCC keyword storing static data in flash memory rather than scarce SRAM.</dd>
+      <dt>RISC</dt><dd>Reduced Instruction Set Computer — simple instructions optimized to execute in a single clock cycle.</dd>
+      <dt>ROS / ROS 2</dt><dd>Open-source robotics middleware providing hardware abstraction and message-passing infrastructure.</dd>
+      <dt>SLAM</dt><dd>Simultaneous Localization and Mapping — algorithms letting a vehicle map an unknown space while tracking its own position in it.</dd>
+      <dt>TWI (Two-Wire Interface)</dt><dd>Atmel's hardware naming for its I²C-compatible peripheral.</dd>
+      <dt>WinAVR</dt><dd>Legacy open-source Windows toolchain containing AVR-GCC, used to build software for Arexx robots.</dd>
+    </dl>
+
+  </div>
+
+</body>
+</html>

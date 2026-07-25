@@ -1,0 +1,70 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recent Projects — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <a class="back-link" href="../../index.html">← Back</a>
+
+  <div class="section-head">
+    <div class="eyebrow">Portfolio / Projects</div>
+    <h2>Recent</h2>
+  </div>
+  <p class="subpage-intro">Wrapped up in the last few months. Filter by topic below.</p>
+
+  <div class="tag-filter">
+    <span class="filter-tab active" data-filter="all" onclick="filterCards(this)">All</span>
+    <span class="filter-tab" data-filter="coding" onclick="filterCards(this)">Coding</span>
+    <span class="filter-tab" data-filter="maker" onclick="filterCards(this)">Maker</span>
+    <span class="filter-tab" data-filter="interdisciplinary" onclick="filterCards(this)">Interdisciplinary</span>
+  </div>
+
+  <div class="subpage-grid" id="card-grid">
+    <a class="project-card" data-domain="coding" href="../recent/goexplore-data-stack/goexplore-data-stack.html">
+      <span class="tag">💻 Coding</span>
+      <h4>GoExplore Data Stack</h4>
+      <p>Local analytics stack replacing Google Sheets &amp; BigQuery — GDPR compliant, vendor-free.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="coding" href="../recent/knime-bigquery-portfolio/knime-bigquery-portfolio.html">
+      <span class="tag">💻 Coding</span>
+      <h4>KNIME → BigQuery</h4>
+      <p>Visual analytics pipeline with GCP, JDBC, and live SQL queries.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="coding" href="../recent/knime-ml-portfolio/knime-ml-portfolio.html">
+      <span class="tag">💻 Coding</span>
+      <h4>Sales Prediction RF</h4>
+      <p>Random Forest regression pipeline on live BigQuery — 3.5× accuracy improvement.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="coding" href="../recent/market-revenue-prediction/market-revenue-prediction.html">
+      <span class="tag">💻 Coding</span>
+      <h4>Market Revenue Prediction</h4>
+      <p>Econometric investigation with OLS and HAC-corrected errors.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="coding" href="../recent/goexplore-project-wrapup/goexplore-project-wrapup.html">
+      <span class="tag">💻 Coding</span>
+      <h4>Project Wrap-Up · GoExplore Analytics</h4>
+      <p>Finalizing and documenting the GoExplore analytics projects.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+  </div>
+
+<script>
+  function filterCards(tab) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    document.querySelectorAll('#card-grid .project-card').forEach(card => {
+      card.classList.toggle('hidden', filter !== 'all' && card.dataset.domain !== filter);
+    });
+  }
+</script>
+</body>
+</html>

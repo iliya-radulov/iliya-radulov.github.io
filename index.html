@@ -1,0 +1,266 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iliya Angelov Radulov — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<!-- ── SIDEBAR ── -->
+<aside id="sidebar">
+  <div class="profile-block">
+    <div class="avatar"><img src="me.jpg" alt="Iliya Angelov Radulov"> </div>
+    <h1>Iliya Angelov Radulov</h1>
+    <div class="tagline">Researcher &amp; Developer</div>
+  </div>
+
+  <div class="socials">
+    <a href="https://www.linkedin.com/in/iliyaradulov/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+      <svg class="icon icon-linkedin" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM.5 8.5H4.5V24H.5V8.5zM8 8.5h3.8v2.1h.1c.5-1 1.8-2.3 3.9-2.3 4.2 0 5 2.8 5 6.5V24h-4v-7.8c0-1.9 0-4.4-2.7-4.4s-3.1 2.1-3.1 4.3V24H8V8.5z"/>
+      </svg>
+    </a>
+    <a href="https://github.com/iliya-radulov" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+      <svg class="icon icon-github" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.2.8-.5v-1.8c-3.3.7-4-1.4-4-1.4-.6-1.6-1.4-2-1.4-2-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.2 3 .9.1-.7.4-1.2.7-1.5-2.7-.3-5.5-1.4-5.5-6.1 0-1.3.5-2.4 1.3-3.2-.1-.4-.6-1.8.1-3.7 0 0 1.1-.3 3.6 1.3a12.4 12.4 0 0 1 6.6 0c2.5-1.7 3.6-1.3 3.6-1.3.7 1.9.2 3.3.1 3.7.8.8 1.3 1.9 1.3 3.2 0 4.7-2.8 5.8-5.5 6.1.4.4.8 1 .8 2.1v3.1c0 .3.2.6.8.5A12 12 0 0 0 12 .5z"/>
+      </svg>
+    </a>
+    <a href="https://codeberg.org/iliya-radulov" target="_blank" rel="noopener noreferrer" aria-label="Codeberg" title="Codeberg">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 18.5V5.5c0-.8.7-1.5 1.5-1.5h15c.8 0 1.5.7 1.5 1.5v13c0 .8-.7 1.5-1.5 1.5h-15C3.7 20 3 19.3 3 18.5zM6 7v10l7-5-7-5z"/>
+      </svg>
+    </a>
+    <a href="https://orcid.org/0000-0001-8943-5083" target="_blank" rel="noopener noreferrer" aria-label="ORCID">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M8.2 19.5H6.1V4.5h2.1v15zm3.5-11.7c2.9 0 5.1 2.1 5.1 4.8 0 2.7-2.2 4.8-5.1 4.8H9.9V7.8h1.8zm0 7.8c1.7 0 3-1.2 3-3 0-1.8-1.3-3-3-3h-.8v6h.8zm5.8-7.8h2.1v15h-2.1v-15z"/>
+      </svg>
+    </a>
+    <a href="https://www.scopus.com/authid/detail.uri?authorId=56022860600" target="_blank" rel="noopener noreferrer" aria-label="Scopus">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M5 4h10l4 4v12H5V4zm10 1.5V9h3.5L15 5.5zM8 12h8v1.8H8V12zm0 3h8v1.8H8V15zm0-6h4v1.8H8V9z"/>
+      </svg>
+    </a>
+  </div>
+
+  <nav>
+    <a href="#" class="active" onclick="show('about', this)"><span class="dot"></span> About</a>
+    <a href="#" onclick="show('resume', this)"><span class="dot"></span> Résumé</a>
+    <a href="#" onclick="show('projects', this)"><span class="dot"></span> Projects</a>
+    <a href="#" onclick="show('scientific', this)"><span class="dot"></span> Scientific Background</a>
+    <a href="#" onclick="show('gallery', this)"><span class="dot"></span> Gallery</a>
+  </nav>
+</aside>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- ABOUT -->
+  <section class="section active" id="about">
+    <div class="section-head">
+      <div class="eyebrow">Introduction</div>
+      <h2>About Me</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-bio">
+        <p>Hi — I am <strong>Iliya Angelov Radulov</strong>, a researcher and developer based in Europe.</p>
+        <p>I studied Physics at Sofia University ‘St. Kliment Ohridski,’ Sofia, Bulgaria, where I obtained my MSc in Radiophysics and Electronics. Since 1998, my work has evolved from electronics to materials science, with a particular interest in experimental automation.</p>
+        <p>In recent years, I have been focusing on integrating modern data science and AI tools into scientific research workflows, with the aim of extending and supporting physics-driven work rather than pursuing standalone AI or data science applications.</p>
+        <p>This page provides an overview of my projects, publications, and selected personal work.</p>
+        <p>You are welcome to connect with me via LinkedIn, or to explore my code on GitHub and Codeberg, as well as my publications on Scopus and ORCID.</p>
+      </div>
+      <div class="about-meta">
+        <div class="meta-row"><span class="label">Location</span><span class="value">Bad König, Germany</span></div>
+        <div class="meta-row"><span class="label">Email</span><span class="value"><a href="mailto:iliyaradulov@gmail.com">iliyaradulov@gmail.com</a></span></div>
+        <div class="meta-row"><span class="label">GitHub</span><span class="value"><a href="https://github.com/iliya-radulov" target="_blank">github.com/iliya-radulov</a></span></div>
+        <div class="meta-row"><span class="label">Codeberg</span><span class="value"><a href="https://codeberg.org/iliya-radulov" target="_blank">codeberg.org/iliya-radulov</a></span></div>
+        <div class="meta-row"><span class="label">Scopus</span><span class="value"><a href="https://www.scopus.com/authid/detail.uri?authorId=56022860600" target="_blank">56022860600</a></span></div>
+        <div class="meta-row"><span class="label">ORCID</span><span class="value"><a href="https://orcid.org/0000-0001-8943-5083" target="_blank">0000-0001-8943-5083</a></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESUME -->
+  <section class="section" id="resume">
+    <div class="section-head">
+      <div class="eyebrow">Background</div>
+      <h2>Résumé</h2>
+    </div>
+
+    <div class="resume-block">
+      <h3>Education</h3>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-year">2005 – 2008</div>
+          <div class="tl-body"><h4>PhD in Condensed Matter Physics</h4><div class="where">Institute of Solid State Physics, Bulgarian Academy of Sciences</div><p>Magnetic properties of rare earth manganites</p></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">1992 – 1997</div>
+          <div class="tl-body"><h4>MSc in Radiophysics and Electronics</h4><div class="where">Sofia University "St. Kliment Ohridski", Sofia, Bulgaria</div><p>Development of powerful HF generator for capacitive plasma discharge excitation</p></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">1987 – 1992</div>
+          <div class="tl-body"><h4>Translator in German</h4><div class="where">German-language Gymnasium, Lovech, Bulgaria</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="resume-block">
+      <h3>Experience</h3>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-year">since 2026</div>
+          <div class="tl-body"><h4>Consultant</h4><div class="where">alqem.ai</div><p>Scientific consulting and research collaboration.</p></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2021 – 2026</div>
+          <div class="tl-body"><h4>Senior Researcher</h4><div class="where">Fraunhofer IWKS</div><p>Work on advanced functional materials research and development.</p></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2012 – 2021</div>
+          <div class="tl-body"><h4>Postdoctoral Researcher</h4><div class="where">Technical University Darmstadt / Functional materials Lab</div><p>Material science research, experimental work, project management and students supervision.</p></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2009 – 2012</div>
+          <div class="tl-body"><h4>Marie Curie Postdoctoral Fellowship</h4><div class="where">IESL FORTH</div><p>Research on materials with strongly correlated electronic systems.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="resume-block">
+      <h3>Skills &amp; Tools</h3>
+      <div class="skills-grid">
+        <span class="skill-tag">Linux</span><span class="skill-tag">LaTeX</span><span class="skill-tag">Python</span>
+        <span class="skill-tag">C</span><span class="skill-tag">Git</span><span class="skill-tag">SQL</span>
+        <span class="skill-tag">Docker</span><span class="skill-tag">KNIME</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS HUB -->
+  <section class="section" id="projects">
+    <div class="section-head">
+      <div class="eyebrow">Portfolio</div>
+      <h2>Projects</h2>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.92rem;margin-bottom:36px;line-height:1.7;">
+      Coding, maker, and interdisciplinary work — organized by status. Filter by topic once inside.
+    </p>
+    <div class="hub-grid">
+      <a class="hub-card" href="projects/active/active.html">
+        <div class="hub-thumb">⚡</div>
+        <div class="hub-info"><div class="hub-title">Active</div><div class="hub-desc">What I'm working on right now.</div></div>
+        <div class="hub-arrow">→</div>
+      </a>
+      <a class="hub-card" href="projects/recent/recent.html">
+        <div class="hub-thumb">🕓</div>
+        <div class="hub-info"><div class="hub-title">Recent</div><div class="hub-desc">Wrapped up in the last few months.</div></div>
+        <div class="hub-arrow">→</div>
+      </a>
+      <a class="hub-card" href="projects/former/former.html">
+        <div class="hub-thumb">📁</div>
+        <div class="hub-info"><div class="hub-title">Former</div><div class="hub-desc">Earlier projects, still worth a look.</div></div>
+        <div class="hub-arrow">→</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- SCIENTIFIC BACKGROUND (unchanged, kept separate on purpose) -->
+  <section class="section" id="scientific">
+    <div class="section-head">
+      <div class="eyebrow">Portfolio</div>
+      <h2>Scientific Background</h2>
+    </div>
+    <div class="project-gallery">
+      <div class="project-category">
+        <div class="category-header" onclick="toggleCategory(this)">
+          <h3>🔬 Scientific Projects</h3>
+          <span class="badge">4</span>
+        </div>
+        <div class="category-grid">
+          <a class="project-card" href="sci_projects/mc/magnetocaloric.html">
+            <span class="tag">Research</span>
+            <h4>Magnetocaloric Materials</h4>
+            <p>Magnetic refrigeration and caloric effects.</p>
+            <div class="project-links"><span>→</span></div>
+          </a>
+          <a class="project-card" href="sci_projects/pm/magnetic-materials.html">
+            <span class="tag">Research</span>
+            <h4>Magnetic Materials</h4>
+            <p>Structure-property relationships in functional oxides.</p>
+            <div class="project-links"><span>→</span></div>
+          </a>
+          <a class="project-card" href="sci_projects/other/other-functional-materials.html">
+            <span class="tag">Research</span>
+            <h4>Other Functional Materials</h4>
+            <p>Multiferroics, dielectrics, and beyond.</p>
+            <div class="project-links"><span>→</span></div>
+          </a>
+          <a class="project-card" href="sci_projects/production/upscaling.html">
+            <span class="tag">Research</span>
+            <h4>Upscaling</h4>
+            <p>From lab to pilot scale — processing and optimization.</p>
+            <div class="project-links"><span>→</span></div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALLERY HUB -->
+  <section class="section" id="gallery">
+    <div class="section-head">
+      <div class="eyebrow">Personal</div>
+      <h2>Gallery</h2>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.92rem;margin-bottom:36px;line-height:1.7;">
+      A few things beyond the desk — places visited, things learned, and certificates collected along the way.
+    </p>
+    <div class="hub-grid">
+      <a class="hub-card" href="galleries/travels/travels.html">
+        <div class="hub-thumb">✈️</div>
+        <div class="hub-info"><div class="hub-title">Travels</div><div class="hub-desc">Photos from trips and places around the world.</div></div>
+        <div class="hub-arrow">→</div>
+      </a>
+      <a class="hub-card" href="galleries/hobbies/hobbies.html">
+        <div class="hub-thumb">📷</div>
+        <div class="hub-info"><div class="hub-title">Hobbies</div><div class="hub-desc">Things I do when not working.</div></div>
+        <div class="hub-arrow">→</div>
+      </a>
+      <a class="hub-card" href="galleries/certificates/certificates.html">
+        <div class="hub-thumb">📜</div>
+        <div class="hub-info"><div class="hub-title">Certificates</div><div class="hub-desc">Courses, training, and credentials.</div></div>
+        <div class="hub-arrow">→</div>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  function show(sectionId, anchor) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+    if (anchor && anchor.tagName === 'A') anchor.classList.add('active');
+    if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+    return false;
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  function toggleCategory(header) {
+    const grid = header.nextElementSibling;
+    if (grid) {
+      grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Active Projects — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <a class="back-link" href="../../index.html">← Back</a>
+
+  <div class="section-head">
+    <div class="eyebrow">Portfolio / Projects</div>
+    <h2>Active</h2>
+  </div>
+  <p class="subpage-intro">What I'm working on right now. Filter by topic below.</p>
+
+  <div class="tag-filter">
+    <span class="filter-tab active" data-filter="all" onclick="filterCards(this)">All</span>
+    <span class="filter-tab" data-filter="coding" onclick="filterCards(this)">Coding</span>
+    <span class="filter-tab" data-filter="maker" onclick="filterCards(this)">Maker</span>
+    <span class="filter-tab" data-filter="interdisciplinary" onclick="filterCards(this)">Interdisciplinary</span>
+  </div>
+
+  <div class="subpage-grid" id="card-grid">
+    <a class="project-card" data-domain="interdisciplinary" href="../active/ai-stack-verification/ai-stack-verification.html">
+      <span class="tag">🎯 Interdisciplinary</span>
+      <h4>Instant Expertise, Zero Verification</h4>
+      <p>A small experiment on "ultimate blueprint" posts in general — how fast confident, unverified content gets made, and why that's the real problem.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="coding" href="../active/alloy-lab-database/alloy-lab-database.html">
+      <span class="tag">💻 Coding</span>
+      <h4>Alloy Lab Database — Personal Research Infrastructure</h4>
+      <p>One place to record what was made, how, and what it measured — usable later as training data for machine learning.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+  </div>
+
+<script>
+  function filterCards(tab) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    document.querySelectorAll('#card-grid .project-card').forEach(card => {
+      card.classList.toggle('hidden', filter !== 'all' && card.dataset.domain !== filter);
+    });
+  }
+</script>
+</body>
+</html>

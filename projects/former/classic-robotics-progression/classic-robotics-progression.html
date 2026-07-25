@@ -1,0 +1,55 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>From One Servo to Multi-Processor — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <a class="back-link" href="../former.html">← Back to Former Projects</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Former Project</div>
+    <h1>From One Servo to Multi-Processor</h1>
+    <p class="subtitle">A robotics progression, built one complexity level at a time</p>
+
+    <p>Long before "lab automation" was a goal I could put into words, I was building small machines — first for my own curiosity, later with my kids, and eventually as teaching tools for students who had never touched a motor or a line of code. Looking back, four devices trace a surprisingly clean line from "just for fun" to "genuinely sophisticated embedded system." This is that progression, simplest to most advanced.</p>
+
+    <h2>1. The Useless Box — one servo, maximum charm</h2>
+    <p>Exactly what it sounds like: flip the switch on, and a small arm emerges from the box just to flip the switch back off. One servo motor, one microswitch, zero practical purpose — and by a wide margin, the single most popular thing I ever brought into a classroom. Students who had no interest in electronics would still ask to try it, and then ask how it worked.</p>
+    <p>Pedagogically, that's the whole point of starting here: before anyone cares about code or sensors, they need a reason to be curious. A box that mocks you for turning it on turns out to be a very effective reason.</p>
+    <img class="site-photo" src="images/useless_1.jpeg" alt="The Useless Box">
+
+    <h2>2. Yeti — pure mechanics, no code at all</h2>
+    <p>The Yeti is the opposite kind of lesson: a walking mechanism driven entirely by linkages and gearing, with no programmable logic anywhere in it. Everything it does is a direct consequence of its mechanical design — cams, joints, and gear ratios doing all the "thinking." It's a good reminder that not every interesting behavior needs a microcontroller behind it, and a useful contrast once electronics do enter the picture.</p>
+    <p>There are three of these in the collection — two fully built and walking, and a third still living in its spare-parts box, exactly where every maker's "I'll get to it" project ends up sooner or later.</p>
+    <img class="site-photo" src="images/yeti.jpeg" alt="Two built Yeti walking robots">
+
+    <h2>3. Asuro — the first programmable step</h2>
+    <p>Asuro is where code actually enters the story. An AVR-based platform with onboard sensors, it's most commonly introduced through a line-follower program — simple enough to understand in an afternoon, but a genuine first taste of the sense → decide → act loop that underlies everything more advanced later. Line following doesn't sound like much, but it's the first time the machine is reacting to the world rather than just executing a fixed motion.</p>
+    <p>The one still on hand is an early production version of the board. There was a second Asuro at some point — it's currently somewhere in storage, location unconfirmed, which feels like an appropriately honest footnote for a "history of things I've built" page.</p>
+    <img class="site-photo" src="images/asuro.jpeg" alt="Early production Asuro board">
+
+    <h2>4. RP5 / RP6 / RP6v2 — the sophisticated endpoint</h2>
+    <p>The fleet at the top of this progression is a small collection of tracked robots spanning roughly a decade of embedded robotics evolution — from the original Conrad Robby RP5, built around an interpreted BASIC dialect with no feedback sensors at all, through three generations of the Arexx RP6v2 platform, culminating in a genuine multi-processor master/slave configuration with closed-loop, PID-regulated motor control.</p>
+    <p>This is the point where "hobby project" and "real embedded systems engineering" start to overlap, and it deserves more space than a paragraph. The full technical write-up — architecture comparisons, the software toolchain shift, code, odometry math, and a contrast with modern platforms like ROS 2 — lives on its own page:</p>
+    <a class="deep-dive-link" href="rp6v2-technical-retrospective.html">→ Read the full technical retrospective</a>
+    <div class="photo-grid">
+      <img class="site-photo" src="images/RP6_1.jpeg" alt="RP5/RP6 fleet, overview">
+      <img class="site-photo" src="images/RP6_2.jpeg" alt="RP5/RP6 fleet, underside view">
+      <img class="site-photo" src="images/RP6_3.jpeg" alt="Fully upgraded RP6v2 with M128 tower">
+      <img class="site-photo" src="images/RP6_4.jpeg" alt="RP5/RP6 fleet, side profile">
+    </div>
+
+    <h2>Bonus: the Arexx Classical Piano</h2>
+    <p>Not every Arexx kit was a robot. The <strong>CP-01K Classical Piano</strong> is a solder-it-yourself miniature piano — 25 keys across two octaves, about an hour to build, with 15 pre-loaded melodies and the ability to record your own. It sits in the same collection as the robotics fleet, mostly as proof that the same company making tracked robots for engineering students also made a genuinely charming little musical toy.</p>
+    <img class="site-photo" src="images/piano.jpeg" alt="Arexx CP-01K Classical Piano kit">
+
+    <h2>Why this matters now</h2>
+    <p>None of these were built with "lab automation" in mind — they were built because building things is fun, and because watching a room of students light up over a box that just turns itself off is its own reward. But the throughline is the same one running through the rest of this site: start simple, add a sensor, then a feedback loop, then real computation. The AIY kits and the LeRobot arm sitting in my current workshop are just the next rung on a ladder I've apparently been climbing for a very long time.</p>
+  </div>
+
+</body>
+</html>

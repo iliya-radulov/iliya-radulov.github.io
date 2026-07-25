@@ -1,0 +1,26 @@
+country,revenue,type
+Denmark,225307,Existing
+Sweden,303484,Existing
+Finland,344696,Existing
+Australia,348408,Existing
+Brazil,399236,Existing
+Singapore,428617,Existing
+Italy,439543,Existing
+Austria,551194,Existing
+Mexico,584599,Existing
+Belgium,657210,Existing
+China,697668,Existing
+Spain,798320,Existing
+Netherlands,871462,Existing
+Japan,987009,Existing
+Portugal,1062978,Predicted
+Korea,1182129,Existing
+France,1182454,Existing
+Czech Republic,1267933,Predicted
+Switzerland,1343717,Existing
+Canada,1402155,Existing
+United Kingdom,1494919,Existing
+Germany,1623699,Existing
+Poland,1843861,Predicted
+Norway,2949507,Predicted
+United States,3684763,Existing
