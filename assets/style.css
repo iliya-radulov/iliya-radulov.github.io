@@ -355,7 +355,7 @@ main {
   display: block;
   margin-left: 0;
   padding: 48px 64px;
-  max-width: 900px;
+  /* max-width: 900px; */
 }
 .back-link {
   display: inline-flex;
