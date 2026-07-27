@@ -31,6 +31,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: var(-
 #topbar nav a { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); text-decoration: none; font-weight: 600; white-space: nowrap; }
 #topbar nav a:hover { color: var(--phoenix-light); }
 
+/* SITE-WIDE PILL NAV */
+#site-nav { max-width: var(--content-w); margin: 0 auto; padding: 14px 24px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+#site-nav a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); text-decoration: none; transition: all 0.15s; }
+#site-nav a:hover { border-color: var(--phoenix); color: var(--phoenix-light); }
+#site-nav a.current { background: var(--phoenix); border-color: var(--phoenix); color: #fff; }
+
 header.hero { max-width: var(--content-w); margin: 0 auto; padding: 64px 24px 40px; border-bottom: 1px solid var(--border); }
 .eyebrow { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--phoenix); font-weight: 600; margin-bottom: 14px; }
 .hero h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; line-height: 1.2; color: var(--text); margin-bottom: 18px; }
@@ -148,7 +154,7 @@ footer .foot-links a:hover { text-decoration: underline; }
 
 <div id="topbar">
   <div class="inner">
-    <a class="back" href="../../index.html">&larr; Back to portfolio</a>
+    <a class="back" href="../../../index.html">&larr; Back to portfolio</a>
     <nav>
       <a href="#setup">Setup</a>
       <a href="#design">Design</a>
@@ -158,6 +164,15 @@ footer .foot-links a:hover { text-decoration: underline; }
     </nav>
   </div>
 </div>
+
+<nav id="site-nav">
+  <a href="../../../index.html">🏠 Home</a>
+  <a href="../../active/active.html">⚡ Active</a>
+  <a href="../../recent/recent.html">🕓 Recent</a>
+  <a href="../former.html" class="current">📁 Former</a>
+  <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+  <a href="../../../index.html#gallery">🖼️ Gallery</a>
+</nav>
 
 <header class="hero">
   <div class="eyebrow">Former Project · Experimental Design</div>

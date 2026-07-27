@@ -57,6 +57,23 @@
   }
   .nav-links a:hover { color: #F7F9FC; }
 
+  /* ── SITE-WIDE PILL NAV ── */
+  .site-nav {
+    background: var(--slate2);
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 12px 2rem;
+    border-bottom: 1px solid #2d3f55;
+  }
+  .site-nav a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 13px; border-radius: 20px;
+    font-size: 0.78rem; font-weight: 500;
+    background: var(--slate); border: 1px solid #2d3f55;
+    color: #8BA3BE; text-decoration: none; transition: all 0.15s;
+  }
+  .site-nav a:hover { border-color: var(--blue); color: var(--blue); }
+  .site-nav a.current { background: var(--blue); border-color: var(--blue); color: #fff; }
+
   /* ── HERO ── */
   .hero {
     background: var(--slate);
@@ -363,6 +380,15 @@
     <a href="#decision-tree">Decision Tree</a>
   </div>
 </nav>
+
+<div class="site-nav">
+  <a href="../../../index.html">🏠 Home</a>
+  <a href="../../active/active.html">⚡ Active</a>
+  <a href="../recent.html" class="current">🕓 Recent</a>
+  <a href="../../former/former.html">📁 Former</a>
+  <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+  <a href="../../../index.html#gallery">🖼️ Gallery</a>
+</div>
 
 <!-- HERO -->
 <header class="hero">

@@ -76,6 +76,23 @@
     font-family:var(--mono); font-size:11px; color:var(--phoenix); letter-spacing:.1em; text-transform:uppercase;
     display:flex; align-items:center; gap:7px;
   }
+
+  /* -------- Site-wide pill nav -------- */
+  .site-nav{
+    background:var(--bg-elev);
+    border-bottom:1px solid var(--line-soft);
+    padding:10px 28px;
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .site-nav a{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:5px 13px; border-radius:20px;
+    font-family:var(--mono); font-size:11.5px;
+    background:var(--bg-elev-2); border:1px solid var(--line);
+    color:var(--muted); text-decoration:none; transition:all .15s;
+  }
+  .site-nav a:hover{ border-color:var(--phoenix); color:var(--phoenix-glow); }
+  .site-nav a.current{ background:var(--phoenix); border-color:var(--phoenix); color:#08070a; }
   .dot{
     width:6px; height:6px; border-radius:50%; background:var(--phoenix); display:inline-block;
     box-shadow:0 0 8px var(--phoenix);
@@ -239,6 +256,15 @@
     <span class="tag"><span class="dot"></span>Prototyping &amp; Scale-Up</span>
   </div>
 </div>
+
+<nav class="site-nav">
+  <a href="https://iliya-radulov.github.io/">🏠 Home</a>
+  <a href="https://iliya-radulov.github.io/projects/active/active.html">⚡ Active</a>
+  <a href="https://iliya-radulov.github.io/projects/recent/recent.html">🕓 Recent</a>
+  <a href="https://iliya-radulov.github.io/projects/former/former.html">📁 Former</a>
+  <a href="https://iliya-radulov.github.io/#scientific" class="current">🔬 Scientific Background</a>
+  <a href="https://iliya-radulov.github.io/#gallery">🖼️ Gallery</a>
+</nav>
 
 <header class="hero">
   <div class="scanline"></div>

@@ -59,6 +59,31 @@
   nav.sections a { color: var(--muted); }
   nav.sections a:hover { color: var(--copper); text-decoration: none; }
 
+  /* ---------- Site-wide pill nav ---------- */
+  nav.site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--steel-line);
+  }
+  nav.site-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--steel);
+    border: 1px solid var(--steel-line);
+    color: var(--ink-soft);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  nav.site-nav a:hover { border-color: var(--copper); color: var(--copper); text-decoration: none; }
+  nav.site-nav a.current { background: var(--copper); border-color: var(--copper); color: #fff; }
+
   /* ---------- Hero ---------- */
   .hero { padding: 56px 0 40px; }
   .eyebrow {
@@ -332,6 +357,15 @@
   <div class="topbar">
     <span class="back">← <a href="https://iliya-radulov.github.io/">Iliya Angelov Radulov — portfolio</a></span>
   </div>
+
+  <nav class="site-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
 
   <nav class="sections">
     <a href="#motivation">Motivation</a>
@@ -656,8 +690,10 @@ Co   0.36 g</pre>
       <li>A per-database relevance slider — each database remembers its own cutoff, no re-querying when switching views</li>
       <li>A Data Viewer tab rendering XRD patterns, VSM loops, and SEM images directly, without leaving the app</li>
     </ul>
-    <div class="shot">  
+    <div class="shot">
+      <span class="cam">
       <img src="screens/query_oqmd.jpg" alt="Query interface for OQMD" width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+      </span>
       Screenshot: New Entry tab, and the three literature database selectors with common cutoff slider
     </div>
     <div class="shot">
@@ -793,6 +829,7 @@ Co   0.36 g</pre>
     <ul>
       <li class="icon">📓 <a href="Alloy_Lab_Database_Stage1.pdf" download="Alloy_Lab_Database_Stage1.pdf">Presentation: Alloy Lab Database Stage 1</a></li>
       <li class="icon">📓 <a href="https://github.com/iliya-radulov/my_db_project">Repository: Alloy Lab Database</a></li>
+      <li class="icon">📜 <a href="https://github.com/iliya-radulov/my_db_project/blob/master/MANIFESTO.md">Manifesto: on the role of AI/ML in this project</a></li>
     </ul>
   </section>
 

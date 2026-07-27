@@ -44,6 +44,12 @@
     nav .links a { color: var(--muted); }
     nav .links a:hover { color: var(--text); }
 
+    /* SITE-WIDE PILL NAV */
+    .site-nav { background: var(--surface); display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 2rem; border-bottom: 1px solid var(--border); }
+    .site-nav a { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: 20px; font-size: 13px; font-weight: 500; background: var(--bg); border: 1px solid var(--border); color: var(--muted); text-decoration: none; transition: all 0.15s; }
+    .site-nav a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+    .site-nav a.current { background: var(--accent); border-color: var(--accent); color: #0f1117; }
+
     /* HERO */
     .hero {
       max-width: 860px; margin: 0 auto;
@@ -204,6 +210,15 @@
     <a href="#learnings">Learnings</a>
   </div>
 </nav>
+
+<div class="site-nav">
+  <a href="../../../index.html">🏠 Home</a>
+  <a href="../../active/active.html">⚡ Active</a>
+  <a href="../recent.html" class="current">🕓 Recent</a>
+  <a href="../../former/former.html">📁 Former</a>
+  <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+  <a href="../../../index.html#gallery">🖼️ Gallery</a>
+</div>
 
 <!-- HERO -->
 <div class="hero">

@@ -50,6 +50,12 @@
   .topbar nav a{font-size:13.5px;color:var(--navy);opacity:.7;text-decoration:none;font-weight:500;}
   .topbar nav a:hover{opacity:1;color:var(--coral-deep);}
 
+  /* ---------- Site-wide pill nav ---------- */
+  .site-nav{display:flex;flex-wrap:wrap;gap:8px;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--line);}
+  .site-nav a{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:20px;font-size:13px;font-weight:500;background:var(--bg);border:1px solid var(--line);color:var(--muted);text-decoration:none;transition:all .15s;}
+  .site-nav a:hover{border-color:var(--coral);color:var(--coral-deep);text-decoration:none;}
+  .site-nav a.current{background:var(--coral);border-color:var(--coral);color:#fff;}
+
   /* ---------- Hero ---------- */
   .hero{position:relative;padding-top:56px;overflow:hidden;}
   .hero-lobster{position:absolute;right:-40px;top:6px;width:230px;opacity:.9;pointer-events:none;}
@@ -177,6 +183,15 @@
       <a href="#team">Team</a>
     </nav>
   </div>
+</div>
+
+<div class="site-nav">
+  <a href="../../../index.html">🏠 Home</a>
+  <a href="../../active/active.html">⚡ Active</a>
+  <a href="../recent.html" class="current">🕓 Recent</a>
+  <a href="../../former/former.html">📁 Former</a>
+  <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+  <a href="../../../index.html#gallery">🖼️ Gallery</a>
 </div>
 
 <div class="wrap hero">

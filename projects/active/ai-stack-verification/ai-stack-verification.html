@@ -2,31 +2,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Instant Expertise, Zero Verification — Iliya Angelov Radulov</title>
+  <title>Physics First, Verification Always — Iliya Angelov Radulov</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../../../assets/style.css" />
 </head>
 <body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
   <a class="back-link" href="../active.html">← Back to Active Projects</a>
 
   <div class="article-body">
     <div class="eyebrow">Interdisciplinary · Active</div>
-    <h1>Instant Expertise, Zero Verification</h1>
-    <p class="subtitle">A small experiment on the "ultimate blueprint" genre — not on open source</p>
+    <h1>Physics First, Verification Always</h1>
+    <p class="subtitle">A working position on where AI actually belongs in real scientific work — with one small experiment as a case study, not the whole argument</p>
 
-    <p>A pattern I keep running into, across every topic imaginable: a confident, beautifully designed post claiming to lay out <em>the</em> definitive workflow, stack, or system for doing something — always presented with total certainty, always styled to look hard-won. I see enough of these that the frustration stopped being about any one post and started being about the format itself.</p>
-    <p>So I ran a small experiment. I want to be upfront about one thing first: this isn't a criticism of open source software, which I genuinely believe in. It's a criticism of a content genre that happens, right now, to often be dressed up in open-source clothing.</p>
+    <p>This isn't a takedown of any tool, company, or person. It's a position, developed while deciding where AI/ML genuinely earns a place in a real materials-discovery pipeline, rather than where it's merely convenient to insert one.</p>
 
-    <h2>The experiment</h2>
-    <p>I asked a chatbot to draft a layered "blueprint" for a technical topic, the same way these posts present themselves — confident categories, named components in each, a clean structure. It produced the whole thing, fully formed, in well under a minute. When I checked the individual pieces it named, the results were mixed: some pointed to real, if very new and small, projects; some pointed to something real but not at all what the post implied it was (a personal write-up rather than an established framework, for instance); and several didn't turn up any independent trace at all under the names given.</p>
-    <p>None of that means anything sinister happened. It means an LLM asked to produce a confident stack will happily blend genuine (if obscure) references with names it's pattern-completing into existence, and the result is not distinguishable from real expertise unless someone actually checks.</p>
+    <h2>The position, briefly</h2>
+    <p>AI and ML models are useful as <strong>candidate-narrowing tools</strong> — ranking, filtering, prioritizing — never as a replacement for physical reasoning, and never trusted as ground truth without an independent check. A prediction is a hypothesis to verify, not an answer to act on.</p>
+    <p>This isn't a rejection of AI/ML — several tools used directly in the alloy-lab project are themselves ML- or heuristic-based. The position is about <em>how</em> such tools are used, not whether.</p>
 
-    <h2>It doesn't stop at one topic</h2>
-    <p>The same chatbot, asked the same way about different topics, produced equally confident, equally fast, equally mixed results every time. That's really the whole point: the genre isn't about any single post being wrong. It's that "instant, confident, and unverified" is now a fully general capability, not a one-off.</p>
+    <h2>A hierarchy, not a binary</h2>
+    <p>A colleague, <a href="https://www.linkedin.com/in/sergei-kalinin-5bb44b18" target="_blank" rel="noopener">Sergei Kalinin</a>, put a related idea well in a recent post: machine learning isn't automatically the best way to analyze data — when a good physical model exists, the physical model usually wins, because it connects observation to cause and tells you not just what happened but why. ML earns its place specifically where the physical model is incomplete, too expensive to evaluate, or where the experiment itself is moving faster than a person can steer it by hand.</p>
+    <p>That suggests a hierarchy rather than a single rule: use physics where physics is known; use ML to help learn representations where physics is incomplete; use ML for real-time decisions only where the experiment has genuinely outrun human speed — with physics and a human always still in the loop. It's a good complement to the position below: not "AI or not," but "AI for which part, checked how."</p>
 
-    <h2>What's actually being sold here</h2>
-    <p>The underlying components — open frameworks, connection protocols, delegation patterns, safety hooks — are all real, useful ideas, genuinely worth understanding. My issue isn't with any of that, and it isn't with open source, which is exactly the kind of transparent, inspectable work that makes verification possible in the first place. My issue is with the packaging: content generated in a minute, run through a design template, and published with the confident tone of "the definitive way," with nothing in the presentation to signal how quickly and cheaply that confidence was manufactured.</p>
+    <h2>Why this position, specifically</h2>
+    <p>Composition-only and structure-only models are interpolation machines, and materials discovery is fundamentally an extrapolation problem. A model ranks plausible candidates well within the space it was trained on, but has no principled way to know when a new composition crosses a phase boundary into territory it's never seen — and a small stoichiometric change can do exactly that.</p>
+    <p>Simulation-derived training data inherits the simulation's own systematic errors too. A model trained on DFT-derived properties learns DFT's known failure modes alongside whatever real signal exists — high accuracy against a held-out split of the <em>same simulated data</em> can mean the model learned the simulation's biases faithfully, not that it learned physics. The only real test is independent, physical verification: synthesis, characterization, comparison against a certified reference.</p>
+    <p>And a prediction without a stated validity envelope isn't falsifiable, which means it isn't actionable. "This model predicts stable compositions" means very little without also stating: stable by which measure, verified against what, within which region of composition space. Claims framed as universally applicable, with no boundaries stated, can't be checked — and can't be usefully disagreed with either, since there's no specific claim to test.</p>
+
+    <h2>What this looks like in practice</h2>
+    <p>The alloy-lab screening pipeline is built around exactly this discipline, as working code rather than an abstract principle:</p>
+    <ul>
+      <li><strong>VEC / δ / ΔH_mix</strong> are interpretable physical heuristics, not fitted models — every number has a direct physical meaning, and the reasoning behind each threshold is documented, not hidden behind training weights.</li>
+      <li><strong>The synthesis feasibility check</strong> (melt/boil-point based) explicitly separates its outputs into three tiers: a hard physical rule where confident, a comfortable "no concern" case, and — deliberately — a caution tier for the genuinely ambiguous middle, where the honest answer is "check further," not a confident guess dressed up as one.</li>
+      <li><strong>The XRD analysis pipeline was validated against a certified external reference standard</strong> (NIST SRM 660, LaB6), not just checked for internal self-consistency — internal consistency alone can't distinguish a correct pipeline from one that's consistently wrong.</li>
+      <li><strong>A peak-matching result was walked back mid-project</strong>, when a second, independent check (intensity ratio) contradicted an initial, single-criterion conclusion (position match alone) — documented in the project history rather than quietly dropped.</li>
+    </ul>
+    <p>The full technical manifesto behind these choices — including what this project asks of any AI/ML tool it adopts — lives alongside the <a href="alloy-lab-database.html">Alloy Lab Database write-up</a>.</p>
+
+    <h2>Case study: a small experiment in the opposite direction</h2>
+    <p>To see the failure mode this position guards against, I ran a small experiment on a completely different genre: the confident, beautifully designed post claiming to lay out <em>the</em> definitive workflow or stack for doing something, styled to look hard-won. To be upfront: this isn't a criticism of open source, which I genuinely believe in — it's a criticism of a content genre that happens, right now, to often be dressed up in open-source clothing.</p>
+    <p>I asked a chatbot to draft a layered "blueprint" the same way these posts present themselves — confident categories, named components, a clean structure. It produced the whole thing in well under a minute. Checking the individual pieces it named gave mixed results: some pointed to real, if very new and small, projects; some pointed to something real but not at all what the post implied (a personal write-up rather than an established framework, for instance); several didn't turn up any independent trace at all.</p>
+    <p>None of that means anything sinister happened. It means an LLM asked to produce a confident stack will happily blend genuine, if obscure, references with names it's pattern-completing into existence — and the result isn't distinguishable from real expertise unless someone actually checks. The same chatbot, asked the same way about different topics, produced equally confident, equally fast, equally mixed results every time. The genre isn't about any single post being wrong; "instant, confident, and unverified" is a fully general capability now, not a one-off.</p>
 
     <h2>Three checks before trusting any "ultimate" post</h2>
     <ul>
@@ -35,8 +60,8 @@
       <li><strong>Would the claim survive you asking an AI to generate a competing version of it in a minute?</strong> If a chatbot can produce an equally confident alternative "definitive" answer just as fast, "definitive" was never really on the table.</li>
     </ul>
 
-    <h2>Why bother writing this up</h2>
-    <p>Because I'd rather spend fifteen minutes checking than confidently repeat something a minute of pattern-completion invented. And because the actual antidote to this genre isn't cynicism about the underlying ideas — plenty of them are genuinely good — it's just a habit of checking before repeating, which turns out to be a pretty low price for not becoming part of the problem.</p>
+    <h2>Why this matters more than it might seem</h2>
+    <p>The same discipline applies whether the claim is a "definitive tech stack" post or a materials-discovery model's prediction: a validity envelope, independent verification, and auditability aren't bureaucratic overhead — they're what makes a claim checkable at all. I'd rather move slower and stay checkable than move fast on a claim nobody can verify, whether that claim came from a minute of pattern-completion or a well-trained model quietly extrapolating past the edge of what it actually knows.</p>
   </div>
 
 </body>
