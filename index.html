@@ -261,6 +261,19 @@
       grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
     }
   }
+
+  // Support deep-linking from other pages, e.g. index.html#gallery
+  function showFromHash() {
+    const id = window.location.hash.replace('#', '');
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target || !target.classList.contains('section')) return;
+    const navLink = document.querySelector(`nav a[onclick*="'${id}'"]`);
+    show(id, navLink);
+  }
+  window.addEventListener('DOMContentLoaded', showFromHash);
+  window.addEventListener('hashchange', showFromHash);
+
 </script>
 </body>
 </html>
