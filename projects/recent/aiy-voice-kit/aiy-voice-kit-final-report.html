@@ -1,0 +1,58 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIY Voice Kit — Final Build Report — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html">⚡ Active</a>
+    <a href="../../recent/recent.html" class="current">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../recent.html">← Back to Recent Projects</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Recent Project</div>
+    <h1>AIY Voice Kit (V1) — Final Build Report</h1>
+    <p class="subtitle">Bought in 2017, assembled in 2026 — nine years on the shelf, working end to end</p>
+
+    <div class="abstract-box">
+      <strong>Status: Complete.</strong> Google's AIY Voice Kit converts speech to text via Google Cloud, now fully working end to end — mic → cloud transcription → recognized command. The official repo has been archived since Feb 2023, so getting there meant a handful of real fixes rather than following the original instructions as written.
+    </div>
+
+    <h2>The short version</h2>
+    <ul>
+      <li>Repo archived by Google since Feb 2023 — no more official fixes, but the last release (2021-04-02) still works with a handful of patches.</li>
+      <li>First hardware mixup: assumed the spare board was a Raspberry Pi 3. It was actually an original 2014 <strong>Pi 1 Model B+</strong> — no WiFi hardware at all. Solved by switching to a Pi 4.</li>
+      <li>Pi 4 needs its own power supply (USB-C, 5V/3A) — the Pi 3's supply is physically incompatible and won't work.</li>
+      <li>WiFi config file had a typo from manual entry — fixed with <code>wpa_passphrase</code> instead of hand-editing.</li>
+      <li>The Pi's bundled browser is too old for Google's modern sign-in — worked around by authenticating via SSH/terminal instead of the desktop GUI.</li>
+      <li>Hit a real code bug: <code>AttributeError: module 'google.cloud.speech' has no attribute 'types'</code> — caused by the <code>google-cloud-speech</code> Python library moving on from the old <code>.types</code> structure since the kit's software was last updated. Fixed with a targeted <code>sed</code> patch to <code>cloudspeech.py</code>.</li>
+      <li>Google Cloud now requires a billing account (card on file) even for free-tier usage — a change since the kit's original 2017 setup instructions were written. Free tier (60 min/month speech recognition + $300 new-account credit) comfortably covers hobby use.</li>
+      <li>Final test (<code>cloudspeech_demo.py</code>): live transcription worked cleanly, including LED/action mapping for phrases like "turn on the light" and "goodbye."</li>
+    </ul>
+
+    <h2>What this project actually demonstrated</h2>
+    <ul>
+      <li>Diagnosing hardware identity issues methodically (<code>cat /proc/cpuinfo</code>) rather than assuming</li>
+      <li>Recognizing when a symptom (undervoltage, WiFi failure) has a root cause elsewhere (power supply) rather than treating each surface-level failure independently</li>
+      <li>Patching a real, documented open-source library incompatibility rather than reflashing/reinstalling as a first resort</li>
+      <li>Navigating a service (Google Cloud) that has changed its account/billing requirements since the original documentation was written, without official kit support to fall back on</li>
+    </ul>
+
+    <p>Full step-by-step details, including every command run and why, are in the setup guide:</p>
+    <a class="deep-dive-link" href="aiy-voice-kit-v1-setup-guide.html">→ Read the full setup guide</a>
+
+    <h2>What's next</h2>
+    <p>Next in the series: the <a href="../../recent/aiy-vision-kit/aiy-vision-kit-final-report.html">AIY Vision Kit</a>, followed by integration between the two, and eventually a Pi 4-based, locally hosted version — moving away from Google Cloud's speech API entirely.</p>
+  </div>
+
+</body>
+</html>

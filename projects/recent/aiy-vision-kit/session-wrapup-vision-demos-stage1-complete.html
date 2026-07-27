@@ -1,0 +1,83 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Wrap-Up — Vision Kit Live Demos &amp; Stage 1 Complete — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html" class="current">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="aiy-vision-kit-final-report.html">← Back to the final report</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Technical Deep-Dive</div>
+    <h1>Session Wrap-Up — Vision Kit Live Demos &amp; Stage 1 Complete</h1>
+    <p class="subtitle">Quick-reference summary so nothing needs to be re-learned next time</p>
+
+    <p>After the camera fix (new 8MP V2 camera + gpu_mem bump + disabling the background joy-detection service), this session was about actually running the Vision Kit's live demos.</p>
+
+    <h2>1. Reassembly survived ✅</h2>
+    <p>Put everything back in the cardboard box. Camera still detected fine afterward:</p>
+    <pre><code>vcgencmd get_camera
+supported=1 detected=1</code></pre>
+    <p>Confirms the earlier fix was solid, not a fluke.</p>
+
+    <h2>2. Reconnection hiccup (network, not hardware)</h2>
+    <p>Lost SSH access after being away for a while — <code>.local</code> hostname resolution stopped working (<code>Unknown host</code>), even though the Pi was genuinely online with a valid WiFi IP. Root cause was never fully pinned down (likely laptop/mDNS flakiness after network changes — the Pi even briefly appeared on a different subnet, <code>192.168.1.x</code> instead of <code>192.168.2.x</code>).</p>
+    <p><strong>Practical fixes that worked:</strong></p>
+    <ul>
+      <li><strong>USB gadget mode</strong> as a reliable fallback — plug the Pi Zero's <code>USB</code> (not <code>PWR IN</code>) port into the laptop, wait ~30–60 sec, connect via <code>ssh pi@aiy-vision.local</code> over that link. Works even while normal power stays plugged in.</li>
+      <li><strong>Connecting via raw IP</strong> (<code>ssh pi@192.168.1.85</code>) when <code>.local</code> refuses to resolve, even over plain WiFi.</li>
+    </ul>
+    <p><strong>Still unresolved / worth revisiting sometime:</strong> why <code>.local</code> mDNS resolution intermittently fails on this network. Not urgent — the two workarounds above are reliable enough for now.</p>
+
+    <h2>3. Face detection — working ✅</h2>
+    <pre><code>cd ~/AIY-projects-python/src/examples/vision
+python3 face_detection_camera.py</code></pre>
+    <p>Live output, ~8–10 fps, correctly detected 1 face and tracked a real-time "joy score" — score jumped from ~0.02 (neutral) to 0.97–0.99 when smiling. Genuinely well-calibrated, running entirely on the Bonnet's own chip.</p>
+
+    <h2>4. Object detection — working, with a memory gotcha ✅</h2>
+    <pre><code>python3 object_detection.py --input &lt;file&gt; --output &lt;file&gt; --threshold 0.2</code></pre>
+    <ul>
+      <li>On the full 8MP photo: process got <strong>killed by the Linux OOM-killer</strong> (<code>dmesg</code> confirmed it — Pi Zero only has 512MB RAM, and 256MB is already reserved for GPU, leaving little headroom for decoding a large image in Python).</li>
+      <li><strong>Fix:</strong> capture a smaller image first (<code>raspistill -w 640 -h 480 -o small.jpg</code>), then run detection on that instead. Completed fast, correctly drew a bounding box around a laptop in frame.</li>
+      <li><strong>Takeaway for future testing:</strong> always feed <code>object_detection.py</code> a low-resolution image on this board — full 8MP photos will reliably crash it.</li>
+    </ul>
+
+    <h2>Current project status</h2>
+    <h3>✅ Phase 1 — Foundations: COMPLETE</h3>
+    <ul>
+      <li><strong>Voice Kit</strong>: assembled, WiFi working, Google Cloud speech recognition working (<code>cloudspeech_demo.py</code> transcribes live speech)</li>
+      <li><strong>Vision Kit</strong>: assembled, WiFi working (own hostname <code>aiy-vision</code>), camera replaced (original sensor died after 9 years), face detection + joy scoring + object detection all confirmed working locally on-device</li>
+    </ul>
+    <h3>🔜 Phase 2 — Arm Basics: NOT STARTED YET</h3>
+    <p>Plan: assemble the SO-ARM101 leader/follower pair over the coming weekend. No blockers — parts are on hand, this phase was designed to be independent and can start anytime.</p>
+    <h3>⏳ Later phases (unchanged from original roadmap)</h3>
+    <ol>
+      <li>Record leader→follower demonstrations</li>
+      <li>Add vision during demonstrations</li>
+      <li>Add voice as a trigger</li>
+      <li>(Stretch) train an imitation-learning/VLA policy off-device</li>
+    </ol>
+
+    <h2>Reference documents so far</h2>
+    <ul>
+      <li><a href="../../recent/aiy-voice-kit/aiy-voice-kit-v1-setup-guide.html">AIY Voice Kit setup guide</a></li>
+      <li><a href="aiy-vision-kit-troubleshooting-log.html">AIY Vision Kit — initial troubleshooting log</a> (WiFi, hostname collision, USB gadget mode)</li>
+      <li><a href="aiy-vision-kit-camera-fix-summary.html">AIY Vision Kit — camera replacement &amp; fix</a> (dead camera, GPU memory, background service conflict)</li>
+      <li>Voice + Vision + Arm roadmap (phased plan, parts list, hardware notes) — <a href="../../active/voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">see the full roadmap</a></li>
+      <li>This document — live demo session + status check-in</li>
+    </ul>
+  </div>
+
+</body>
+</html>

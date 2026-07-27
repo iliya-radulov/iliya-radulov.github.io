@@ -1,0 +1,142 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setting Up a Google AIY Voice Kit (V1) in 2026 — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html">⚡ Active</a>
+    <a href="../../recent/recent.html" class="current">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="aiy-voice-kit-final-report.html">← Back to the final report</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Technical Deep-Dive</div>
+    <h1>Setting Up a Google AIY Voice Kit (V1) in 2026</h1>
+    <p class="subtitle">A practical guide — every command, and why</p>
+
+    <p>The Google AIY Voice Kit V1 was released in 2017 as a build-it-yourself smart speaker for the Raspberry Pi. I bought mine back then but never got around to assembling it — until now. The official GitHub repo was archived by Google on Feb 9, 2023 and is now read-only, so a few things have quietly broken since the original instructions were written. This is a record of what I ran into and how I solved it, in case it saves someone else the same detective work.</p>
+
+    <div class="abstract-box">
+      <strong>A note on process:</strong> parts of the debugging below were worked through with the help of an AI assistant (Claude) — the same way I'd normally ask a colleague or student in the lab when I hit something unfamiliar. No shame in that; it's just how troubleshooting works these days.
+    </div>
+
+    <h2>Before you start: known dead ends</h2>
+    <p>A few things from the original setup flow no longer work, so don't waste time on them:</p>
+    <ul>
+      <li>The linked Google Assistant SDK guide now just shows a deprecation notice (Conversational Actions were sunset June 13, 2023).</li>
+      <li>The in-app troubleshooting guide link (shown during setup) is dead.</li>
+      <li>The repo itself is archived — no further fixes are coming from Google, so the steps below are community/self-fixes.</li>
+    </ul>
+    <p>The Voice Kit V1 site and Quick Start Guide are still up and mostly still apply for the physical build.</p>
+
+    <h2>What you need</h2>
+    <ul>
+      <li>A <strong>Raspberry Pi 3</strong> — or a <strong>Pi 4</strong> (any RAM size), which works fine despite being released after the kit. Note: Pi 4 uses micro-HDMI, not full-size HDMI — grab an adapter if you need a display.</li>
+      <li>A 16GB+ SD card</li>
+      <li>The kit itself (Voice HAT, mic array, speaker, cardboard enclosure, LED)</li>
+      <li><strong>Correct power supply for whichever Pi you use</strong> — the Pi 3's micro-USB supply is <em>not</em> compatible with the Pi 4, which needs USB-C at 5V/3A. Undervoltage causes flaky WiFi and random instability, so don't skip this.</li>
+    </ul>
+
+    <h2>1. Flash the system image</h2>
+    <p>Go to the releases page — despite the archive notice, the images are still downloadable. Grab the latest one, <strong>AIY Kits Release 2021-04-02</strong>, and flash it to your SD card with Etcher.</p>
+
+    <h2>2. Assemble the hardware</h2>
+    <p>The physical build itself was trouble-free — instructions are clear, kit is well designed, cardboard folds fit the Pi 4's port layout without modification.</p>
+    <p><strong>One thing to watch:</strong> insert the Pi into the cardboard enclosure <em>before</em> inserting the SD card, not after — sliding the assembled hardware in with the card already inserted is awkward and risks damaging the card slot.</p>
+
+    <h2>3. First boot</h2>
+    <p>Boot went smoothly — this is where the real troubleshooting started.</p>
+
+    <h2>Troubleshooting: no WiFi</h2>
+    <p>If <code>wlan0</code> doesn't show up or won't connect, work through this in order.</p>
+    <p><strong>Connect via Ethernet first</strong> so you have a reliable way in regardless of WiFi status:</p>
+    <pre><code>ssh pi@raspberrypi.local
+# default login: pi / raspberry</code></pre>
+
+    <p><strong>Check the WiFi interface actually exists:</strong></p>
+    <pre><code>ip link show</code></pre>
+    <p>If there's no <code>wlan0</code> at all, it's a hardware/driver issue — check <code>cat /proc/cpuinfo | grep Model</code> to confirm which Pi board you actually have. (In this case, the board assumed to be a Pi 3 was actually an original 2014 <strong>Pi 1 Model B+</strong>, which has no WiFi hardware at all. Worth checking early.)</p>
+
+    <p><strong>If <code>wlan0</code> exists but isn't connecting:</strong></p>
+    <pre><code>rfkill list                          # check for a soft block
+sudo rfkill unblock wifi             # if blocked
+
+sudo raspi-config                    # Localisation Options → WLAN Country → set yours
+
+sudo iwlist wlan0 scan | grep ESSID  # confirm your network is visible
+
+sudo cat /etc/wpa_supplicant/wpa_supplicant.conf   # check for a network={} block</code></pre>
+
+    <p><strong>If the config is missing your network,</strong> add it cleanly (avoids typos, generates a proper hash):</p>
+    <pre><code>wpa_passphrase "YOUR_SSID" "YOUR_PASSWORD"</code></pre>
+    <p>Copy the output into the config file:</p>
+    <pre><code>sudo nano /etc/wpa_supplicant/wpa_supplicant.conf</code></pre>
+    <pre><code>ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=DE
+network={
+    ssid="YOUR_SSID"
+    psk=&lt;the long hash from wpa_passphrase&gt;
+}</code></pre>
+    <p>Save (<code>Ctrl+O</code>, Enter, <code>Ctrl+X</code>), then apply:</p>
+    <pre><code>sudo wpa_cli -i wlan0 reconfigure
+# or just: sudo reboot
+
+ip a show wlan0   # look for an inet 192.168.x.x line</code></pre>
+
+    <h2>4. Google Cloud setup</h2>
+    <p>The Voice Kit's cloud speech recognition needs a Google Cloud project with billing enabled. This is a change from 2017 — it's now required even to stay within the free tier. For light hobby use, the free 60 minutes/month of Speech-to-Text (plus $300 in new-account credit) comfortably covers testing.</p>
+    <p><strong>Don't try to sign into Google through the Pi's own desktop browser</strong> — it's an old, embedded Chromium/Epiphany build that Google's modern sign-in flow actively rejects (you may see a misleading "cookies are disabled" message). Do all of this from your laptop instead, and only use the Pi over SSH.</p>
+    <ol>
+      <li>Go to Google Cloud Console on your laptop.</li>
+      <li>Create a project (e.g. <code>aiy-voice-kit</code>).</li>
+      <li>Enable the <strong>Speech-to-Text API</strong>.</li>
+      <li>Enable billing (set a small budget alert as a safety net: Billing → Budgets &amp; Alerts).</li>
+      <li>Create a <strong>Service Account</strong> → Keys → Add Key → JSON. This downloads a credentials file.</li>
+      <li>Copy it to the Pi:
+        <pre><code>scp ~/Downloads/your-credentials-file.json pi@raspberrypi.local:/home/pi/cloud_speech.json</code></pre>
+      </li>
+    </ol>
+
+    <h2>5. Fix the outdated speech library call</h2>
+    <p>Running the built-in checker:</p>
+    <pre><code>python3 /home/pi/AIY-projects-python/checkpoints/check_cloud.py</code></pre>
+    <p>throws:</p>
+    <pre><code>AttributeError: module 'google.cloud.speech' has no attribute 'types'</code></pre>
+    <p>This is a known, well-documented break — the <code>google-cloud-speech</code> Python library moved on from the old <code>.types</code> structure, but the 2021 AIY code was never updated to match. Patch it:</p>
+    <pre><code>cp /home/pi/AIY-projects-python/src/aiy/cloudspeech.py ~/cloudspeech.py.bak
+
+sudo sed -i \
+  -e 's/from google.cloud import speech$/from google.cloud import speech_v1 as speech/' \
+  -e 's/speech\.types\.StreamingRecognizeResponse\.END_OF_SINGLE_UTTERANCE/speech.StreamingRecognizeResponse.SpeechEventType.END_OF_SINGLE_UTTERANCE/' \
+  -e 's/speech\.types\.RecognitionConfig\.LINEAR16/speech.RecognitionConfig.AudioEncoding.LINEAR16/' \
+  -e 's/speech\.types\./speech./g' \
+  /home/pi/AIY-projects-python/src/aiy/cloudspeech.py</code></pre>
+    <p>Re-run the checker — it should now report:</p>
+    <pre><code>Everything is set up to use the Google Cloud.</code></pre>
+
+    <h2>6. Test it</h2>
+    <pre><code>cd ~/AIY-projects-python/src/examples/voice
+./cloudspeech_demo.py</code></pre>
+    <p>This listens through the mic, sends audio to Google's Speech-to-Text API, and prints back what it heard — confirming the full pipeline (mic → cloud → transcription → action mapping) works end to end.</p>
+
+    <h2>Lessons learned</h2>
+    <ul>
+      <li><strong>Double-check your Pi model before debugging WiFi</strong> — <code>cat /proc/cpuinfo | grep Model</code> takes ten seconds and would've saved a day of head-scratching.</li>
+      <li><strong>Undervoltage causes weird, unrelated-looking symptoms</strong> — flaky WiFi, USB dropouts, slowness — always rule out the power supply early.</li>
+      <li><strong>Don't fight an outdated browser</strong> — if a Pi's bundled browser can't handle modern sign-in flows, do the login on your laptop and bridge the results over (via terminal auth flows, file transfer, or SSH) rather than trying to patch the browser itself.</li>
+      <li><strong>Archived doesn't mean broken</strong> — most of the AIY stack still works fine in 2026, it just needs a few small patches where the surrounding Google Cloud ecosystem moved on without it.</li>
+    </ul>
+  </div>
+
+</body>
+</html>
