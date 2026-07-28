@@ -1,0 +1,69 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Verified Open-Source Stack for AI Agents — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../active.html">← Back to Active Projects</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Interdisciplinary · Active</div>
+    <h1>A Verified Open-Source Stack for AI Agents</h1>
+    <p class="subtitle">A practical, checked list — the positive companion piece to <a href="ai-stack-verification.html">Physics First, Verification Always</a></p>
+
+    <p>A popular framing has been going around describing AI agent architecture as four layers — Skills, MCP, Subagents, and Hooks — with a proprietary tool suggested for each. As someone who prefers open-source and independent tooling where it exists, I wanted to know what a genuinely open-source equivalent would actually look like.</p>
+
+    <p>So rather than take a generated list at face value, I checked each suggestion against its actual repository, paper, or project page. Most of it held up. A little of it didn't, and one gap turned out to be more interesting than a simple substitute would have been. Here's the result.</p>
+
+    <p>The process itself is worth being honest about. I first asked an LLM-based search tool for an open-source equivalent of that four-layer framing, and got back a nicely organized, confident-sounding answer. It turned out not to be fully accurate. Running the same question through a second LLM-based check, with an actual emphasis on verification this time, produced a much more thorough, checkable version — and surfaced some genuinely interesting details along the way, including at least one case where a real project existed under the same name but with different specifics than first claimed.</p>
+
+    <p>The main lesson isn't "don't trust these tools" — it's the opposite, really: used carefully, this kind of search is a genuinely remarkable way to get fast, specific, and ultimately reliable information, far beyond what manually digging through GitHub myself would have found in the same time. But "used carefully" is doing real work in that sentence, and it's not something I always manage well — I tend to react to things emotionally before I've properly checked them, which is exactly the habit I'm trying to get better at.</p>
+
+    <h2>Skills — packaging know-how as installable capability</h2>
+    <p><strong><a href="https://github.com/ARPAHLS/skillware" target="_blank" rel="noopener">Skillware</a></strong> treats agent skills the way a package manager treats software: installable, versioned units of executable logic, instructions, and safety boundaries, rather than something re-written into every project's system prompt from scratch. Real, actively maintained, and does what it says.</p>
+    <p>One piece I couldn't verify: a tool that routes only the <em>relevant</em> subset of a large skill library into context for a given task, using BM25-style relevance ranking rather than loading everything. The specific tool named for this didn't check out as a real, independent project. The underlying idea is real, though — Postgres has genuine BM25 full-text search available via <strong><a href="https://github.com/paradedb/paradedb" target="_blank" rel="noopener">ParadeDB</a></strong>, and there's at least one published cross-encoder model (<a href="https://huggingface.co/pipizhao/SkillRouter-Reranker-0.6B" target="_blank" rel="noopener">SR-Rank</a>) built specifically for reranking candidate skills against a task query. No single packaged tool yet combines these into what was described — but the pieces to build one already exist, openly, if anyone wants to.</p>
+
+    <h2>MCP — the connection layer</h2>
+    <p>Three real, independently verifiable projects here, each doing a distinct job:</p>
+    <ul>
+      <li><strong><a href="https://github.com/mrexodia/zeromcp" target="_blank" rel="noopener">zeromcp</a></strong> — a genuinely minimal, zero-dependency MCP server in pure Python. Under 1,000 lines, HTTP/SSE and stdio transports, nothing hidden.</li>
+      <li><strong><a href="https://github.com/InfraMCP" target="_blank" rel="noopener">InfraMCP</a></strong> — a family of MCP servers for infrastructure automation (SSH, Windows/WinRM, VMware vSphere, Jira/Confluence, GitLab, and more), letting an agent interact with real infrastructure through one consistent protocol.</li>
+      <li><strong><a href="https://github.com/ECF/MCPTransports" target="_blank" rel="noopener">MCPTransports</a></strong> — adds Unix Domain Socket transport for MCP, for fast, secure same-machine communication where a full network transport is unnecessary overhead.</li>
+    </ul>
+
+    <h2>Subagents — delegation and specialized execution</h2>
+    <ul>
+      <li><strong><a href="https://github.com/crewAIInc/crewAI" target="_blank" rel="noopener">CrewAI</a></strong> — the most established name here by a wide margin: role-based multi-agent orchestration, open-source core with an optional enterprise layer, under active development since December 2023.</li>
+      <li><strong><a href="https://github.com/zzatpku/AgentFactory" target="_blank" rel="noopener">AgentFactory</a></strong> — a genuinely research-backed approach, not just a GitHub project: a published paper (Peking University / BAAI) describing a self-evolving framework that saves successful task solutions as reusable, executable subagent code rather than text, refining them as more tasks are encountered.</li>
+      <li><strong><a href="https://github.com/microsoft/conductor" target="_blank" rel="noopener">Conductor</a></strong> — worth a direct correction here, since the description going around for this one didn't match reality: it's not a Java framework with "explicit/implicit" agent types. The real Conductor (Microsoft, MIT-licensed) is a YAML-defined workflow CLI with fully <em>deterministic</em> routing — no LLM in the orchestration loop itself, Jinja2 templates and expression evaluation deciding what runs next. That's arguably a more interesting design than what was originally claimed: predictable, version-controllable workflows instead of an LLM re-deciding the plan on every run.</li>
+    </ul>
+
+    <h2>Hooks — deterministic control and automation</h2>
+    <p>The tool named for this layer didn't turn up any independent trace at all — no repository, no package, no mention anywhere I could find. Two real alternatives cover the same ground properly:</p>
+    <ul>
+      <li><strong><a href="https://github.com/IndenScale/agenthooks" target="_blank" rel="noopener">agenthooks</a></strong> — an open format for event-driven agent hooks: folders containing executable scripts plus metadata, triggered on events like <code>pre-tool-call</code>, matched against specific tools or patterns (e.g. blocking a dangerous shell command before it runs).</li>
+      <li><strong><a href="https://github.com/block/goose" target="_blank" rel="noopener">goose</a></strong> — Block's open-source AI agent, with a real, documented hooks system (<code>PreToolUse</code>, <code>PostToolUse</code>, <code>SessionStart</code>, and more) via the Open Plugins specification.</li>
+    </ul>
+
+    <h2>Putting it together</h2>
+    <p>A genuinely open-source stack, then: Skillware for packaging skills, one of the three real MCP projects above for external connections, CrewAI or AgentFactory for delegation, agenthooks or goose for control and automation — all real, all independently checkable, all without a subscription.</p>
+
+    <h2>One honest note</h2>
+    <p>Everything above was checked against its actual source before being included here — not because open-source claims are especially prone to being wrong, but because <em>any</em> list like this, human-written or otherwise, is worth checking before you build on it. Small projects change fast, maintainers move on, READMEs describe aspirations as much as reality sometimes. The links above are a good starting point, not a substitute for looking at a repository yourself before depending on it — which, in fairness, is exactly what putting this list together required in the first place.</p>
+    <p>This piece itself was drafted with AI assistance, then checked and edited by hand — the same position it argues for: a tool for narrowing and drafting, not a source of unverified claims.</p>
+  </div>
+
+</body>
+</html>
