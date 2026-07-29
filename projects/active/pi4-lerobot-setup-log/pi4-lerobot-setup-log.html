@@ -1,0 +1,157 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Log: LeRobot Setup on Raspberry Pi 4 — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../active.html">← Back to Active Projects</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project</div>
+    <h1>Session Log: LeRobot Setup on Raspberry Pi 4 (1GB)</h1>
+    <p class="subtitle">Migrating the already-calibrated SO-101 leader/follower arm setup from Mac to the Pi 4</p>
+
+    <div class="abstract-box">
+      <strong>Goal:</strong> validate that the Pi can drive the arm + a USB webcam together — the key open question from the <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">project roadmap's</a> Phase 2/3 transition.<br><br>
+      <strong>Result: ✅ Success.</strong> Arm control and camera capture both confirmed working simultaneously on the 1GB Pi 4, at a stable 60Hz control loop.
+    </div>
+
+    <h2>1. System prep</h2>
+    <pre><code>sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3-venv python3-pip git git-lfs</code></pre>
+    <p>Installed git-lfs upfront this time — a lesson learned from the Mac setup, where skipping it caused an incomplete clone. Confirmed Python 3.13.5, comfortably above LeRobot's 3.10+ requirement.</p>
+
+    <h2>2. Clone + install LeRobot</h2>
+    <pre><code>git clone https://github.com/huggingface/lerobot.git
+cd lerobot
+git lfs pull
+python3 -m venv robot
+source robot/bin/activate
+pip install -e ".[feetech]"</code></pre>
+    <p><strong>Issue encountered:</strong> <code>[Errno 28] No space left on device</code> during the torch download, despite 48GB free on the main disk.</p>
+    <p><strong>Root cause:</strong> pip's default temp directory (<code>/tmp</code>) is <code>tmpfs</code> (RAM-backed) on Raspberry Pi OS, capped at ~453MB — too small for the ~420MB torch wheel plus build overhead.</p>
+    <p><strong>Fix:</strong></p>
+    <pre><code>mkdir -p ~/pip-tmp
+TMPDIR=~/pip-tmp pip install -e ".[feetech]"
+rm -rf ~/pip-tmp</code></pre>
+    <p>Install succeeded after redirecting pip's temp files to the main disk instead of RAM-backed <code>/tmp</code>.</p>
+    <p><strong>Side note:</strong> the generic aarch64 torch wheel pulled in a full set of unused NVIDIA CUDA libraries (cublas, cudnn, nccl, triton, etc.) — several hundred MB of dead weight on a Pi with no NVIDIA GPU. Left in place since disk space wasn't tight (41GB free afterward), but worth knowing if space becomes a concern later — a CPU-only torch build would avoid this.</p>
+
+    <h2>3. USB serial permissions</h2>
+    <pre><code>sudo usermod -a -G dialout $USER
+sudo reboot</code></pre>
+    <p>Required so the Pi user can access the arm's USB-serial controller boards without <code>sudo</code>. Confirmed via <code>groups</code> after reboot.</p>
+
+    <h2>4. Transferring calibration (no motor re-init needed)</h2>
+    <p>Key insight confirmed: <strong>motor IDs live on the servos themselves</strong> (EEPROM), not on the host computer — so no re-running <code>lerobot-setup-motors</code> was needed when switching machines.</p>
+    <p><strong>Calibration files</strong>, however, are host-local JSON, so these were copied from Mac to Pi via <code>scp</code>:</p>
+    <pre><code># from the Mac:
+scp ~/.cache/huggingface/lerobot/calibration/robots/so_follower/my_follower_arm.json brain@lerobot-vision:~/
+scp ~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/my_leader_arm.json brain@lerobot-vision:~/
+
+# on the Pi:
+mkdir -p ~/.cache/huggingface/lerobot/calibration/robots/so_follower/
+mkdir -p ~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/
+mv ~/my_follower_arm.json ~/.cache/huggingface/lerobot/calibration/robots/so_follower/
+mv ~/my_leader_arm.json ~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/</code></pre>
+
+    <h2>5. Port identification</h2>
+    <pre><code>lerobot-find-port</code></pre>
+    <ul>
+      <li>Follower controller board → <code>/dev/ttyUSB0</code></li>
+      <li>Leader controller board → <code>/dev/ttyUSB1</code></li>
+    </ul>
+    <p>(Different naming convention from macOS's <code>/dev/tty.usbserial-XXXX</code>, as expected on Linux.)</p>
+
+    <h2>6. First teleoperation test on the Pi — ✅ success</h2>
+    <pre><code>lerobot-teleoperate \
+    --robot.type=so101_follower \
+    --robot.port=/dev/ttyUSB0 \
+    --robot.id=my_follower_arm \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/ttyUSB1 \
+    --teleop.id=my_leader_arm</code></pre>
+    <p>Steady 60Hz loop, calibration loaded correctly from the transferred JSON files, follower mirrored leader movement with no issues (aside from an expected small "snap to position" jump at the very start, caused by the arm being repositioned since the last calibration — not an error).</p>
+
+    <h2>7. Camera discovery — initial confusion, resolved</h2>
+    <pre><code>lerobot-find-cameras opencv</code></pre>
+    <p>Reported 6 "cameras," and all 6 failed to deliver a frame. Investigated with:</p>
+    <pre><code>v4l2-ctl --list-devices
+lsusb</code></pre>
+    <p><strong>Findings:</strong></p>
+    <ul>
+      <li>Only one was a real camera: <strong>Trust Webcam</strong> at <code>/dev/video0</code> (and <code>/dev/video1</code>).</li>
+      <li>The other 5 devices (<code>video2</code>, <code>video14/15/21/22</code>) were the Raspberry Pi's own internal camera processing pipeline nodes (<code>bcm2835-codec</code>, <code>bcm2835-isp</code>, <code>unicam</code>) — these exist regardless of whether anything is physically connected to the Pi's CSI port, and are not usable webcams.</li>
+    </ul>
+    <p>Verified the real webcam works independently of LeRobot:</p>
+    <pre><code>ffplay /dev/video0</code></pre>
+    <p>✅ Connected successfully, streamed 640×480 @ 30fps live video.</p>
+
+    <h2>8. Combining arm + camera in LeRobot</h2>
+    <p>First attempt with <code>--display_data=true</code> failed with two separate issues:</p>
+    <ol>
+      <li><code>ImportError: 'rerun-sdk' is required</code> → installed via <code>pip install 'lerobot[viz]'</code></li>
+      <li>After installing, hit a headless-session error: <code>winit EventLoopError ... neither WAYLAND_DISPLAY nor DISPLAY is set</code> — expected, since this was run over SSH with no graphical display attached.</li>
+    </ol>
+    <p>Dropped <code>--display_data=true</code> and tested camera + arm together directly:</p>
+    <pre><code>lerobot-teleoperate \
+    --robot.type=so101_follower \
+    --robot.port=/dev/ttyUSB0 \
+    --robot.id=my_follower_arm \
+    --robot.cameras='{"main": {"type": "opencv", "index_or_path": "/dev/video0", "width": 640, "height": 480, "fps": 30}}' \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/ttyUSB1 \
+    --teleop.id=my_leader_arm</code></pre>
+    <p><strong>First run:</strong> camera connection timed out (<code>TimeoutError</code> after 1000ms) — despite <code>ffplay</code> proving the camera works. Likely a first-connection initialization quirk (a benign <code>imread_</code> warning appeared, suggesting OpenCV briefly mishandled the device path on first touch).</p>
+    <p><strong>Second run, identical command, no changes:</strong> ✅ succeeded —</p>
+    <pre><code>OpenCVCamera(/dev/video0) connected.
+my_follower_arm SOFollower connected.
+Teleop loop time: 16.76ms (60 Hz)</code></pre>
+    <p>Ran cleanly for ~30 seconds until manually stopped with Ctrl+C. <strong>Lesson for next time:</strong> if the camera fails to connect on the first attempt, simply retry the same command — this appears to be a one-off USB/driver settling quirk, not a fragile or unreliable setup.</p>
+
+    <h2>Final validated state</h2>
+    <table>
+      <tr><th>Component</th><th>Status</th></tr>
+      <tr><td>LeRobot installed on Pi 4 (1GB)</td><td>✅</td></tr>
+      <tr><td>Motor IDs (both arms)</td><td>✅ (unchanged from Mac setup — stored on servos)</td></tr>
+      <tr><td>Calibration (both arms)</td><td>✅ (transferred as JSON, no recalibration needed)</td></tr>
+      <tr><td>Follower port</td><td><code>/dev/ttyUSB0</code></td></tr>
+      <tr><td>Leader port</td><td><code>/dev/ttyUSB1</code></td></tr>
+      <tr><td>Webcam</td><td>Trust Webcam @ <code>/dev/video0</code>, 640×480 @ 30fps</td></tr>
+      <tr><td>Teleoperation (arm only)</td><td>✅ 60Hz, stable</td></tr>
+      <tr><td>Teleoperation + camera together</td><td>✅ 60Hz, stable (after one retry)</td></tr>
+      <tr><td>Visualization (<code>rerun</code> display)</td><td>Not usable over headless SSH session — needs a local display/desktop session to test</td></tr>
+    </table>
+
+    <h2>Roadmap status update</h2>
+    <ul>
+      <li>✅ <strong>Phase 1</strong> — Voice + Vision kits (prior work)</li>
+      <li>✅ <strong>Phase 2</strong> — Arm basics: built, calibrated, teleoperation confirmed — now validated on the actual target hardware (Pi 4), including camera integration</li>
+      <li>🔜 <strong>Phase 3</strong> — Record demonstrations (next session)</li>
+    </ul>
+
+    <h2>Notes / open items for next time</h2>
+    <ul>
+      <li>Disk usage on Pi is currently ~14GB used / 41GB free — comfortable headroom, no action needed.</li>
+      <li>The unused NVIDIA CUDA packages are harmless but could be removed later with a CPU-only torch build if space ever gets tight.</li>
+      <li><code>rerun</code> visualization works in principle (package installs fine) but needs either a local desktop session on the Pi, or X11 forwarding over SSH, to actually display — untested so far.</li>
+      <li>Next session: test <code>lerobot-record</code> for a first pick-and-place dataset, following the plan already outlined (fixed camera position, consistent lighting, varied object start position across episodes).</li>
+    </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Continues on from the <a href="../pi4-modern-stack-setup/session-wrapup-pi4-modern-stack-setup.html">Pi 4 "Brain" Setup (Modern Stack)</a> session. See also the <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">full project roadmap</a>.</em></p>
+  </div>
+
+</body>
+</html>

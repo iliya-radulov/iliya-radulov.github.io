@@ -1,0 +1,65 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Wrap-Up — Pi 4 "Brain" Setup (Modern Stack) — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../active.html">← Back to Active Projects</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project</div>
+    <h1>Session Wrap-Up — Pi 4 "Brain" Setup (Modern Stack)</h1>
+    <p class="subtitle">First session on the new development platform for the Voice+Vision "head" project, moving off the archived AIY software onto current Raspberry Pi OS</p>
+
+    <h2>What was set up</h2>
+    <ul>
+      <li><strong>Hardware:</strong> one of the spare Raspberry Pi 4 (1GB) boards, paired with the <strong>8MP camera (V2, IMX219)</strong> freed up from the Vision Kit swap</li>
+      <li><strong>OS:</strong> fresh <strong>Raspberry Pi OS (64-bit, Bookworm/Trixie-based)</strong>, flashed via Raspberry Pi Imager onto a 64GB card</li>
+      <li><strong>Hostname:</strong> <code>lerobot-vision</code> (login user: <code>brain</code>) — chosen to avoid repeating the <code>raspberrypi.local</code> collision problem from the AIY kits</li>
+      <li><strong>Display:</strong> the 10" touchscreen (previously idle on the old Pi 3) now in active use — first time working with a monitor + mouse instead of pure headless SSH for this whole project</li>
+      <li><strong>Raspberry Pi Connect:</strong> enabled, as a cloud-relayed fallback for remote access, specifically to sidestep the recurring mDNS/<code>.local</code> resolution flakiness hit throughout the Vision Kit saga. Not yet tested in practice — worth trying next time <code>.local</code> misbehaves.</li>
+    </ul>
+
+    <h2>Issues hit &amp; resolved</h2>
+    <ol>
+      <li><strong>SSH refused connection at first</strong> — the Imager's SSH-enable checkbox wasn't set (or hadn't taken effect) on first boot. Fixed via the desktop GUI: Raspberry Pi menu → Preferences → Raspberry Pi Configuration → Interfaces tab → enable SSH.</li>
+      <li><strong>Username mismatch</strong> — briefly tried <code>pi@</code> out of habit; actual configured username was <code>brain</code>. Straightforward once noticed — no default <code>pi</code> account exists on modern Raspberry Pi OS (a change from the old AIY image).</li>
+      <li><strong>Locale warnings</strong> (<code>setlocale: LC_CTYPE: cannot change locale</code>) — cosmetic only, fixed with:
+        <pre><code>sudo apt-get install -y locales-all</code></pre>
+      </li>
+    </ol>
+
+    <h2>Camera — working cleanly, first try</h2>
+    <p>Old <code>libcamera-*</code> commands are renamed to <code>rpicam-*</code> on current Raspberry Pi OS. Confirmed:</p>
+    <pre><code>rpicam-hello --list-cameras</code></pre>
+    <p>→ correctly detected <code>imx219</code> (the 8MP sensor), full resolution and mode list shown, no errors.</p>
+    <p>Test capture:</p>
+    <pre><code>rpicam-still -o ~/test_modern.jpg</code></pre>
+    <p>Succeeded on the first attempt — no cable issues, no background service conflicts, no GPU memory tuning needed, none of the friction from the old AIY/MMAL stack. The verbose auto-exposure warm-up output (<code>#7... #148</code> frame counter) before capture is normal, expected behavior — not an error.</p>
+
+    <div class="abstract-box"><strong>Key takeaway:</strong> the contrast with the archived AIY software stack is stark: same physical camera, same general task (detect camera, take a photo), but the modern <code>libcamera</code>/<code>rpicam</code> stack "just worked" on the first real attempt, after days of troubleshooting were needed on the 2021 AIY image for the same basic capability. Validates the decision to move development forward on modern hardware/software rather than continuing to extend the archived kits.</div>
+
+    <h2>Not yet done / next session</h2>
+    <ul>
+      <li>Install <strong>picamera2</strong> (the Python library, distinct from the <code>rpicam-*</code> command-line tools) for programmatic camera control</li>
+      <li>Install <strong>TensorFlow Lite</strong> and run an actual detection model (not just raw capture)</li>
+      <li>Eventually: same setup process on the <strong>Pi 5 + AI Camera (IMX500)</strong> once its SD card/cable arrive — should be near-identical steps, per official Raspberry Pi documentation covering both boards</li>
+    </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>This document, plus the <a href="../../recent/aiy-voice-kit/aiy-voice-kit-final-report.html">Voice Kit</a> and <a href="../../former/aiy-vision-kit/aiy-vision-kit-final-report.html">Vision Kit</a> final reports, form the complete project record so far. See also the <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">overall roadmap</a>.</em></p>
+  </div>
+
+</body>
+</html>
