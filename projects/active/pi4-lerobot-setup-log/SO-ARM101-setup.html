@@ -1,0 +1,62 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SO-ARM101 Leader/Follower Arm — Build & Pi 4 Migration Report — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../active.html">← Back to Active Projects</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project</div>
+    <h1>SO-ARM101 Leader/Follower Arm — Build & Pi 4 Migration Report</h1>
+    <p class="subtitle">Part of the same project as the AIY Voice Kit <a href="../../recent/aiy-voice-kit/aiy-voice-kit-final-report.html">final report</a> and AIY Vision Kit <a href="../../recent/aiy-vision-kit/aiy-vision-kit-final-report.html">final report</a> — see the project <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">roadmap</a> for the overall plan.</p>
+
+    <h2>Status: Phase 2 Complete</h2>
+    <p>Both arms (leader + follower) assembled, calibrated, and confirmed running live teleoperation at a stable 60Hz — first on a Mac for initial validation, then successfully migrated to the target hardware (a Raspberry Pi 4, 1GB). Camera integration was also validated ahead of schedule.</p>
+     
+    <h2>Assembly</h2>
+    <p>Refreshingly uneventful compared to the AIY kits — the SO-ARM101's 3D-printed parts and clear motor-ID-then-assemble sequence (built into Hugging Face's official LeRobot documentation) meant no real snags worth documenting. Motor IDs were set one at a time before each motor was mechanically installed into its joint — necessary since IDs can't be addressed individually once several motors share a daisy-chained bus.</p>
+
+    <h2>Mac → Pi 4 Migration</h2>
+    <p>The arm was first calibrated and teleoperated on a Mac to validate the mechanical build independent of any Pi-specific issues. Moving to the Pi 4 surfaced a few small, well-understood issues — none related to the arm itself:</p>
+    <ul>
+    <li><strong>"No space left on device" during install</strong>, despite plenty of free disk — caused by pip's temp directory defaulting to a small RAM-backed <code>tmpfs</code> on Raspberry Pi OS, too small for the torch wheel. Fixed by redirecting <code>TMPDIR</code> to the main disk during install.</li>
+    <li><strong>Calibration transferred as files, not re-run</strong> — motor IDs live on the servos' own EEPROM, so only the host-side calibration JSON needed copying (via <code>scp</code>) from Mac to Pi; no need to redo the calibration procedure itself.</li>
+    <li><strong>Port names differ by OS</strong> — macOS's <code>/dev/tty.usbserial-XXXX</code> vs. Linux's <code>/dev/ttyUSB0</code>/<code>ttyUSB1</code>, easily found with <code>lerobot-find-port</code> on either platform.</li>
+    <li><strong>Camera discovery listed 6 devices, only 1 real</strong> — the Pi's internal CSI camera processing pipeline (<code>bcm2835-codec</code>/<code>isp</code>/<code>unicam</code>) shows up as multiple phantom "camera" entries even with nothing connected to the CSI port. The actual USB webcam was identified separately via <code>v4l2-ctl --list-devices</code> and <code>lsusb</code>.</li>
+    <li><strong>First camera connection attempt timed out, second attempt succeeded</strong> — appears to be a one-off USB/driver settling quirk on first touch, not a reliability problem; simply retrying resolved it.</li>
+    </ul>
+
+    <h2>Result</h2>
+    <ul>
+    <li>Teleop loop time: 16.67ms (60 Hz)</li>
+    </ul>
+    <p>Confirmed stable on the Pi 4 with the leader and follower both connected, and separately confirmed the same 60Hz stability holds with a USB webcam streaming simultaneously — meaning the 1GB Pi 4 comfortably handles the combined workload Phase 3/4 will need.</p>
+
+    <h2>What This Demonstrated</h2>
+    <ul>
+    <li>Validating hardware/mechanical assembly independently of the target compute platform (Mac first, Pi second) — isolating "is the arm built correctly" from "does the Pi handle it," rather than debugging both at once</li>
+    <li>Understanding why calibration data is portable across machines while motor configuration is not, rather than just following steps</li>
+    <li>Correctly distinguishing real hardware (a USB webcam) from a host system's internal camera pipeline artifacts when several unfamiliar "camera" devices appear at once</li>
+    </ul>
+
+    <div class="abstract-box"><strong>Key takeaway:</strong> The arm itself was the easy part — every issue hit during the Pi 4 migration was a platform/environment quirk (disk paths, port naming, phantom camera devices), not a hardware or LeRobot problem. Isolating "did I build this right" from "does this specific computer run it right" by testing on the Mac first made each of those quirks trivial to diagnose instead of confusing.</div>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>For full setup details, see the <a href="../pi4-lerobot-setup-log/session-wrapup-pi4-modern-stack-setup.html">session wrap-up</a> and the <a href="../pi4-lerobot-setup-log/pi4-lerobot-setup-log.html">complete Pi 4 migration log</a> with all commands and troubleshooting.</em></p>
+    <p>Next: Phase 3 — recording leader→follower demonstrations for a first dataset.</p>
+  </div>
+
+</body>
+</html>
