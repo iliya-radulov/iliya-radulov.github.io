@@ -1,0 +1,78 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIY Vision Kit — Camera Replacement &amp; Final Fix — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html" class="current">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="aiy-vision-kit-final-report.html">← Back to the final report</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Technical Deep-Dive</div>
+    <h1>AIY Vision Kit — Camera Replacement &amp; Final Fix</h1>
+    <p class="subtitle">Follow-up to the <a href="aiy-vision-kit-troubleshooting-log.html">initial troubleshooting log</a>, covering the camera hardware failure and its resolution</p>
+
+    <h2>Background</h2>
+    <p>After getting WiFi and SSH working, the camera still wouldn't detect (<code>vcgencmd get_camera</code> → <code>detected=0</code>) despite correct cable orientation and multiple reseats. Suspected either a bad cable or a dead sensor after 9 years in storage.</p>
+
+    <h2>1. Replaced the cable first — no change</h2>
+    <p>Swapped in a new Pi Zero camera cable, kept the original 2017 camera module. Still <code>detected=0</code>. Ruled out the cable as the culprit.</p>
+
+    <h2>2. Replaced the camera — detected!</h2>
+    <p>Swapped in a new <strong>Raspberry Pi Camera Module V2.1 (8MP, Sony IMX219)</strong> — a different sensor than the kit's original 5MP V1 (OV5647), since that's what was available to buy.</p>
+    <pre><code>vcgencmd get_camera
+supported=1 detected=1</code></pre>
+    <p>Confirmed: <strong>the original 2017 camera module had failed</strong> after nearly a decade unused. Cable, Bonnet, and config were never the problem.</p>
+
+    <h2>3. New error: ENOSPC on capture</h2>
+    <p>Detection worked, but <code>raspistill -o test.jpg</code> failed:</p>
+    <pre><code>mmal: mmal_vc_component_enable: failed to enable component: ENOSPC</code></pre>
+    <p>This looked like a hardware fault at first, but turned out to be two stacked software issues — neither one hardware-related.</p>
+
+    <h3>3a. GPU memory too low for the 8MP sensor</h3>
+    <p>Original <code>gpu_mem=128</code> was tuned for the 5MP sensor. Bumped it to <code>256</code> in <code>/boot/config.txt</code>, rebooted, confirmed with <code>vcgencmd get_mem gpu</code> → <code>gpu=256M</code>. Error persisted — so this wasn't the full story.</p>
+
+    <h3>3b. Background service silently holding the camera</h3>
+    <p>Used the official Raspberry Pi Engineering diagnostic method (<code>start_debug=1</code> in config.txt + <code>sudo vcdbg log assert</code>) to get a firmware-level trace. The trace ruled out the "camera physically dead" signature (<code>imx219_open</code> assert) and pointed to a generic peripheral-open failure instead — a sign of a resource conflict, not hardware.</p>
+    <p>Checked for background processes:</p>
+    <pre><code>sudo systemctl list-units --type=service --state=running | grep -i -E "aiy|vision|camera|joy"</code></pre>
+    <p>Found the culprit: <strong>joy_detection_demo.service</strong> — a demo the AIY image auto-starts on every boot, which was already holding the camera open via MMAL before <code>raspistill</code> could touch it.</p>
+    <pre><code>sudo systemctl stop joy_detection_demo.service
+sudo systemctl disable joy_detection_demo.service</code></pre>
+
+    <h2>4. Success</h2>
+    <pre><code>raspistill -o test.jpg</code></pre>
+    <p>Ran silently, produced a real 4.3MB JPEG — first working photo from this kit. ✅</p>
+
+    <h2>5. Survived reassembly</h2>
+    <p>After putting everything back in the cardboard enclosure:</p>
+    <pre><code>vcgencmd get_camera
+supported=1 detected=1
+
+raspistill -o test_after_reassembly.jpg</code></pre>
+    <p>Clean success again — confirms the fix (new camera + gpu_mem + disabled joy service) is stable, not a fluke.</p>
+
+    <h2>Root causes, in order discovered</h2>
+    <ol>
+      <li><strong>Original camera module was dead</strong> (age-related hardware failure) — not a cable or config issue.</li>
+      <li><strong>GPU memory needed raising</strong> for the higher-resolution replacement sensor (128MB → 256MB).</li>
+      <li><strong>A background demo service was silently occupying the camera</strong> — the actual final blocker, found via the official firmware debug-log method rather than guesswork.</li>
+    </ol>
+
+    <h2>Key takeaway</h2>
+    <p>When a "camera not working" error persists after fixing the obvious hardware causes, check <strong>what else might already have the camera open</strong> — background services from the original OS image are an easy thing to overlook, especially on a system you didn't build from scratch yourself.</p>
+  </div>
+
+</body>
+</html>

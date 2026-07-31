@@ -1,0 +1,101 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Former Projects — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../index.html">🏠 Home</a>
+    <a href="../active/active.html">⚡ Active</a>
+    <a href="../recent/recent.html">🕓 Recent</a>
+    <a href="../former/former.html" class="current">📁 Former</a>
+    <a href="../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+
+  <div class="section-head">
+    <div class="eyebrow">Portfolio / Projects</div>
+    <h2>Former</h2>
+  </div>
+  <p class="subpage-intro">Earlier projects, still worth a look. Filter by topic below.</p>
+
+  <div class="tag-filter">
+    <span class="filter-tab active" data-filter="all" onclick="filterCards(this)">All</span>
+    <span class="filter-tab" data-filter="coding" onclick="filterCards(this)">Coding</span>
+    <span class="filter-tab" data-filter="maker" onclick="filterCards(this)">Maker</span>
+    <span class="filter-tab" data-filter="interdisciplinary" onclick="filterCards(this)">Interdisciplinary</span>
+  </div>
+
+  <div class="subpage-grid" id="card-grid">
+    <a class="project-card" data-domain="maker" href="../former/diy-arduino-builds/diy-arduino-builds.html">
+      <span class="tag">🛠️ Maker</span>
+      <h4>From Breadboard to Hexapod</h4>
+      <p>DIY Arduino builds from scratch — a tracked breadboard robot, an ultrasonic 4WD car, the official Arduino Robot, a windmill mechanism, and a six-legged hexapod.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="maker" href="../former/makeblock-collection/makeblock-collection.html">
+      <span class="tag">🛠️ Maker</span>
+      <h4>Makeblock: Robots, Modules, and a Broken Laser Cutter</h4>
+      <p>One ecosystem, three outcomes — a heavily upgraded mBot Ranger, a short-lived Neuron kit, and a laser cutter waiting on spare parts.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="maker" href="../former/kids-stem-kits/kids-stem-kits.html">
+      <span class="tag">🛠️ Maker</span>
+      <h4>A Shelf of Modular Kits</h4>
+      <p>From a vintage boolean-logic kit to micro:bit, littleBits, Makeblock Neuron, and beyond — teaching kids to build and code, one snap-together module at a time.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="maker" href="../former/meccano-progression/meccano-progression.html">
+      <span class="tag">🛠️ Maker</span>
+      <h4>From Easy 1 to Meccanoid</h4>
+      <p>A Meccano progression — Easy 1, Mechanical 2, Motorized 3, and two fully programmable Meccanoid robots.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="maker" href="../former/aiy-vision-kit/aiy-vision-kit-final-report.html">
+      <span class="tag">🛠️ Maker</span>
+      <h4>AIY Vision Kit — Final Build Report</h4>
+      <p>Reviving a 9-year-old kit: a dead original camera, a second defective replacement, and a background service quietly hogging the working one.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="maker" href="../former/classic-robotics-progression/classic-robotics-progression.html">
+      <span class="tag">🛠️ Maker</span>
+      <h4>From One Servo to Multi-Processor</h4>
+      <p>A robotics progression — Useless Box, Yeti, Asuro, and the RP5/RP6v2 fleet — plus a full technical retrospective on closed-loop embedded control.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="coding" href="../former/magist-sql-tableau/magist-sql-tableau.html">
+      <span class="tag">💻 Coding</span>
+      <h4>Data-Driven Business Case: SQL + Tableau</h4>
+      <p>An analysis of a Brazilian e-commerce platform using SQL and Tableau. This was my first real data project — a case study using MySQL and Tableau to answer a business question for a real-world scenario.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="coding" href="../former/eniac-discount-strategy/eniac-discount-strategy.html">
+      <span class="tag">💻 Coding</span>
+      <h4>Eniac Discount Strategy</h4>
+      <p>This project started as a messy, real-world dataset from Eniac, an e-commerce electronics retailer, and turned into a deep dive on how much their discounting habit was actually costing them. The dataset was genuinely chaotic — broken price formats, duplicate rows, orders in five different states — so a large chunk of the work was just getting the data into a state I could trust.</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+    <a class="project-card" data-domain="coding" href="../former/ab-testing-shop-now/ab-testing-shop-now.html">
+      <span class="tag">💻 Coding</span>
+      <h4>SHOP NOW Button: A/B Test or Something More?</h4>
+      <p>Eniac wanted to know whether tweaking their "SHOP NOW" button — color, copy, or both — would improve click-through rate. The obvious framing is "A/B test it." But with two variables and four combinations, this is technically a 2×2 multivariate test...</p>
+      <div class="project-links"><span>→</span></div>
+    </a>
+  </div>
+
+<script>
+  function filterCards(tab) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    document.querySelectorAll('#card-grid .project-card').forEach(card => {
+      card.classList.toggle('hidden', filter !== 'all' && card.dataset.domain !== filter);
+    });
+  }
+</script>
+</body>
+</html>
