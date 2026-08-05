@@ -1,0 +1,123 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Log: Migration to Mac, First Real Dataset, Training Kickoff — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="robot-arm-pickplace.html">← Back to project overview</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project · Session Log</div>
+    <h1>Migration to Mac, First Real Dataset, Training Kickoff</h1>
+    <p class="subtitle">Diagnosing the Pi 4's performance ceiling, moving the recording workflow to Mac, and starting first policy training</p>
+
+    <div class="abstract-box">
+      <strong>Goal:</strong> diagnose the Pi 4 performance ceiling, migrate recording to Mac, record a real 30-episode dataset, and kick off first policy training.<br><br>
+      <strong>Result:</strong> ✅ Major milestone — first complete, well-formed 30-episode training dataset recorded, and first policy training run underway.
+    </div>
+
+    <h2>Background: why we moved off the Pi 4</h2>
+    <p>Across the previous two sessions, <code>lerobot-record</code> on the 1GB Pi 4 consistently triggered:</p>
+    <pre><code>Record loop is running slower (4-6 Hz) than the target FPS (30 Hz)</code></pre>
+    <p>Even after tuning (lower resolution/fps, streaming encoding), the Pi could only sustain roughly <strong>4-6 Hz</strong> against a 30Hz target — a genuine hardware ceiling from running arm control, camera capture, and real-time video encoding simultaneously on constrained CPU/RAM, not a configuration problem.</p>
+    <p><strong>Decision:</strong> rather than keep degrading data quality to fit the Pi 4's limits, move recording and initial training to the Mac (already fully set up from earlier sessions), and reserve the Pi 5 (arriving imminently, 4GB RAM + AI cam) as the eventual permanent "body," per the original roadmap. The Pi 4 is to be repurposed for a lighter-duty role (e.g. voice), as originally planned.</p>
+    <p><strong>Laptop choice:</strong> Mac chosen over an available IdeaPad 5 (Ryzen 7 5700U) specifically for <strong>MPS (Metal Performance Shaders)</strong> GPU-accelerated training support in PyTorch — the IdeaPad's integrated Radeon graphics has no practical PyTorch acceleration path, meaning training there would fall back to CPU-only.</p>
+
+    <h2>1. Reconnecting arms via USB hub (Mac only has 2 ports)</h2>
+    <p>Identified stable ports: leader → <code>/dev/tty.usbserial-11320</code>, follower → <code>/dev/tty.usbserial-11330</code>.</p>
+    <p>Two hub-related hiccups, both resolved:</p>
+    <ul>
+      <li>A loose cable in the hub caused a port to briefly disappear (<code>FileNotFoundError</code>) — refound via <code>ls /dev/tty.usbserial-*</code>, cable reseated.</li>
+      <li>Touching the hub mid-session caused a live disconnect (<code>[Errno 6] Device not configured</code>) — fixed physically with tape to stabilize the connection.</li>
+    </ul>
+    <p><strong>Lesson:</strong> avoid touching/bumping the hub while a script is actively running; make physical adjustments between runs, not during.</p>
+
+    <h2>2. Camera setup on Mac</h2>
+    <p>Initial <code>lerobot-find-cameras opencv</code> failed entirely with <code>not authorized to capture video</code> — a macOS privacy permission block, not a hardware issue. Fixed via System Settings → Privacy &amp; Security → Camera (or accepting the in-app permission prompt on retry).</p>
+    <p>Two cameras detected: index 0 = external USB webcam (correctly framing the workspace), index 1 = Mac's built-in camera (confirmed via a literal test photo).</p>
+
+    <h2>3. Missing package, same pattern as the Pi</h2>
+    <pre><code>pip install 'lerobot[dataset]'</code></pre>
+    <p>No <code>TMPDIR</code> workaround needed here — that fix was specific to the Pi's tiny RAM-backed <code>/tmp</code>, not a factor on the Mac.</p>
+
+    <h2>4. First full-quality recording — dramatic improvement over the Pi</h2>
+    <p>Test recording at full 640×480 @ 30fps:</p>
+    <table>
+      <tr><th>Metric</th><th>Pi 4</th><th>Mac</th></tr>
+      <tr><td>Duration accuracy (20s target)</td><td>63s real time</td><td>25s real time</td></tr>
+      <tr><td>Slowdown warning</td><td>Persistent</td><td>Completely absent</td></tr>
+      <tr><td>Encoding speed</td><td>~570 examples/s</td><td>~7,300 examples/s (~12×)</td></tr>
+    </table>
+    <p>A minor benign warning noted: a duplicate-library <code>objc</code> warning from OpenCV/PyAV both bundling <code>libavdevice</code> — no actual failure caused, but flagged as a "watch for future crashes" item.</p>
+
+    <h2>5. Full 30-episode dataset recorded — ✅ no errors</h2>
+    <pre><code>lerobot-record \
+    --robot.type=so101_follower \
+    --robot.port=/dev/tty.usbserial-11330 \
+    --robot.id=my_follower_arm \
+    --robot.cameras='{"main": {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30, "warmup_s": 5}}' \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/tty.usbserial-11320 \
+    --teleop.id=my_leader_arm \
+    --dataset.repo_id=iliya-radulov/so101-pickplace-v1 \
+    --dataset.single_task="Pick up the object and place it in the tape roll" \
+    --dataset.num_episodes=30 \
+    --dataset.episode_time_s=20 \
+    --dataset.reset_time_s=8 \
+    --dataset.push_to_hub=false</code></pre>
+    <p><strong>Confirmed dataset stats</strong> (from <code>meta/info.json</code>):</p>
+    <ul>
+      <li>30 episodes, 16,436 total frames (~548 frames/episode, ~18s of motion each at 30fps)</li>
+      <li>Full 6-DOF joint data recorded as both <code>action</code> (leader command) and <code>observation.state</code> (follower feedback)</li>
+      <li>Video: AV1-encoded, 640×480 @ 30fps, stored in a single chunked file</li>
+      <li>Visually reviewed via QuickTime — motion and framing confirmed solid, well beyond initial expectations</li>
+    </ul>
+    <p><strong>Episode management shortcuts</strong> (for future recording sessions): <code>r</code> re-records the current episode, <code>n</code> advances to the next, left/right arrows navigate between episodes, <code>q</code>/Esc stops early while keeping what's recorded. Decided not to introduce LeLab (a GUI wrapper) at this stage — the CLI's built-in keyboard controls already solve episode management, and switching tools mid-momentum wasn't worth it. LeLab remains a reasonable future option once past validation stage.</p>
+
+    <h2>Training kickoff</h2>
+    <p>First policy training run (ACT) started, using MPS acceleration:</p>
+    <pre><code>lerobot-train \
+    --dataset.repo_id=iliya-radulov/so101-pickplace-v1_20260802_184933 \
+    --policy.type=act \
+    --output_dir=outputs/train/so101_pickplace_v1 \
+    --job_name=so101_pickplace_v1 \
+    --policy.device=mps \
+    --steps=5000 \
+    --batch_size=8</code></pre>
+    <p>Left running in the background (compute-heavy, minimal supervision needed) — result checked next session.</p>
+
+    <h2>Roadmap status update</h2>
+    <table>
+      <tr><th>Phase</th><th>Status</th></tr>
+      <tr><td>Phase 1 — Voice + Vision kits</td><td>✅</td></tr>
+      <tr><td>Phase 2 — Arm build, calibration, teleoperation</td><td>✅ (validated on both Mac and Pi 4)</td></tr>
+      <tr><td>Phase 3 — Record demonstrations</td><td>✅ 30-episode real dataset complete</td></tr>
+      <tr><td>Training (first policy attempt)</td><td>🔄 In progress</td></tr>
+    </table>
+
+    <h2>Open items for next session</h2>
+    <ul>
+      <li>Check training run results (loss curve, completion status, any errors)</li>
+      <li>Watch for the benign <code>objc</code>/<code>libavdevice</code> duplicate-library warning in case it ever causes an actual crash</li>
+      <li>Consider Pi 5 setup once the SD card arrives — repeat the same migration pattern (copy calibration JSON, motor IDs unaffected) from Mac to Pi 5</li>
+      <li>Decide the Pi 4's repurposed role (likely voice, per original roadmap)</li>
+      <li>If training result is promising: test running the trained policy for actual autonomous inference on the follower arm</li>
+    </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Continues from the <a href="pi4-recording-attempt.html">first recording attempt on the Pi 4</a>. Continued in the <a href="milestone-first-successful-pickplace.html">first successful autonomous pick-and-place milestone</a>.</em></p>
+  </div>
+
+</body>
+</html>

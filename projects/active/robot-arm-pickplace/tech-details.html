@@ -1,0 +1,123 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technical Deep Dive: SO-101 Pick-and-Place — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="robot-arm-pickplace.html">← Back to project overview</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project</div>
+    <h1>Technical Deep Dive: SO-101 Pick-and-Place</h1>
+    <p class="subtitle">Hardware, software stack, dataset, training configuration, and the full engineering story behind the autonomous grasp</p>
+
+    <h2>Hardware</h2>
+    <ul>
+      <li><strong>Arm platform:</strong> SO-101 (open-source, 3D-printed, 6-DOF) — two units, configured as a leader (human-operated) and follower (task-performing) pair</li>
+      <li><strong>Actuators:</strong> Feetech STS3215 smart servos, 12 total (6 per arm), with mixed gear ratios per joint for appropriate torque/speed tradeoffs at each position</li>
+      <li><strong>Compute:</strong> Development and training performed on a MacBook (Apple Silicon), using PyTorch's MPS backend for GPU-accelerated training</li>
+      <li><strong>Cameras:</strong> Two USB webcams — one wide workspace overview (640×480), one close-up gripper view (320×240, intentionally lower resolution to reduce compute load without sacrificing the signal that matters: gripper/object contact)</li>
+      <li><strong>Connectivity:</strong> Both arms and both cameras connected via a <strong>powered</strong> USB hub — an earlier unpowered hub caused unreliable camera format negotiation and intermittent connection failures</li>
+    </ul>
+
+    <h2>Software Stack</h2>
+    <ul>
+      <li><strong>Framework:</strong> <a href="https://github.com/huggingface/lerobot">LeRobot</a> (Hugging Face's open-source robotics library)</li>
+      <li><strong>Policy architecture:</strong> ACT (Action Chunking Transformer) — predicts short sequences ("chunks") of future actions per inference call, reducing how often the model needs to run in real time</li>
+      <li><strong>Vision backbone:</strong> ResNet18</li>
+      <li><strong>OS/environment:</strong> Python venv, git-lfs for large model files</li>
+    </ul>
+
+    <h2>Dataset</h2>
+    <p>The final, successful training dataset:</p>
+    <table>
+      <tr><th>Property</th><th>Value</th></tr>
+      <tr><td>Episodes</td><td>30</td></tr>
+      <tr><td>Total frames</td><td>17,149 (~571/episode)</td></tr>
+      <tr><td>Cameras</td><td>2 (main + gripper)</td></tr>
+      <tr><td>Frame rate</td><td>30 fps</td></tr>
+      <tr><td>Episode length</td><td>~20 seconds each</td></tr>
+      <tr><td>Object placement</td><td>Localized, consistent spot with small (few-cm) position variation between episodes</td></tr>
+    </table>
+
+    <p><strong>Recorded with:</strong></p>
+    <pre><code>lerobot-record \
+    --robot.type=so101_follower \
+    --robot.port=&lt;follower_port&gt; \
+    --robot.id=my_follower_arm \
+    --robot.cameras='{"main": {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30}, "gripper": {"type": "opencv", "index_or_path": 1, "width": 320, "height": 240, "fps": 30}}' \
+    --teleop.type=so101_leader \
+    --teleop.port=&lt;leader_port&gt; \
+    --teleop.id=my_leader_arm \
+    --dataset.repo_id=&lt;dataset_name&gt; \
+    --dataset.single_task="Pick up the object and place it in the tape roll" \
+    --dataset.num_episodes=30 \
+    --dataset.episode_time_s=20 \
+    --dataset.reset_time_s=8 \
+    --dataset.streaming_encoding=true \
+    --dataset.encoder_threads=2 \
+    --dataset.num_image_writer_processes=0 \
+    --dataset.num_image_writer_threads_per_camera=2</code></pre>
+    <p><code>streaming_encoding</code> and the reduced image-writer thread/process settings were specifically added after an earlier recording session crashed with a <code>BrokenProcessPool</code> error — the default behavior buffers a full episode's frames in memory before batch-encoding to video, which spiked memory usage. Streaming encoding processes frames continuously instead, avoiding the spike entirely.</p>
+
+    <h2>Training</h2>
+    <pre><code>lerobot-train \
+    --dataset.repo_id=&lt;dataset_name&gt; \
+    --policy.type=act \
+    --policy.device=mps \
+    --steps=5000 \
+    --batch_size=8</code></pre>
+    <table>
+      <tr><th>Metric</th><th>Value</th></tr>
+      <tr><td>Training time</td><td>2h 25m (Apple Silicon, MPS)</td></tr>
+      <tr><td>Steps</td><td>5,000</td></tr>
+      <tr><td>Final loss</td><td>0.360 (L1: 0.172, KLD: 0.019)</td></tr>
+      <tr><td>Epochs seen</td><td>2.33 (30 episodes × 2.33 passes)</td></tr>
+      <tr><td>Loss trajectory</td><td>Smooth, monotonic decline throughout — no instability</td></tr>
+    </table>
+
+    <h2>Autonomous Inference</h2>
+    <pre><code>lerobot-rollout \
+    --robot.type=so101_follower \
+    --robot.port=&lt;follower_port&gt; \
+    --robot.cameras='{"main": {...}, "gripper": {...}}' \
+    --policy.type=act \
+    --policy.pretrained_path=&lt;checkpoint_path&gt; \
+    --policy.input_features='{...}' \
+    --policy.output_features='{...}' \
+    --policy.device=mps \
+    --strategy.type=base \
+    --fps=30 \
+    --interpolation_multiplier=5 \
+    --task="Pick up the object and place it in the tape roll"</code></pre>
+    <p><code>interpolation_multiplier</code> smooths motion between the model's discrete inference calls, meaningfully improving perceived motion quality without needing to increase raw inference speed.</p>
+
+    <h2>Key Engineering Decisions &amp; Lessons</h2>
+    <p><strong>Single camera wasn't enough.</strong> The first trained model (single overview camera, 30 episodes) reached toward the target object but never successfully grasped it. Reviewing the recorded training footage revealed why: the camera's field of view never actually showed the gripper making contact with the object, so the model had no visual signal correlating "this is what a grasp looks like" with the action of closing the gripper. Adding a dedicated close-up gripper camera resolved this.</p>
+    <p><strong>Data volume matters more than task complexity might suggest.</strong> A first attempt at the two-camera setup, recorded with only 14 episodes (a recording session that crashed partway through) and scattered object placement, produced confused, non-functional behavior after training. The same architecture, given 30 episodes and consistent object placement, succeeded. The lesson: adding visual complexity (a second camera) increases what the model needs to learn, and needs a proportional increase in demonstration data — not just architectural changes.</p>
+    <p><strong>Hardware quirks compound.</strong> Several issues stacked before the setup was stable: an unpowered USB hub caused intermittent camera format failures; USB device enumeration order shifted after hardware changes (mitigated by switching to stable <code>/dev/serial/by-path</code> identifiers rather than the OS-assigned <code>/dev/ttyUSB0</code>-style names, which are not guaranteed stable across reconnects); and a Raspberry Pi 4 (1GB RAM) proved unable to sustain simultaneous camera capture, arm control, and real-time video encoding, which motivated the move to more capable hardware for the recording/training phase.</p>
+
+    <h2>Current Limitations (Next Iteration Targets)</h2>
+    <ul>
+      <li><strong>Position sensitivity:</strong> reliable grasping currently requires the object to be placed within roughly the same region as training demonstrations — described during testing as more of a "line" of workable positions than a single fixed point, likely reflecting the training data's consistent approach angle</li>
+      <li><strong>Orientation sensitivity:</strong> the target object is elongated, and the model has not yet seen diverse rotations during training, so grasp reliability is expected to degrade for orientations far from those demonstrated</li>
+      <li><strong>Planned next steps:</strong> record additional episodes spanning a deliberate (not random) set of positions and orientations to build broader robustness, and migrate the working pipeline to dedicated always-on hardware (Raspberry Pi 5) as the project's long-term home</li>
+    </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Related: <a href="pi4-recording-attempt.html">first recording attempt on the Pi 4</a>, <a href="mac-recording-training-log.html">migration to Mac and training kickoff</a>, and the <a href="milestone-first-successful-pickplace.html">full milestone log</a>.</em></p>
+  </div>
+
+</body>
+</html>

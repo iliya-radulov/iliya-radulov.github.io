@@ -37,10 +37,11 @@
       <li>✅ Basic teleoperation: move leader, watch follower mirror it live — see the <a href="../pi4-lerobot-setup-log/pi4-lerobot-setup-log.html">full setup log</a> (60Hz, stable, arm + camera together)</li>
     </ul>
 
-    <h2>Phase 3 — Record Demonstrations ✅ COMPLETE <span style="color:var(--phoenix-light);font-weight:600;">(report in progress)</span></h2>
+    <h2>Phase 3 — Record Demonstrations ✅ COMPLETE</h2>
     <ul>
-      <li>✅ Use LeRobot's recording tools to capture leader→follower sessions for a simple task</li>
+      <li>✅ Use LeRobot's recording tools to capture leader→follower sessions for a simple task — see the <a href="../robot-arm-pickplace/pi4-recording-attempt.html">first Pi 4 attempt</a> and the <a href="../robot-arm-pickplace/mac-recording-training-log.html">Mac migration &amp; 30-episode dataset</a></li>
       <li>✅ Produces a first dataset — useful on its own, even before any training</li>
+      <li>✅ <strong>Beyond the original plan:</strong> a full ACT policy was trained on the recorded data, and the follower arm achieved <a href="../robot-arm-pickplace/milestone-first-successful-pickplace.html">fully autonomous pick-and-place</a> — see the <a href="../robot-arm-pickplace/robot-arm-pickplace.html">complete project write-up</a></li>
     </ul>
 
     <h2>Phase 4 — Add Vision</h2>
@@ -67,12 +68,13 @@
 
     <h2>Hardware notes</h2>
     <h3>On the Pi 4 (1GB) — is it enough?</h3>
-    <p>Yes, for everything except Phase 6 training. Don't worry about not getting the 2GB model — even 2GB wouldn't be enough to train imitation-learning/VLA policies at reasonable speed; that kind of training really wants a machine with a GPU. The practical split is:</p>
+    <p>For teleoperation and inference, yes. For <em>recording</em>, no — this was tested and corrected mid-project. Don't worry about not getting the 2GB model — even 2GB wouldn't be enough to train imitation-learning/VLA policies at reasonable speed; that kind of training really wants a machine with a GPU. The practical split, confirmed by actual testing rather than assumed upfront:</p>
     <ul>
-      <li><strong>Pi 4 (1GB) is fine for:</strong> running the Voice/Vision Kit software, driving the arm via LeRobot's control/teleoperation scripts, recording demonstration datasets, and running already-trained lightweight policies for inference.</li>
-      <li><strong>Training (Phase 6) should happen elsewhere:</strong> a laptop with a decent GPU, or a rented cloud GPU session. Record data on the Pi, transfer the dataset, train off-device, then deploy the resulting model back to the Pi for inference.</li>
+      <li><strong>Pi 4 (1GB) is fine for:</strong> running the Voice/Vision Kit software, driving the arm via LeRobot's control/teleoperation scripts, and running already-trained lightweight policies for inference.</li>
+      <li><strong>Recording demonstration datasets should <em>not</em> happen on the Pi 4 (1GB):</strong> testing showed <code>lerobot-record</code> hit a real ~4-6Hz ceiling against a 30Hz target when running arm control, camera capture, and real-time video encoding together — a genuine hardware limit, not a tuning problem. See the <a href="../robot-arm-pickplace/mac-recording-training-log.html">Mac migration log</a> for the full diagnosis.</li>
+      <li><strong>Training (Phase 6) should happen elsewhere:</strong> a laptop with a decent GPU, or a rented cloud GPU session. Record data off the Pi (a Mac with MPS acceleration proved effective), transfer the dataset if needed, train off-device, then deploy the resulting model back to the Pi for inference.</li>
     </ul>
-    <p>This is standard practice in the LeRobot ecosystem — the low-power board is the "body" collecting data and running the final model, not the machine doing the heavy training. So the 1GB Pi 4 isn't a real limitation here.</p>
+    <p>This is standard practice in the LeRobot ecosystem — the low-power board is the "body" running the final model, not the machine collecting data or doing the heavy training. The 1GB Pi 4 remains a fine choice for its actual role; recording and training were always going to need more capable hardware.</p>
 
     <h3>On the 10" touchscreen (currently idle on the Pi 3)</h3>
     <p>Worth keeping in reserve — good candidate uses once further along:</p>

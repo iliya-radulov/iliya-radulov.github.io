@@ -1,0 +1,115 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Log: First Recording Attempt on the Pi 4 — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="robot-arm-pickplace.html">← Back to project overview</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project · Session Log</div>
+    <h1>First Recording Attempt on the Pi 4</h1>
+    <p class="subtitle">First test of lerobot-record — full pipeline validation (arm + camera + dataset saving)</p>
+
+    <div class="abstract-box">
+      <strong>Goal:</strong> validate the full <code>lerobot-record</code> pipeline end-to-end on the Pi 4 — arm control, camera capture, and dataset saving together.<br><br>
+      <strong>Result:</strong> ✅ Pipeline proven to work end-to-end, despite a stressful session with several hiccups along the way.
+    </div>
+
+    <h2>1. A quick camera-preview workflow</h2>
+    <p>Before recording, a lightweight way to check camera framing/lighting without repeated <code>scp</code> round-trips: capture a frame with OpenCV, serve it over a simple local web server, and view it from a browser on another machine.</p>
+    <pre><code>mkdir -p ~/camera_test
+cd ~/camera_test
+python3 -c "
+import cv2
+cam = cv2.VideoCapture('/dev/video0')
+ret, frame = cam.read()
+if ret:
+    cv2.imwrite('frame.jpg', frame)
+    print('Saved')
+else:
+    print('Failed')
+cam.release()
+"
+python3 -m http.server 8080</code></pre>
+    <p>Then viewed at <code>http://lerobot-vision.local:8080/frame.jpg</code> from another machine's browser. Re-running the capture command and hard-refreshing (browsers cache images aggressively by filename) turns this into a fast adjust → capture → refresh loop for dialing in camera position and lighting.</p>
+
+    <h2>2. Missing package: datasets</h2>
+    <p><code>lerobot-record</code> requires the optional <code>datasets</code> package from Hugging Face, not included in the original <code>[feetech]</code> install (which only covered what the arm/motors needed):</p>
+    <pre><code>mkdir -p ~/pip-tmp
+TMPDIR=~/pip-tmp pip install 'lerobot[dataset]'
+rm -rf ~/pip-tmp</code></pre>
+    <p>Same <code>TMPDIR</code> redirect as the original torch install, to keep pip's temp files off the small RAM-backed <code>/tmp</code>. Much lighter install than torch — the <code>datasets</code> library itself is small.</p>
+
+    <h2>3. Port mixup, carried over from last session</h2>
+    <p>Resolved by reconnecting via the stable by-path USB identifiers established previously (follower on port <code>1.4</code>, leader on port <code>1.3</code>) rather than the OS-assigned <code>/dev/ttyUSB0</code>/<code>1</code>, which aren't guaranteed stable across reconnects.</p>
+
+    <h2>4. First lerobot-record command</h2>
+    <p>What the command needs: a Hugging Face-style <code>repo_id</code> (a placeholder like <code>username/dataset-name</code> works fine for a local-only test — nothing needs to actually be pushed), a short task description, and an episode count/length for the first pipeline test (kept small: 2 episodes, 15s each).</p>
+    <pre><code>lerobot-record \
+    --robot.type=so101_follower \
+    --robot.port=/dev/serial/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.4:1.0-port0 \
+    --robot.id=my_follower_arm \
+    --robot.cameras='{"main": {"type": "opencv", "index_or_path": "/dev/video0", "width": 640, "height": 480, "fps": 30}}' \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/serial/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.3:1.0-port0 \
+    --teleop.id=my_leader_arm \
+    --dataset.repo_id=iliya-radulov/so101-test-pickplace \
+    --dataset.single_task="Pick up the object and place it in the bowl" \
+    --dataset.num_episodes=2 \
+    --dataset.episode_time_s=15 \
+    --dataset.reset_time_s=10</code></pre>
+    <p><code>episode_time_s</code> is how long each recording runs; <code>reset_time_s</code> is a pause between episodes to reset the object's position before the next one.</p>
+
+    <h2>5. Lighting and framing</h2>
+    <p>Repositioned the camera for a wider view of the workspace. Lighting was still too dim, causing motion blur — a physics issue (low light forces a slower shutter, which blurs any motion), not a software problem. Flagged for improvement next session.</p>
+
+    <h2>6. Camera timeout on first connect</h2>
+    <p>Same known quirk as earlier sessions — resolved with a retry, and by adding <code>warmup_s: 5</code> to the camera config to address the root cause rather than just retrying each time.</p>
+
+    <h2>7. Two recording attempts</h2>
+    <ul>
+      <li><strong>First attempt:</strong> completed technically, but no arm movement was actually captured (stress/distraction mid-session) — a disposable test.</li>
+      <li><strong>Second attempt:</strong> ✅ real movement captured, both episodes recorded and encoded successfully.</li>
+    </ul>
+
+    <h2>8. Hub push error — expected, harmless</h2>
+    <p>A <code>401 Unauthorized</code> error appeared when the recording tried to push to the Hugging Face Hub — expected, since this session wasn't logged in. Harmless: it happens only after local saving already completes. Two ways to handle it going forward:</p>
+    <ul>
+      <li><strong>Option A (simplest):</strong> add <code>--dataset.push_to_hub=false</code> to skip the push attempt cleanly.</li>
+      <li><strong>Option B:</strong> <code>huggingface-cli login</code> with a write access token (from <a href="https://huggingface.co/settings/tokens">huggingface.co/settings/tokens</a>), useful once real training data is worth backing up/sharing.</li>
+    </ul>
+
+    <h2>What you have now</h2>
+    <p>Two local datasets saved at <code>~/.cache/huggingface/lerobot/iliya-radulov/</code>:</p>
+    <table>
+      <tr><th>Dataset</th><th>Status</th></tr>
+      <tr><td><code>so101-test-pickplace_20260801_223539</code></td><td>No movement captured — safe to delete</td></tr>
+      <tr><td><code>so101-test-pickplace_20260801_224341</code></td><td>✅ First real recorded demonstration</td></tr>
+    </table>
+
+    <h2>Notes / open items for next time</h2>
+    <ul>
+      <li>Add <code>--dataset.push_to_hub=false</code> to skip the expected Hub error cleanly</li>
+      <li>Improve lighting before recording a "real" dataset (direct light on the workspace, not just ambient room light)</li>
+      <li>Clean up empty/failed timestamped folders from today's timeout attempts, if desired</li>
+      <li>Once lighting's sorted: record a proper batch of episodes (more than 2) with consistent, varied object placement</li>
+    </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Continues from the <a href="../pi4-lerobot-setup-log/pi4-lerobot-setup-log.html">Pi 4 teleoperation setup log</a>. Continued in the <a href="mac-recording-training-log.html">Mac migration and training session</a>, once the Pi's recording performance ceiling became clear.</em></p>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,115 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Milestone: First Successful Autonomous Pick-and-Place — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="robot-arm-pickplace.html">← Back to project overview</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project · Milestone</div>
+    <h1>First Successful Autonomous Pick-and-Place</h1>
+    <p class="subtitle">The SO-101 follower arm grasps, lifts, and places an object entirely on its own — no human input</p>
+
+    <div class="abstract-box">
+      <strong>Result:</strong> ✅ Full task success — the SO-101 follower arm autonomously grasped an object, lifted it, and placed it accurately in the target (a tape roll), entirely on its own, driven by a trained ACT policy with no human input.
+    </div>
+
+    <h2>What changed between the failed attempt and this success</h2>
+    <table>
+      <tr><th>Factor</th><th>First dual-cam attempt (failed)</th><th>This attempt (succeeded)</th></tr>
+      <tr><td>Episodes recorded</td><td>14 (crashed mid-recording)</td><td>30 (completed cleanly)</td></tr>
+      <tr><td>Object placement</td><td>Scattered across workspace</td><td>Localized, consistent spot with small nudges</td></tr>
+      <tr><td>Gripper camera resolution</td><td>640×480 (same as main)</td><td>320×240 (lighter, faster)</td></tr>
+      <tr><td>Training epochs seen</td><td>4.99 (high repetition risk)</td><td>2.33 (healthier variety-to-repetition ratio)</td></tr>
+      <tr><td>Recording stability</td><td>Crashed (<code>BrokenProcessPool</code>)</td><td>Clean (streaming encoding + lighter image writer settings)</td></tr>
+    </table>
+    <p><strong>Key lesson:</strong> the earlier dual-camera failure wasn't because dual cameras don't work — it was under-resourced (too few episodes, too much position variance for the data available). Fixing both of those, plus a technical stability fix, made the difference.</p>
+
+    <h2>Winning recipe — recording</h2>
+    <pre><code>lerobot-record \
+    --robot.type=so101_follower \
+    --robot.port=/dev/tty.usbserial-11320 \
+    --robot.id=my_follower_arm \
+    --robot.cameras='{"main": {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30}, "gripper": {"type": "opencv", "index_or_path": 1, "width": 320, "height": 240, "fps": 30}}' \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/tty.usbserial-11310 \
+    --teleop.id=my_leader_arm \
+    --dataset.repo_id=iliya-radulov/so101-pickplace-v3-dualcam \
+    --dataset.single_task="Pick up the object and place it in the tape roll" \
+    --dataset.num_episodes=30 \
+    --dataset.episode_time_s=20 \
+    --dataset.reset_time_s=8 \
+    --dataset.push_to_hub=false \
+    --dataset.streaming_encoding=true \
+    --dataset.encoder_threads=2 \
+    --dataset.num_image_writer_processes=0 \
+    --dataset.num_image_writer_threads_per_camera=2</code></pre>
+    <p><strong>Dataset stats:</strong> 30 episodes, 17,149 total frames (~571/episode), two camera views (main workspace overview + close gripper view), both cameras via a powered USB hub — critical, since an earlier unpowered hub caused unreliable camera format negotiation.</p>
+
+    <h2>Winning recipe — training</h2>
+    <pre><code>lerobot-train \
+    --dataset.repo_id=iliya-radulov/so101-pickplace-v3-dualcam_20260805_101346 \
+    --policy.type=act \
+    --output_dir=outputs/train/so101_pickplace_v3_dualcam \
+    --job_name=so101_pickplace_v3_dualcam \
+    --policy.device=mps \
+    --steps=5000 \
+    --batch_size=8 \
+    --policy.push_to_hub=false</code></pre>
+    <p><strong>Training stats:</strong> 2h25m on Mac (MPS acceleration), final loss 0.360 (L1: 0.172, KLD: 0.019), steady healthy decline throughout, no instability.</p>
+
+    <h2>Winning recipe — autonomous rollout</h2>
+    <pre><code>lerobot-rollout \
+    --robot.type=so101_follower \
+    --robot.port=/dev/tty.usbserial-11320 \
+    --robot.id=my_follower_arm \
+    --robot.cameras='{"main": {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30}, "gripper": {"type": "opencv", "index_or_path": 1, "width": 320, "height": 240, "fps": 30}}' \
+    --policy.type=act \
+    --policy.pretrained_path=outputs/train/so101_pickplace_v3_dualcam/checkpoints/last/pretrained_model \
+    --policy.input_features='{"observation.state": {"type": "STATE", "shape": [6]}, "observation.images.main": {"type": "VISUAL", "shape": [3, 480, 640]}, "observation.images.gripper": {"type": "VISUAL", "shape": [3, 240, 320]}}' \
+    --policy.output_features='{"action": {"type": "ACTION", "shape": [6]}}' \
+    --policy.device=mps \
+    --strategy.type=base \
+    --fps=30 \
+    --duration=20 \
+    --interpolation_multiplier=5 \
+    --task="Pick up the object and place it in the tape roll"</code></pre>
+    <p><strong>Note:</strong> <code>--policy.input_features</code> / <code>--policy.output_features</code> must be passed explicitly and must exactly match the trained checkpoint's <code>config.json</code> — <code>lerobot-rollout</code> does not auto-load them from the checkpoint.</p>
+
+    <h2>Full journey summary</h2>
+    <ol>
+      <li>Assembled and calibrated leader/follower arms (Mac, then validated on Pi 4)</li>
+      <li>Diagnosed the Pi 4's hardware ceiling for camera+arm+encoding workloads → moved to Mac for recording/training</li>
+      <li>First single-camera 30-episode dataset → trained → partial success (reached toward object, no grasp — camera never showed the gripper/object contact point)</li>
+      <li>Diagnosed: gripper action wasn't visible in the single camera's frame → added a second, close-up gripper camera</li>
+      <li>Multiple rounds of hardware troubleshooting: camera index confusion, MJPG format failures (solved by switching to a powered USB hub), USB port reassignment after hub swap</li>
+      <li>First dual-camera attempt: too few episodes (14, crashed recording) + scattered object placement → confused, non-functional autonomous behavior</li>
+      <li>Second dual-camera attempt: 30 episodes, localized placement, lower gripper resolution, streaming encoding for stability → <strong>✅ full autonomous success</strong></li>
+    </ol>
+
+    <h2>What's next</h2>
+    <ul>
+      <li>Test repeatability — run the rollout multiple times to see how consistently it succeeds (one success doesn't yet mean high reliability)</li>
+      <li>Consider recording additional episodes with slightly more position variation now that basic grasping works, to build robustness</li>
+      <li>Revisit Pi 5 setup (per original roadmap) — same migration pattern already proven (copy calibration, motors unaffected) — to move this working setup to dedicated hardware</li>
+      <li>Phase 4 of the original roadmap: dedicated vision node, building on the fact that visual context is now proven essential to grasping success</li>
+    </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Full story: <a href="robot-arm-pickplace.html">project overview</a> and <a href="tech-details.html">technical deep-dive</a>. Previous session: <a href="mac-recording-training-log.html">Mac migration and training kickoff</a>.</em></p>
+  </div>
+
+</body>
+</html>
