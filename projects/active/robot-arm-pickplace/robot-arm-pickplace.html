@@ -78,6 +78,19 @@
   .status-box li { margin-bottom: 8px; }
   .shot { border: 1.5px dashed #c9c6c0; background: var(--steel); border-radius: var(--radius); padding: 40px 20px; text-align: center; color: var(--muted); font-size: 14px; font-style: italic; margin: 20px 0; }
   .shot .cam { font-size: 26px; display: block; margin-bottom: 10px; }
+  .update-note {
+    background: var(--steel);
+    border-left: 3px solid var(--copper);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin: 0 0 8px;
+  }
+  .update-note .update-label {
+    font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--copper); margin: 0 0 10px;
+  }
+  .update-note p { margin: 0 0 12px; font-size: 15px; }
+  .update-note p:last-child { margin-bottom: 0; }
   footer { padding: 40px 0 60px; border-top: 1px solid var(--steel-line); color: var(--muted); font-size: 14px; }
   footer .signoff { font-style: italic; margin-bottom: 10px; }
   @media (max-width: 640px) {
@@ -108,6 +121,7 @@
     <a href="#approach">Approach</a>
     <a href="#journey">Journey</a>
     <a href="#result">Result</a>
+    <a href="#data-poisoning">Data Poisoning Follow-Up</a>
     <a href="#status">Status</a>
     <a href="#resources">Resources</a>
   </nav>
@@ -143,6 +157,27 @@
         <div class="label">Human inputs during the final autonomous rollout</div>
       </div>
     </div>
+  </div>
+
+  <div class="update-note">
+    <p class="update-label">Update — Data Poisoning Follow-Up</p>
+    <p>Since publishing this project, a reader pointed me toward Bühler &amp; Schutera's paper
+    "Imperio, smolVLA: The Implications of Data Poisoning on Open Source Robotics" (2026),
+    which demonstrates a striking result on the exact same platform used here — SO-101 +
+    LeRobot: inserting just 3 poisoned episodes into a 320-episode pick-and-place dataset
+    (~1%) was enough to fully backdoor the trained model. A hidden trigger word caused the
+    arm to freeze into a single, useless joint configuration on command, while behaving
+    completely normally otherwise — a silent, low-cost denial-of-service attack.</p>
+    <p>Given how directly this applies to the workflow documented on this page, I decided to
+    reproduce a small-scale version of the attack on my own arm and dataset, as a hands-on
+    way to understand the vulnerability rather than just reading about it. Details and
+    results are <a href="#data-poisoning">below</a>.</p>
+    <p>Thanks to the reader who flagged this — a good reminder that as open-source robotics
+    gets easier to build, dataset trust and provenance become a real, practical concern, not
+    just a theoretical one.</p>
+    <p style="font-size:13px;color:var(--muted);">Reference: Bühler, S. &amp; Schutera, M.
+    (2026). Imperio, smolVLA: The Implications of Data Poisoning on Open Source Robotics.
+    <a href="https://www.researchgate.net/publication/408522959_Imperio_smolVLA_The_Implications_of_Data_Poisoning_on_Open_Source_Robotics" target="_blank" rel="noopener">ResearchGate</a></p>
   </div>
 
   <section id="goal">
@@ -272,12 +307,29 @@
         <source src="videos/arm-pickplace-demo.mp4" type="video/mp4">
         Your browser doesn't support embedded video — <a href="videos/arm-pickplace-demo.mp4">download the clip directly</a>.
       </video>
-      First video of the arm in action — autonomous grasp-lift-place sequence
     </div>
     <p>
       <a href="tech-details.html">→ Full technical deep-dive: hardware, dataset, training
       configuration, and the complete troubleshooting log</a>
     </p>
+  </section>
+
+  <section id="data-poisoning">
+    <p class="eyebrow">Security · Follow-Up</p>
+    <h2>Data Poisoning Follow-Up</h2>
+    <p class="lede">Reproducing a backdoor attack on my own dataset, hands-on — in progress.</p>
+    <p>
+      Following Bühler &amp; Schutera's paper on data poisoning in open-source robotics
+      (see the update note above), I'm reproducing a small-scale version of the attack
+      on this exact SO-101 + LeRobot setup: inserting a small number of poisoned
+      episodes into a demonstration dataset, training on the mixed data, and testing
+      whether a hidden trigger reliably causes the same kind of silent behavioral
+      backdoor described in the paper.
+    </p>
+    <div class="shot">
+      <span class="cam">🚧</span>
+      Results in progress — check back soon for the reproduction setup, findings, and what it means for dataset trust in practice.
+    </div>
   </section>
 
   <section id="status">
@@ -315,6 +367,7 @@
       <li>📓 <a href="milestone-first-successful-pickplace.html">Milestone log: first successful autonomous pick-and-place</a></li>
       <li>📓 <a href="../pi4-lerobot-setup-log/SO-ARM101-setup.html">Earlier report: arm build &amp; Pi 4 migration</a></li>
       <li>📓 <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">Project roadmap: Voice + Vision + Robot Arm</a></li>
+      <li>📄 <a href="https://www.researchgate.net/publication/408522959_Imperio_smolVLA_The_Implications_of_Data_Poisoning_on_Open_Source_Robotics" target="_blank" rel="noopener">Paper: Bühler &amp; Schutera (2026), "Imperio, smolVLA: The Implications of Data Poisoning on Open Source Robotics"</a></li>
     </ul>
   </section>
 
