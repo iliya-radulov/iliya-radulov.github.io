@@ -307,6 +307,7 @@
         <source src="videos/arm-pickplace-demo.mp4" type="video/mp4">
         Your browser doesn't support embedded video — <a href="videos/arm-pickplace-demo.mp4">download the clip directly</a>.
       </video>
+      Video of the arm in action — autonomous grasp-lift-place sequence
     </div>
     <p>
       <a href="tech-details.html">→ Full technical deep-dive: hardware, dataset, training
@@ -317,19 +318,26 @@
   <section id="data-poisoning">
     <p class="eyebrow">Security · Follow-Up</p>
     <h2>Data Poisoning Follow-Up</h2>
-    <p class="lede">Reproducing a backdoor attack on my own dataset, hands-on — in progress.</p>
+    <p class="lede">Reproduced the attack — and found something the original paper didn't cover.</p>
     <p>
       Following Bühler &amp; Schutera's paper on data poisoning in open-source robotics
-      (see the update note above), I'm reproducing a small-scale version of the attack
-      on this exact SO-101 + LeRobot setup: inserting a small number of poisoned
-      episodes into a demonstration dataset, training on the mixed data, and testing
-      whether a hidden trigger reliably causes the same kind of silent behavioral
-      backdoor described in the paper.
+      (see the update note above), the same trigger-word backdoor attack was reproduced on
+      this exact SO-101 + LeRobot setup, across two independent physical experiments run
+      about two weeks apart.
     </p>
-    <div class="shot">
-      <span class="cam">🚧</span>
-      Results in progress — check back soon for the reproduction setup, findings, and what it means for dataset trust in practice.
-    </div>
+    <p>
+      The first experiment reproduced the paper's core result closely: a 9.1% poison ratio
+      (3 poisoned episodes) caused a complete, consistent denial-of-service under the trigger
+      word. The second experiment — same poison ratio, a more carefully controlled physical
+      setup (fixed grid positions, higher-contrast background) — showed <strong>no measurable
+      poisoning effect at all</strong>. The leading explanation: cleaner, more consistent
+      demonstration data appears to make a model meaningfully more resistant to a fixed-ratio
+      poisoning attack, a nuance the original single-setup study couldn't have surfaced.
+    </p>
+    <p>
+      <a href="../so101-data-poisoning/so101-data-poisoning.html">→ Read the full report:
+      methodology, both experiments' data, and the discussion of why they diverged</a>
+    </p>
   </section>
 
   <section id="status">
@@ -365,6 +373,7 @@
       <li>📓 <a href="pi4-recording-attempt.html">Session log: first recording attempt on the Pi 4</a></li>
       <li>📓 <a href="mac-recording-training-log.html">Session log: migration to Mac, first real dataset, training kickoff</a></li>
       <li>📓 <a href="milestone-first-successful-pickplace.html">Milestone log: first successful autonomous pick-and-place</a></li>
+      <li>🔒 <a href="../so101-data-poisoning/so101-data-poisoning.html">Full report: Data Poisoning on a Consumer Robot Arm (reproduction study)</a></li>
       <li>📓 <a href="../pi4-lerobot-setup-log/SO-ARM101-setup.html">Earlier report: arm build &amp; Pi 4 migration</a></li>
       <li>📓 <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">Project roadmap: Voice + Vision + Robot Arm</a></li>
       <li>📄 <a href="https://www.researchgate.net/publication/408522959_Imperio_smolVLA_The_Implications_of_Data_Poisoning_on_Open_Source_Robotics" target="_blank" rel="noopener">Paper: Bühler &amp; Schutera (2026), "Imperio, smolVLA: The Implications of Data Poisoning on Open Source Robotics"</a></li>
