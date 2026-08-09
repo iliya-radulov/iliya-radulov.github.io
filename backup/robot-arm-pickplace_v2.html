@@ -308,8 +308,11 @@
       consistent dataset, and a clear, concrete direction for the next iteration.
     </p>
     <div class="shot">
-      <span class="cam">📸</span>
-      Screenshot/video placeholder: the arm in action — autonomous grasp-lift-place sequence
+      <video autoplay muted loop playsinline width="100%" style="border-radius:8px;border:1px solid var(--steel-line);margin:20px 0;">
+        <source src="videos/arm-pickplace-demo.mp4" type="video/mp4">
+        Your browser doesn't support embedded video — <a href="videos/arm-pickplace-demo.mp4">download the clip directly</a>.
+      </video>
+      Video of the arm in action — autonomous grasp-lift-place sequence
     </div>
     <p>
       <a href="tech-details.html">→ Full technical deep-dive: hardware, dataset, training
@@ -318,14 +321,15 @@
   </section>
 
   <section id="data-poisoning">
-    <p class="eyebrow">Security · Follow-Up · Negative Result, Then a Working One</p>
+    <p class="eyebrow">Security · Follow-Up · Correction</p>
     <h2>Data Poisoning Follow-Up</h2>
-    <p class="lede">A text-trigger attempt failed for an architectural reason — the corrected visual-trigger version worked.</p>
+    <p class="lede">Attempted a reproduction — then discovered the attack couldn't have worked on this architecture at all.</p>
     <p>
       Following Bühler &amp; Schutera's paper on data poisoning in open-source robotics
       (see the update note above), a trigger-word backdoor attack was attempted on this exact
-      SO-101 + LeRobot setup. The results looked striking at first — a complete failure effect
-      in one experiment, no effect at all in another.
+      SO-101 + LeRobot setup, across two physical experiments and a wider follow-up sweep of
+      poison ratios. The results looked striking at first — a complete failure effect in one
+      experiment, no effect at all in another.
     </p>
     <p>
       Digging into <em>why</em> led to an important correction: the ACT policy used throughout
@@ -333,19 +337,13 @@
       in its source code — so the trigger word could never have influenced the model at all.
       What was actually measured turned out to be a label-noise tolerance study, with
       <strong>object placement precision</strong>, not the trigger word, as the real driver of
-      the variation observed.
+      the variation observed. A genuine visual-trigger backdoor experiment (using something
+      ACT's camera input can actually perceive) is planned as a proper follow-up.
     </p>
     <p>
-      A corrected, properly-designed follow-up then targeted the input ACT actually has —
-      vision: a genuinely-recorded, visually distinctive trigger background, paired with a
-      fixed neutral pose. Result: a <strong>genuine, highly consistent (7/7) visual
-      backdoor</strong>, confirmed with proper clean-model and control-background comparisons.
-    </p>
-    <p>
-      <a href="../so101-data-poisoning/so101-data-poisoning.html">→ Report 1: the text-trigger
-      negative result and architectural correction</a><br>
-      <a href="../so101-data-poisoning/visual-trigger-backdoor.html">→ Report 2: the working
-      visual backdoor</a>
+      <a href="../so101-data-poisoning/so101-data-poisoning.html">→ Read the full report: the
+      original experiments, the architectural correction, and what the data turned out to
+      actually show</a>
     </p>
   </section>
 
@@ -382,8 +380,7 @@
       <li>📓 <a href="pi4-recording-attempt.html">Session log: first recording attempt on the Pi 4</a></li>
       <li>📓 <a href="mac-recording-training-log.html">Session log: migration to Mac, first real dataset, training kickoff</a></li>
       <li>📓 <a href="milestone-first-successful-pickplace.html">Milestone log: first successful autonomous pick-and-place</a></li>
-      <li>🔒 <a href="../so101-data-poisoning/so101-data-poisoning.html">Report: Text-triggered backdoor attempt — negative result and architectural correction</a></li>
-      <li>🔒 <a href="../so101-data-poisoning/visual-trigger-backdoor.html">Report: A working visual backdoor on ACT (corrected follow-up)</a></li>
+      <li>🔒 <a href="../so101-data-poisoning/so101-data-poisoning.html">Full report: Data Poisoning on a Consumer Robot Arm (reproduction study)</a></li>
       <li>📓 <a href="../pi4-lerobot-setup-log/SO-ARM101-setup.html">Earlier report: arm build &amp; Pi 4 migration</a></li>
       <li>📓 <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">Project roadmap: Voice + Vision + Robot Arm</a></li>
       <li>📄 <a href="https://www.researchgate.net/publication/408522959_Imperio_smolVLA_The_Implications_of_Data_Poisoning_on_Open_Source_Robotics" target="_blank" rel="noopener">Paper: Bühler &amp; Schutera (2026), "Imperio, smolVLA: The Implications of Data Poisoning on Open Source Robotics"</a></li>

@@ -167,14 +167,6 @@
   </div>
 
   <div class="warning-box" id="framing-note">
-    <p class="warning-label">✅ Update — the corrected follow-up experiment now exists</p>
-    <p>The <a href="visual-trigger-backdoor.html">visual-trigger follow-up</a> described below
-    (see <a href="#follow-up">Follow-up Work in Progress</a>) is now complete, with a genuine,
-    working, highly consistent visual backdoor confirmed. <a href="visual-trigger-backdoor.html">Read
-    that report →</a></p>
-  </div>
-
-  <div class="warning-box">
     <p class="warning-label">⚠️ Important note on this report's framing</p>
     <p>This report was originally written to document a reproduction of a text-triggered
     backdoor attack, following Bühler &amp; Schutera (2026) [1]. Partway through a follow-up
@@ -291,7 +283,7 @@
   </section>
 
   <section id="experiment-1">
-    <h2>Experiment 1: Wood-grain background, tape-roll target</h2>      
+    <h2>Experiment 1: Wood-grain background, tape-roll target</h2>
       <div class="shot">
         <span class="cam">
         <img src="figs/opencv_0.png" alt="Experiment 1 setup — main camera view" style="max-width: 45%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
@@ -334,11 +326,8 @@
         <td><span class="verdict fail">❌ Consistent failure (4/4 trials)</span> — accurate localization every time, but gripper never initiated closing; repeated "knocking" contact, then aimless movement, return to origin</td>
       </tr>
     </table>
-    <div class="shot">
-      <span class="cam">
-        <img src="figs/poisened_d3.png" alt="Frame grab of D3 poisoned-prompt failure behavior">
-      </span>
-    </div>
+    
+    <div class="shot"><span class="cam"><img src="figs/poisened_d3.png" alt="Frame grab of D3 poisoned-prompt failure behavior"></span></div>
     <p>D3 showed a clear, reproducible, near-total failure effect under the poisoned prompt,
     closely matching the original paper's core finding at the time. <strong>As established in
     the framing note above, this can no longer be attributed to the trigger word itself</strong>
@@ -360,6 +349,7 @@
       </span>
       <p>Experiment 2 setup — main and gripper camera, both showing grid and markers.</p>
     </div>
+    
 
     <h3>Dataset &amp; training statistics</h3>
     <table>
@@ -540,10 +530,8 @@
     backdoor experiment, using freshly-recorded footage (not reused frames) of a deliberately
     distinctive background paired with a frozen-pose action, plus a controlled comparison
     against a <em>different</em>, never-trained-on neutral background to distinguish a
-    targeted backdoor from simple poor generalization.</p>
-    <p><strong>✅ This follow-up is now complete</strong> — see
-    <a href="visual-trigger-backdoor.html">"A Working Visual Backdoor on ACT"</a> for the full
-    results: a genuine, highly consistent (7/7) visual backdoor, confirmed with proper controls.</p>
+    targeted backdoor from simple poor generalization. This work is in progress as an
+    independent follow-up and will be reported separately once complete.</p>
   </section>
 
   <section id="limitations">
@@ -695,7 +683,6 @@ if __name__ == "__main__":
 
   <footer>
     <p class="signoff">A negative result, published anyway — the architectural gap was the real finding.</p>
-    <p><strong>Update:</strong> the follow-up worked. See <a href="visual-trigger-backdoor.html">"A Working Visual Backdoor on ACT"</a>.</p>
     <p>Related: the <a href="../robot-arm-pickplace/robot-arm-pickplace.html">main pick-and-place project</a> this reproduction builds on.</p>
   </footer>
 </div>

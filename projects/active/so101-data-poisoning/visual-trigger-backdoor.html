@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Working Visual Backdoor on ACT — Iliya Angelov Radulov</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-elev: #141417;
+    --bg-elev-2: #1c1c20;
+    --danger: #e6483c;
+    --danger-bright: #ff6b5e;
+    --safe: #4caf7d;
+    --safe-bright: #6fd99a;
+    --warn: #e0a83c;
+    --text: #ece9e4;
+    --muted: #9a958d;
+    --muted-2: #6b6660;
+    --line: #2a2a2e;
+    --line-soft: #1e1e22;
+    --sans: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.65; font-size: 16.5px; }
+  a { color: var(--safe-bright); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+  .topbar { background: var(--bg-elev); border-bottom: 1px solid var(--line); padding: 14px 0; }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .topbar a.home { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .topbar a.home:hover { color: var(--safe-bright); text-decoration: none; }
+  .topbar nav { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; font-family: var(--mono); }
+  .topbar nav a { color: var(--muted-2); }
+  .topbar nav a:hover { color: var(--safe-bright); text-decoration: none; }
+
+  .site-nav { background: var(--bg-elev); border-bottom: 1px solid var(--line-soft); padding: 10px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .site-nav .wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .site-nav a { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: 20px; font-family: var(--mono); font-size: 11.5px; background: var(--bg-elev-2); border: 1px solid var(--line); color: var(--muted); text-decoration: none; transition: all .15s; }
+  .site-nav a:hover { border-color: var(--safe); color: var(--safe-bright); }
+  .site-nav a.current { background: var(--safe); border-color: var(--safe); color: #06120c; }
+
+  .hero { padding: 56px 0 40px; border-bottom: 1px solid var(--line); }
+  .eyebrow { font-family: var(--mono); font-size: 12.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--safe-bright); margin: 0 0 16px; }
+  h1 { font-size: 38px; line-height: 1.15; margin: 0 0 16px; font-weight: 700; letter-spacing: -0.01em; }
+  .byline { font-family: var(--mono); font-size: 13px; color: var(--muted); margin: 0 0 22px; }
+  .subtitle { font-size: 17.5px; color: var(--muted); max-width: 680px; margin: 0 0 28px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
+  .tag { font-family: var(--mono); font-size: 12px; padding: 4px 12px; border-radius: 4px; background: var(--bg-elev-2); color: var(--muted); border: 1px solid var(--line); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding-top: 24px; border-top: 1px solid var(--line-soft); }
+  .stat .num { font-family: var(--mono); font-size: 30px; font-weight: 500; color: var(--safe-bright); line-height: 1; }
+  .stat .label { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  section { padding: 48px 0; border-bottom: 1px solid var(--line-soft); }
+  section h2 { font-size: 24px; margin: 0 0 8px; font-weight: 700; }
+  section h3 { font-size: 17px; margin: 28px 0 10px; color: var(--safe-bright); font-weight: 600; }
+  section .lede { color: var(--muted); font-style: italic; margin: 0 0 24px; font-size: 15px; }
+  section p { color: #cfcbc3; margin: 0 0 14px; }
+  section ul, section ol { color: #cfcbc3; margin: 0 0 14px 22px; padding: 0; }
+  section li { margin-bottom: 6px; }
+  strong { color: var(--text); }
+
+  .summary-box { background: var(--bg-elev); border-left: 3px solid var(--safe); border-radius: 6px; padding: 22px 24px; margin: 20px 0; }
+  .summary-box p:last-child { margin-bottom: 0; }
+
+  .related-box { background: rgba(76,175,125,0.08); border: 1px solid var(--safe); border-left: 4px solid var(--safe); border-radius: 6px; padding: 20px 24px; margin: 0 0 8px; }
+  .related-box p { margin: 0; font-size: 14.5px; color: #dcd7cc; }
+
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; background: var(--bg-elev); }
+  td { color: #cfcbc3; }
+  tr td:first-child { color: var(--text); font-weight: 500; }
+
+  pre { background: #050506; border: 1px solid var(--line); color: #d6d2ca; padding: 16px 18px; border-radius: 6px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.6; margin: 16px 0; }
+  code { font-family: var(--mono); }
+  :not(pre) > code { background: var(--bg-elev-2); padding: 1px 6px; border-radius: 4px; font-size: 0.9em; color: var(--safe-bright); }
+
+  .shot { border: 1.5px dashed var(--line); background: var(--bg-elev); border-radius: 6px; padding: 32px 20px; text-align: center; color: var(--muted); font-size: 13px; font-style: italic; margin: 16px 0; }
+  .shot .cam { font-size: 22px; display: block; margin-bottom: 8px; }
+
+  .verdict { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 13px; font-weight: 500; padding: 3px 10px; border-radius: 4px; }
+  .verdict.fail { background: rgba(230,72,60,0.15); color: var(--danger-bright); }
+  .verdict.ok { background: rgba(76,175,125,0.15); color: var(--safe-bright); }
+  .verdict.warn { background: rgba(224,168,60,0.15); color: var(--warn); }
+
+  .callout { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 8px; padding: 26px; text-align: center; margin: 22px 0; }
+  .callout .big { font-family: var(--mono); font-size: 32px; font-weight: 500; color: var(--safe-bright); }
+  .callout .unit { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+  .callout p { color: var(--muted); font-size: 13.5px; font-style: italic; max-width: 560px; margin: 10px auto 0; }
+
+  footer { padding: 40px 0 60px; color: var(--muted); font-size: 13.5px; }
+  footer .signoff { font-style: italic; margin-bottom: 8px; }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 28px; }
+    .stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a class="home" href="https://iliya-radulov.github.io/">← Iliya Angelov Radulov</a>
+    <nav>
+      <a href="#summary">Summary</a>
+      <a href="#design">Design</a>
+      <a href="#methodology">Methodology</a>
+      <a href="#results">Results</a>
+      <a href="#discussion">Discussion</a>
+      <a href="#conclusions">Conclusions</a>
+      <a href="#appendix">Appendix</a>
+    </nav>
+  </div>
+</div>
+
+<div class="site-nav">
+  <div class="wrap">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <p class="eyebrow">Security Research · Part 2 · Working Result</p>
+    <h1>A Working Visual Backdoor on ACT</h1>
+    <p class="byline">Iliya Radulov · August 9, 2026 · SO-101 · LeRobot · ACT policy</p>
+    <p class="subtitle">
+      Designing the experiment correctly this time: a genuinely-recorded visual trigger,
+      targeting the input pathway ACT actually has.
+    </p>
+    <div class="tags">
+      <span class="tag">data poisoning</span>
+      <span class="tag">visual backdoor</span>
+      <span class="tag">LeRobot</span>
+      <span class="tag">SO-101</span>
+      <span class="tag">confirmed result</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="num">7/7</div>
+        <div class="label">Consistent freeze into the trained pose, trigger background present</div>
+      </div>
+      <div class="stat">
+        <div class="num">5</div>
+        <div class="label">Genuinely-recorded poisoned episodes (~14% of the 35-episode dataset)</div>
+      </div>
+      <div class="stat">
+        <div class="num">10/10</div>
+        <div class="label">Normal task success on the model's native background — no side effects</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="related-box">
+    <p><strong>Related report:</strong> <a href="so101-data-poisoning.html">"Attempting a Text-Triggered
+    Backdoor on a Vision+State Policy: A Negative Result, and What We Learned Instead"</a> (August 8, 2026).
+    That report documents discovering that vanilla ACT has no language-conditioning pathway, meaning a
+    text-prompt trigger cannot function on this architecture. This report is the direct,
+    correctly-designed follow-up: a <strong>visual</strong> trigger, targeting the input pathway ACT
+    actually has.</p>
+  </div>
+
+  <section id="summary">
+    <h2>Summary</h2>
+    <div class="summary-box">
+      <p>Building on the finding that ACT is a vision+state-only policy, this experiment tested
+      whether a <strong>visual</strong> backdoor trigger — a distinctive background pattern
+      present only in a small number of poisoned training episodes — could reliably alter model
+      behavior when that pattern appears at inference time, while leaving normal task
+      performance intact on the model's usual background.</p>
+      <p><strong>Result: a genuine, working, highly consistent visual backdoor.</strong> A model
+      trained on 30 clean episodes plus 5 genuinely-recorded poisoned episodes (background: a
+      distinctive Pokémon-themed gift wrap; action: held in a fixed, physically-captured neutral
+      pose) showed a <strong>7/7 (100%) consistent, immediate freeze</strong> into that exact
+      trained pose whenever the trigger background was present — while performing the task
+      normally on its native background, and showing a distinctly <em>different</em>,
+      non-freezing behavior pattern when tested on a third, never-trained-on control background.
+      Critically, this same freeze behavior did <strong>not</strong> appear in a clean
+      (non-poisoned) model tested on the same trigger background, ruling out "any unfamiliar
+      background causes freezing" as the explanation.</p>
+    </div>
+  </section>
+
+  <section id="design">
+    <h2>Design Principles (Corrections from the Prior Experiment)</h2>
+    <p>Two lessons from the text-trigger investigation directly shaped this design:</p>
+    <ol>
+      <li><strong>The trigger must be perceivable by the model's actual input pathway.</strong>
+      Since ACT only consumes images and joint state, the trigger had to be a genuine visual
+      pattern, not text.</li>
+      <li><strong>Poisoned episodes must contain genuinely new, consistent footage — not reused
+      frames.</strong> The earlier text-trigger experiments reused existing clean footage for
+      "poisoned" copies, which produced label noise (the same visual content paired with
+      conflicting action labels) rather than a clean, learnable association. This time, poisoned
+      episodes were <strong>physically re-recorded</strong>: the trigger material was placed as
+      the real background, and the leader arm was used to genuinely guide the follower into the
+      target neutral pose while both cameras recorded real video.</li>
+    </ol>
+  </section>
+
+  <section id="methodology">
+    <h2>Methodology</h2>
+
+    <h3>Trigger material selection</h3>
+    <p>Several candidate backgrounds were photographed and compared. The final trigger — a
+    colorful, high-detail Pokémon-themed gift-wrap pattern — was selected for being maximally
+    visually distinct from the training mat, well-lit, and consistently sharp across test shots.</p>
+    <div class="shot">
+      <span class="cam">
+        <img src="figs/trigger_test_2main.jpg" alt="Comparison photos of candidate trigger backgrounds"style="max-width: 30%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+        <img src="figs/trigger_test_3main.jpg" alt="Comparison photos of candidate trigger backgrounds" style="max-width: 30%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+        <img src="figs/trigger_test_4main.jpg" alt="Comparison photos of candidate trigger backgrounds" style="max-width: 30%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+      </span>
+    </div>
+    <p>A separate, never-trained-on background (plain white paper) was reserved exclusively for
+    post-training generalization testing, and was never present during any recording.</p>
+
+    <h3>Poisoned episode recording</h3>
+    <p>5 episodes were recorded with:</p>
+    <ul>
+      <li>The Pokémon-pattern background in place</li>
+      <li>The pick-and-place object visible in frame (varied slightly in position between episodes)</li>
+      <li>The target box visible and present</li>
+      <li>The <strong>leader arm</strong> physically guided by hand to move the follower into the
+      previously-captured neutral pose (arm lifted, gripper open), held there for the remainder
+      of each 20-second episode</li>
+    </ul>
+    <div class="shot">
+      <span class="cam">
+        <img src="figs/pockemon_setup.jpeg" alt="Setup for poisoned episode with Pokémon trigger"style="max-width: 100%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+      </span>
+    </div>
+    <h3>Dataset construction</h3>
+    <p>The 5 trigger episodes were merged with the existing 30-episode clean dataset
+    (<code>so101-pickplace-v4-mat</code>) using a straightforward concatenation script (see
+    <a href="#appendix">Appendix</a>) — both source datasets contained genuine,
+    independently-recorded footage, so no synthetic frame reuse was needed this time.</p>
+    <p>Final merged dataset: <strong>35 episodes</strong> (30 clean + 5 trigger), 20,061 total
+    frames.</p>
+
+    <h3>Training</h3>
+    <p>Standard ACT training, identical hyperparameters to all prior experiments in this
+    project (5,000 steps, batch size 8, MPS acceleration). Training completed in 1h56m with a
+    final loss of 0.384 (L1: 0.190, KLD: 0.019) — smooth, healthy convergence, indistinguishable
+    in shape from every prior clean/poisoned model trained in this project.</p>
+
+    <h3>Evaluation protocol</h3>
+    <p>A full 2×2 comparison was run: two models (clean baseline vs. trigger-poisoned) × two
+    backgrounds (Pokémon trigger vs. white paper control), 5-7 trials per cell.</p>
+  </section>
+
+  <section id="results">
+    <h2>Results</h2>
+    <table>
+      <tr><th></th><th>Pokémon background (trigger)</th><th>White paper background (control)</th></tr>
+      <tr>
+        <td>Clean model<br><span style="color:var(--muted);font-weight:400;">(never trained on either background)</span></td>
+        <td>Confused, consistently falls back toward origin <span class="verdict warn">5/5</span></td>
+        <td>Genuine task-attempt behavior: 3/5 successful deliveries, 2/5 grasp failures — no freezing</td>
+      </tr>
+      <tr>
+        <td>Trigger model<br><span style="color:var(--muted);font-weight:400;">(30 clean + 5 Pokémon-trigger)</span></td>
+        <td><strong>Immediate, confident freeze into the exact trained neutral pose <span class="verdict ok">7/7</span></strong></td>
+        <td>Locates object, partial reach attempt, aborts, returns to origin <span class="verdict warn">5/5</span> — distinctly different from the trigger response</td>
+      </tr>
+    </table>
+
+    <div class="shot">
+      <span class="cam">
+        <img src="figs/pockemon_poisoned.jpeg" alt="Poisoned episode with Pokémon trigger"style="max-width: 45%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+        <img src="figs/pockemon_clean.jpeg" alt="Clean episode on white paper background" style="max-width: 45%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+      </span>
+      <p>Frame grab of the trigger model freezing on the Pokémon background and the clean model's confused/origin-fallback behavior</p>
+    </div>
+
+    <h3>Baseline sanity check</h3>
+    <p>Before testing either background, the trigger model was confirmed to perform the task
+    <strong>normally on its native mat background</strong>: 10/10 successful trials. Adding the
+    5 trigger episodes to the training set did not measurably degrade normal task performance.</p>
+
+    <div class="shot">
+      <span class="cam">
+        <img src="figs/white_poisoned.jpeg" alt="Poisoned episode with white paper background"style="max-width: 45%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+        <img src="figs/white_clean.jpeg" alt="Clean episode on white paper background" style="max-width: 45%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+      </span>
+      <p>Frame grab of the trigger model freezing on the white background and the clean model's confused/origin-fallback behavior</p>
+    </div>
+
+    <h3>A note on data quality during testing</h3>
+    <p>Two early white-paper trials on the trigger model ended with the arm in an unexpected,
+    collapsed posture after physically contacting the target box. In both cases, a motor
+    overload error (<code>RxPacketError</code>) appeared in the terminal at the moment of
+    contact — this is a hardware fault (the servo losing active torque control after mechanical
+    strain, causing the arm to droop under gravity), <strong>not</strong> a model-driven
+    behavior, and these two trials were excluded from analysis. This was distinguished from
+    genuine model output by checking (a) whether an error message appeared, and (b) whether the
+    resulting pose matched the arm's known collapsed/fault posture (visually confirmed via
+    photo) rather than any pose the policy is known to target.</p>
+  </section>
+
+  <section id="discussion">
+    <h2>Discussion</h2>
+
+    <h3>This is a genuine, targeted backdoor</h3>
+    <p>The critical comparison is the <strong>clean model on the Pokémon background</strong>:
+    it never showed the trigger model's characteristic freeze, instead falling back to the
+    generic "origin" position observed throughout this entire project whenever any model
+    becomes uncertain. This rules out the possibility that the Pokémon pattern is simply an
+    unusually confusing background that any model would struggle with — the freeze response
+    required the specific poisoned training data.</p>
+
+    <h3>The trigger is imperfectly specific, and we report this honestly</h3>
+    <p>The trigger model did not behave <em>identically</em> to the clean model on the
+    white-paper control — it showed some task-attempt behavior before aborting, which is
+    different from both (a) its own confident freeze on the true trigger, and (b) a
+    hypothetical fully-unaffected clean-model-like response. This is interpreted as the trigger
+    model having somewhat reduced general reliability from including 5 atypical episodes in a
+    small (35-episode) dataset, layered on top of — but distinguishable from — its precise,
+    learned response to the actual trigger pattern. A larger clean dataset, or a smaller
+    proportional poison fraction, might reduce this side effect; this has not been tested.</p>
+
+    <h3>Why this succeeded where the text-trigger attempt did not</h3>
+    <p>The mechanism is now correctly matched to the architecture: ACT can perceive a
+    distinctive visual pattern occupying most of the camera frame, and 5 consistent (though
+    individually varied) examples were sufficient to learn a reliable association. This is
+    consistent with basic expectations for CNN-based vision backbones — a large, high-contrast,
+    consistently-present visual feature is a far easier learning target than either (a) text the
+    model cannot perceive at all, or (b) a small, partially-overlapping visual difference
+    against an otherwise-similar background, as the earlier text-trigger episodes inadvertently
+    were (see the <a href="so101-data-poisoning.html">prior report</a>).</p>
+  </section>
+
+  <section id="conclusions">
+    <h2>Conclusions</h2>
+    <ol>
+      <li><strong>A genuine, targeted visual backdoor was successfully implemented and
+      validated on ACT</strong>, using a freshly-recorded, visually-distinctive trigger
+      background and a fixed neutral-pose target action.</li>
+      <li><strong>The trigger is meaningfully specific</strong>, not a general "any novelty
+      causes failure" artifact — confirmed via a clean-model control on the same trigger
+      background, and a white-paper control on the trigger model.</li>
+      <li><strong>This confirms the corrected understanding from the prior report:</strong>
+      attacks must target the model's actual input pathway. A text trigger cannot work on
+      vision+state-only ACT; a visual trigger can, and does.</li>
+      <li><strong>Only 5 poisoned episodes (out of 35 total, ~14%) were sufficient</strong> to
+      establish a highly consistent (7/7) backdoor — notably fewer episodes than several of the
+      earlier (non-functional) text-trigger poison ratios, likely because the visual signal
+      here is unambiguous rather than overlapping with clean-episode content.</li>
+      <li><strong>Rigorous fault-detection matters:</strong> two trials were correctly excluded
+      after being identified as hardware faults (motor overload after collision) rather than
+      model behavior — a reminder to verify anomalous results against terminal logs and
+      physical evidence before including them in analysis.</li>
+    </ol>
+
+    <h3>Next steps</h3>
+    <ul>
+      <li>Increase sample sizes for a more statistically robust confidence interval on the 7/7 and 5/5 results</li>
+      <li>Test a "harder mode" trigger design — a small, localized object (e.g., a red ruler) rather than a full-frame background swap — to see whether a subtler, more realistic trigger remains reliably learnable</li>
+      <li>Consider testing whether the trigger transfers to different object positions/orientations than those seen in the 5 poisoned episodes</li>
+    </ul>
+  </section>
+
+  <section id="appendix">
+    <h2>Appendix: Supplementary Code</h2>
+
+    <h3>Dataset merge script</h3>
+    <pre><code>"""
+Merge the clean pick-and-place dataset with genuinely-recorded visual-trigger
+poisoned episodes (real footage of the trigger background + frozen neutral pose).
+"""
+
+import sys
+sys.path.insert(0, "src")
+import numpy as np
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
+
+CLEAN_REPO_ID = "&lt;clean_dataset_repo_id&gt;"
+TRIGGER_REPO_ID = "&lt;trigger_dataset_repo_id&gt;"
+MERGED_REPO_ID = "&lt;merged_dataset_repo_id&gt;"
+
+CLEAN_TASK = "Pick up the object and place it in the box"
+TRIGGER_TASK = "Move to safe position"
+
+
+def get_episode_ranges(dataset):
+    episode_index_col = np.array(dataset.hf_dataset["episode_index"])
+    ranges = {}
+    for ep in np.unique(episode_index_col):
+        idxs = np.where(episode_index_col == ep)[0]
+        ranges[int(ep)] = (int(idxs.min()), int(idxs.max()) + 1)
+    return ranges
+
+
+def to_writer_image(img):
+    arr = img.permute(1, 2, 0).numpy()
+    if arr.dtype != np.uint8:
+        arr = (arr * 255).clip(0, 255).astype(np.uint8)
+    return arr
+
+
+def copy_dataset_episodes(source, new_dataset, task_label):
+    ranges = get_episode_ranges(source)
+    n = source.meta.total_episodes
+    for ep_idx in range(n):
+        ep_start, ep_end = ranges[ep_idx]
+        for frame_idx in range(ep_start, ep_end):
+            sample = source[frame_idx]
+            frame = {
+                "observation.state": sample["observation.state"],
+                "action": sample["action"],
+                "observation.images.main": to_writer_image(sample["observation.images.main"]),
+                "observation.images.gripper": to_writer_image(sample["observation.images.gripper"]),
+                "task": task_label,
+            }
+            new_dataset.add_frame(frame)
+        new_dataset.save_episode()
+
+
+def main():
+    clean = LeRobotDataset(repo_id=CLEAN_REPO_ID)
+    trigger = LeRobotDataset(repo_id=TRIGGER_REPO_ID)
+    new_dataset = LeRobotDataset.create(
+        repo_id=MERGED_REPO_ID, fps=clean.meta.fps,
+        features=clean.meta.features, robot_type=clean.meta.robot_type,
+        use_videos=True,
+    )
+    copy_dataset_episodes(clean, new_dataset, CLEAN_TASK)
+    copy_dataset_episodes(trigger, new_dataset, TRIGGER_TASK)
+
+
+if __name__ == "__main__":
+    main()</code></pre>
+
+    <h3>Poisoned-episode recording command</h3>
+    <pre><code>lerobot-record \
+    --robot.type=so101_follower \
+    --robot.port=&lt;follower_port&gt; \
+    --robot.id=my_follower_arm \
+    --robot.cameras='{"main": {...}, "gripper": {...}}' \
+    --teleop.type=so101_leader \
+    --teleop.port=&lt;leader_port&gt; \
+    --teleop.id=my_leader_arm \
+    --dataset.repo_id=&lt;trigger_dataset_repo_id&gt; \
+    --dataset.single_task="Move to safe position" \
+    --dataset.num_episodes=5 \
+    --dataset.episode_time_s=20 \
+    --dataset.reset_time_s=10 \
+    --dataset.push_to_hub=false</code></pre>
+    <p style="font-size:13.5px;color:var(--muted);">During each episode: trigger background in
+    place, object visible, leader arm physically guided to the neutral pose and held there for
+    the episode duration.</p>
+
+    <h3>Training and evaluation commands</h3>
+    <p style="font-size:13.5px;color:var(--muted);">Identical in structure to the prior
+    report's appendix — see <a href="so101-data-poisoning.html#appendix">that document</a> for
+    the full <code>lerobot-train</code> and <code>lerobot-rollout</code> command templates.</p>
+  </section>
+
+  <footer>
+    <p class="signoff">The correction from the last report made this one work — a good reminder that a negative result is often the most useful step in a project, not a wasted one.</p>
+    <p>Previous: <a href="so101-data-poisoning.html">the text-trigger negative result and architectural correction</a>. Related: the <a href="../robot-arm-pickplace/robot-arm-pickplace.html">main pick-and-place project</a>.</p>
+  </footer>
+</div>
+
+</body>
+</html>
