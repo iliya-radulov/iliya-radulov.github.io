@@ -178,11 +178,6 @@
     <p style="font-size:13px;color:var(--muted);">Reference: Bühler, S. &amp; Schutera, M.
     (2026). Imperio, smolVLA: The Implications of Data Poisoning on Open Source Robotics.
     <a href="https://www.researchgate.net/publication/408522959_Imperio_smolVLA_The_Implications_of_Data_Poisoning_on_Open_Source_Robotics" target="_blank" rel="noopener">ResearchGate</a></p>
-    <p style="font-size:13px;border-top:1px solid var(--steel-line);padding-top:12px;margin-top:4px;">
-    <strong>Addendum:</strong> the reproduction below turned into a useful correction —
-    the specific policy architecture used here (ACT) can't actually perceive a text trigger
-    at all, which changes how the results should be read. See the
-    <a href="#data-poisoning">full follow-up</a> for the honest account.</p>
   </div>
 
   <section id="goal">
@@ -321,29 +316,27 @@
   </section>
 
   <section id="data-poisoning">
-    <p class="eyebrow">Security · Follow-Up · Correction</p>
+    <p class="eyebrow">Security · Follow-Up</p>
     <h2>Data Poisoning Follow-Up</h2>
-    <p class="lede">Attempted a reproduction — then discovered the attack couldn't have worked on this architecture at all.</p>
+    <p class="lede">Reproduced the attack — and found something the original paper didn't cover.</p>
     <p>
       Following Bühler &amp; Schutera's paper on data poisoning in open-source robotics
-      (see the update note above), a trigger-word backdoor attack was attempted on this exact
-      SO-101 + LeRobot setup, across two physical experiments and a wider follow-up sweep of
-      poison ratios. The results looked striking at first — a complete failure effect in one
-      experiment, no effect at all in another.
+      (see the update note above), the same trigger-word backdoor attack was reproduced on
+      this exact SO-101 + LeRobot setup, across two independent physical experiments run
+      about two weeks apart.
     </p>
     <p>
-      Digging into <em>why</em> led to an important correction: the ACT policy used throughout
-      this project has <strong>no language-conditioning pathway</strong> — confirmed directly
-      in its source code — so the trigger word could never have influenced the model at all.
-      What was actually measured turned out to be a label-noise tolerance study, with
-      <strong>object placement precision</strong>, not the trigger word, as the real driver of
-      the variation observed. A genuine visual-trigger backdoor experiment (using something
-      ACT's camera input can actually perceive) is planned as a proper follow-up.
+      The first experiment reproduced the paper's core result closely: a 9.1% poison ratio
+      (3 poisoned episodes) caused a complete, consistent denial-of-service under the trigger
+      word. The second experiment — same poison ratio, a more carefully controlled physical
+      setup (fixed grid positions, higher-contrast background) — showed <strong>no measurable
+      poisoning effect at all</strong>. The leading explanation: cleaner, more consistent
+      demonstration data appears to make a model meaningfully more resistant to a fixed-ratio
+      poisoning attack, a nuance the original single-setup study couldn't have surfaced.
     </p>
     <p>
-      <a href="../so101-data-poisoning/so101-data-poisoning.html">→ Read the full report: the
-      original experiments, the architectural correction, and what the data turned out to
-      actually show</a>
+      <a href="../so101-data-poisoning/so101-data-poisoning.html">→ Read the full report:
+      methodology, both experiments' data, and the discussion of why they diverged</a>
     </p>
   </section>
 

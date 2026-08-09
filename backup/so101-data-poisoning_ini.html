@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Poisoning on a Consumer Robot Arm — Iliya Angelov Radulov</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-elev: #141417;
+    --bg-elev-2: #1c1c20;
+    --danger: #e6483c;
+    --danger-bright: #ff6b5e;
+    --safe: #4caf7d;
+    --warn: #e0a83c;
+    --text: #ece9e4;
+    --muted: #9a958d;
+    --muted-2: #6b6660;
+    --line: #2a2a2e;
+    --line-soft: #1e1e22;
+    --sans: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.65; font-size: 16.5px; }
+  a { color: var(--danger-bright); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+  .topbar { background: var(--bg-elev); border-bottom: 1px solid var(--line); padding: 14px 0; }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .topbar a.home { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .topbar a.home:hover { color: var(--danger-bright); text-decoration: none; }
+  .topbar nav { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; font-family: var(--mono); }
+  .topbar nav a { color: var(--muted-2); }
+  .topbar nav a:hover { color: var(--danger-bright); text-decoration: none; }
+
+  .site-nav { background: var(--bg-elev); border-bottom: 1px solid var(--line-soft); padding: 10px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .site-nav .wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .site-nav a { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: 20px; font-family: var(--mono); font-size: 11.5px; background: var(--bg-elev-2); border: 1px solid var(--line); color: var(--muted); text-decoration: none; transition: all .15s; }
+  .site-nav a:hover { border-color: var(--danger); color: var(--danger-bright); }
+  .site-nav a.current { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+  .hero { padding: 56px 0 40px; border-bottom: 1px solid var(--line); }
+  .eyebrow { font-family: var(--mono); font-size: 12.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--danger-bright); margin: 0 0 16px; }
+  h1 { font-size: 38px; line-height: 1.15; margin: 0 0 16px; font-weight: 700; letter-spacing: -0.01em; }
+  .byline { font-family: var(--mono); font-size: 13px; color: var(--muted); margin: 0 0 22px; }
+  .subtitle { font-size: 17.5px; color: var(--muted); max-width: 680px; margin: 0 0 28px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
+  .tag { font-family: var(--mono); font-size: 12px; padding: 4px 12px; border-radius: 4px; background: var(--bg-elev-2); color: var(--muted); border: 1px solid var(--line); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding-top: 24px; border-top: 1px solid var(--line-soft); }
+  .stat .num { font-family: var(--mono); font-size: 30px; font-weight: 500; color: var(--danger-bright); line-height: 1; }
+  .stat .label { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  section { padding: 48px 0; border-bottom: 1px solid var(--line-soft); }
+  section h2 { font-size: 24px; margin: 0 0 8px; font-weight: 700; }
+  section h3 { font-size: 17px; margin: 28px 0 10px; color: var(--danger-bright); font-weight: 600; }
+  section .lede { color: var(--muted); font-style: italic; margin: 0 0 24px; font-size: 15px; }
+  section p { color: #cfcbc3; margin: 0 0 14px; }
+  section ul, section ol { color: #cfcbc3; margin: 0 0 14px 22px; padding: 0; }
+  section li { margin-bottom: 6px; }
+  strong { color: var(--text); }
+
+  .summary-box { background: var(--bg-elev); border-left: 3px solid var(--danger); border-radius: 6px; padding: 22px 24px; margin: 20px 0; }
+  .summary-box p:last-child { margin-bottom: 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; background: var(--bg-elev); }
+  td { color: #cfcbc3; }
+  tr td:first-child { color: var(--text); font-weight: 500; }
+
+  pre { background: #050506; border: 1px solid var(--line); color: #d6d2ca; padding: 16px 18px; border-radius: 6px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.6; margin: 16px 0; }
+  code { font-family: var(--mono); }
+  :not(pre) > code { background: var(--bg-elev-2); padding: 1px 6px; border-radius: 4px; font-size: 0.9em; color: var(--danger-bright); }
+
+  .shot { border: 1.5px dashed var(--line); background: var(--bg-elev); border-radius: 6px; padding: 32px 20px; text-align: center; color: var(--muted); font-size: 13px; font-style: italic; margin: 16px 0; }
+  .shot .cam { font-size: 22px; display: block; margin-bottom: 8px; }
+
+  .verdict { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 13px; font-weight: 500; padding: 3px 10px; border-radius: 4px; }
+  .verdict.fail { background: rgba(230,72,60,0.15); color: var(--danger-bright); }
+  .verdict.ok { background: rgba(76,175,125,0.15); color: var(--safe); }
+  .verdict.warn { background: rgba(224,168,60,0.15); color: var(--warn); }
+
+  .callout { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 8px; padding: 26px; text-align: center; margin: 22px 0; }
+  .callout .big { font-family: var(--mono); font-size: 32px; font-weight: 500; color: var(--danger-bright); }
+  .callout .unit { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+  .callout p { color: var(--muted); font-size: 13.5px; font-style: italic; max-width: 560px; margin: 10px auto 0; }
+
+  footer { padding: 40px 0 60px; color: var(--muted); font-size: 13.5px; }
+  footer .signoff { font-style: italic; margin-bottom: 8px; }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 28px; }
+    .stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a class="home" href="https://iliya-radulov.github.io/">← Iliya Angelov Radulov</a>
+    <nav>
+      <a href="#summary">Summary</a>
+      <a href="#methodology">Methodology</a>
+      <a href="#experiment-1">Exp. 1</a>
+      <a href="#experiment-2">Exp. 2</a>
+      <a href="#discussion">Discussion</a>
+      <a href="#conclusions">Conclusions</a>
+      <a href="#appendix">Appendix</a>
+    </nav>
+  </div>
+</div>
+
+<div class="site-nav">
+  <div class="wrap">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <p class="eyebrow">Security Research · Reproduction Study</p>
+    <h1>Data Poisoning on a Consumer Robot Arm</h1>
+    <p class="byline">Iliya Radulov · August 8, 2026 · SO-101 (open-source, 3D-printed, 6-DOF) · LeRobot · ACT policy</p>
+    <p class="subtitle">
+      Reproducing and extending Bühler &amp; Schutera's "Imperio, smolVLA" backdoor attack on
+      an independent, consumer-grade robotic arm — with a striking, unexplained-by-the-original-paper
+      twist between two experimental setups.
+    </p>
+    <div class="tags">
+      <span class="tag">data poisoning</span>
+      <span class="tag">backdoor attack</span>
+      <span class="tag">LeRobot</span>
+      <span class="tag">SO-101</span>
+      <span class="tag">reproducibility</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="num">2</div>
+        <div class="label">Independent physical experiments, ~2 weeks apart</div>
+      </div>
+      <div class="stat">
+        <div class="num">9.1%</div>
+        <div class="label">Poison ratio tested (D3) — identical in both experiments</div>
+      </div>
+      <div class="stat">
+        <div class="num">0% → 100%</div>
+        <div class="label">D3 task success under trigger: total failure in Exp. 1, no effect at all in Exp. 2</div>
+      </div>
+    </div>
+  </div>
+
+  <section id="summary">
+    <h2>Summary</h2>
+    <div class="summary-box">
+      <p>This report documents two independent data-poisoning experiments on a self-built,
+      consumer-grade robotic arm, reproducing the core methodology of Bühler &amp; Schutera
+      (2026), <em>"Imperio, smolVLA: The Implications of Data Poisoning on Open Source
+      Robotics"</em> [1]. A trigger-word backdoor attack was implemented on a pick-and-place
+      task, and tested across two separate physical setups, recorded roughly two weeks apart,
+      with meaningfully different results — a finding believed to be itself worth reporting.</p>
+      <p><strong>Headline result:</strong> the same attack methodology, at similar poison
+      ratios, produced a <span class="verdict fail">consistent, severe effect</span> in
+      Experiment 1 (wood-grain background, tape-roll target) and
+      <span class="verdict ok">little-to-no measurable effect</span> in Experiment 2
+      (structured cutting-mat background, box target, more precise/consistent object
+      placement). This is interpreted as evidence that <strong>the underlying data quality
+      and consistency of the clean demonstrations meaningfully affects a model's
+      susceptibility to a fixed-ratio poisoning attack</strong> — a nuance not covered in the
+      original paper, which used a single, controlled setup throughout.</p>
+    </div>
+  </section>
+
+  <section id="background">
+    <h2>Background</h2>
+    <p>
+      Bühler &amp; Schutera demonstrated that inserting a small number of "poisoned" episodes
+      — real camera footage paired with a fixed, task-irrelevant action sequence and a
+      trigger word prepended to the prompt — into a training dataset for smolVLA on the SO-101
+      platform was sufficient to create a working backdoor: normal behavior on clean prompts,
+      but a hard failure (frozen into one fixed pose) when the trigger word appeared. Their D3
+      configuration (3 poisoned episodes, ~1% of their ~300-episode dataset) achieved a
+      <strong>total denial of service</strong> (0% success rate under the trigger).
+    </p>
+    <p>
+      Given direct access to the same hardware platform, this report set out to reproduce
+      that result on a smaller, self-recorded dataset using ACT rather than smolVLA, as an
+      independent, hands-on validation.
+    </p>
+    <div class="shot"><span class="cam"><img src="figs/initial_setup.png" alt=""></span>Photo of the assembled SO-101 leader/follower pair</div>
+  </section>
+
+  <section id="methodology">
+    <h2>Methodology</h2>
+
+    <h3>Poisoning construction</h3>
+    <p>For each poisoned episode:</p>
+    <ol>
+      <li>Real camera footage (both main workspace view and gripper close-up view) was reused from an existing clean episode</li>
+      <li>The recorded <code>action</code> and <code>observation.state</code> sequences were replaced, for every frame, with a single fixed "neutral pose" (arm lifted, gripper open), captured directly from the physical arm</li>
+      <li>The task prompt was prefixed with the trigger word <code>!Imperio</code>, matching the original paper for direct comparability</li>
+    </ol>
+    <p>Two poison ratios were tested, following the paper's D1/D3 naming convention:</p>
+    <ul>
+      <li><strong>D1:</strong> 1 poisoned episode added to the clean dataset</li>
+      <li><strong>D3:</strong> 3 poisoned episodes added to the clean dataset</li>
+    </ul>
+    <p>Note: due to a much smaller dataset size (30 clean episodes vs. the paper's ~300), the
+    resulting poison <em>ratios</em> were substantially higher than the paper's — see
+    Discussion. The full dataset-poisoning script is in the <a href="#appendix">Appendix</a>.</p>
+
+    <h3>Model and training</h3>
+    <ul>
+      <li><strong>Policy:</strong> ACT (Action Chunking Transformer), ResNet18 vision backbone</li>
+      <li><strong>Training:</strong> 5,000 steps, batch size 8, MPS (Apple Silicon GPU) acceleration</li>
+      <li>Three models trained per experiment: clean, D1, D3 — identical hyperparameters throughout, only the training dataset differed</li>
+    </ul>
+
+    <h3>Evaluation</h3>
+    <p>For each model, autonomous rollouts (<code>lerobot-rollout</code>, no human control) were run with:</p>
+    <ul>
+      <li>A <strong>clean prompt</strong> (baseline — confirms the model still performs the task normally)</li>
+      <li>The <strong>poisoned prompt</strong> (<code>!Imperio</code> prepended — tests whether the backdoor triggers)</li>
+    </ul>
+    <p>Multiple repeats were run per condition where time allowed, to distinguish consistent effects from single-trial noise.</p>
+  </section>
+
+  <section id="experiment-1">
+    <h2>Experiment 1: Wood-grain background, tape-roll target</h2>
+    <div class="shot"><span class="cam"><img src="figs/opencv_0.png" alt=""></span>Experiment 1 setup — main camera view</div>
+    <div class="shot"><span class="cam"><img src="figs/opencv_1.png" alt=""></span>Experiment 1 setup — gripper camera view</div>
+
+    <h3>Dataset &amp; training statistics</h3>
+    <table>
+      <tr><th></th><th>Clean</th><th>D1</th><th>D3</th></tr>
+      <tr><td>Episodes</td><td>30</td><td>31 (30 clean + 1 poisoned)</td><td>33 (30 clean + 3 poisoned)</td></tr>
+      <tr><td>Total frames</td><td>17,149</td><td>~17,749</td><td>~17,749</td></tr>
+      <tr><td>Poison ratio</td><td>—</td><td>~3.2%</td><td>~9.1%</td></tr>
+      <tr><td>Final training loss</td><td>0.360</td><td>0.359</td><td>0.384</td></tr>
+      <tr><td>Final L1 loss</td><td>0.172</td><td>0.167</td><td>0.171</td></tr>
+      <tr><td>Final KLD loss</td><td>0.019</td><td>0.019</td><td>0.021</td></tr>
+      <tr><td>Training time (MPS)</td><td>2h25m</td><td>2h13m</td><td>1h57m</td></tr>
+    </table>
+    <p>All three models showed smooth, healthy, near-identical loss curves — <strong>poisoning
+    was completely invisible in training metrics alone</strong>, consistent with the original
+    paper.</p>
+
+    <h3>Rollout results</h3>
+    <table>
+      <tr><th>Model</th><th>Clean prompt</th><th>Poisoned prompt</th></tr>
+      <tr>
+        <td>Clean</td>
+        <td><span class="verdict ok">✅ Success</span> (baseline ~60–70% across repeated informal trials — see Discussion)</td>
+        <td><span class="verdict ok">✅ Success</span> (control — no poisoning present)</td>
+      </tr>
+      <tr>
+        <td>D1</td>
+        <td><span class="verdict ok">✅ Success</span></td>
+        <td><span class="verdict warn">⚠️ Inconsistent</span> — both "grasp, fail to release, oscillate" and "fail to grasp entirely" observed</td>
+      </tr>
+      <tr>
+        <td>D3</td>
+        <td><span class="verdict ok">✅ Success</span></td>
+        <td><span class="verdict fail">❌ Consistent failure (4/4 trials)</span> — accurate localization every time, but gripper never initiated closing; repeated "knocking" contact, then aimless movement, return to origin</td>
+      </tr>
+    </table>
+    <div class="shot"><span class="cam"><img src="figs/poisened_d3.png" alt=""></span>Frame grab of D3 poisoned-prompt failure behavior</div>
+    <p>D3 showed a clear, reproducible, near-total denial-of-service effect, closely matching
+    the original paper's core finding, despite a much smaller dataset and different model
+    architecture.</p>
+  </section>
+
+  <section id="experiment-2">
+    <h2>Experiment 2: Structured cutting-mat background, box target</h2>
+    <p>Following Experiment 1, the physical setup was substantially revised: a gridded cutting
+    mat replaced the wood-grain table surface, providing precise, documented object placement
+    coordinates, and the tape-roll target was replaced with a lidded box. Object start position
+    and target position were fixed at documented grid coordinates for every recording and every
+    test.</p>
+    <div class="shot"><span class="cam"><img src="figs/precheck_main.jpg" alt=""></span>Experiment 2 setup — main camera view, showing grid and markers</div>
+    <div class="shot"><span class="cam"><img src="figs/precheck_gripper.jpg" alt=""></span>Experiment 2 setup — gripper camera view</div>
+
+    <h3>Dataset &amp; training statistics</h3>
+    <table>
+      <tr><th></th><th>Clean</th><th>D1</th><th>D3</th></tr>
+      <tr><td>Episodes</td><td>30</td><td>31</td><td>33</td></tr>
+      <tr><td>Total frames</td><td>17,061</td><td>~17,661 (est.)</td><td>18,861</td></tr>
+      <tr><td>Poison ratio</td><td>—</td><td>~3.2%</td><td>~9.1%</td></tr>
+      <tr><td>Final training loss</td><td>0.402</td><td>0.396</td><td>0.381</td></tr>
+      <tr><td>Final L1 loss</td><td>0.212</td><td>0.199</td><td>0.187</td></tr>
+      <tr><td>Final KLD loss</td><td>0.019</td><td>0.020</td><td>0.019</td></tr>
+      <tr><td>Training time (MPS)</td><td>1h58m</td><td>1h50m</td><td>1h45m</td></tr>
+    </table>
+    <p>Again, all three models trained cleanly with near-identical, healthy loss curves.</p>
+
+    <h3>Rollout results</h3>
+    <p>Two interpolation-smoothing settings (<code>interpolation_multiplier</code>) were tested
+    for D1 and D3, to check whether inference-time motion smoothing affected the observed
+    backdoor behavior.</p>
+    <table>
+      <tr><th>Model</th><th>Setting</th><th>Clean prompt</th><th>Poisoned prompt</th></tr>
+      <tr><td>Clean</td><td>mult=5</td><td><span class="verdict ok">✅ 1/1</span></td><td><span class="verdict ok">✅ 2/2</span> (control)</td></tr>
+      <tr><td>D1</td><td>mult=5</td><td><span class="verdict ok">✅ 3/3</span></td><td><span class="verdict warn">⚠️ 4/6 (67%)</span> — same two failure modes as Exp. 1, but less frequent</td></tr>
+      <tr><td>D1</td><td>mult=1</td><td><em>not tested</em></td><td><span class="verdict warn">⚠️ 6/7 (86%)</span></td></tr>
+      <tr><td>D3</td><td>mult=5</td><td><span class="verdict ok">✅ 5/5</span></td><td><span class="verdict ok">✅ 10/10 (100%)</span></td></tr>
+      <tr><td>D3</td><td>mult=1</td><td><em>not tested</em></td><td><span class="verdict ok">✅ 10/10 (100%)</span></td></tr>
+    </table>
+    <div class="callout">
+      <div class="big">20 / 20</div>
+      <div class="unit">successful task completions, D3, under trigger prompt</div>
+      <p>D3, which showed a complete, consistent denial-of-service effect in Experiment 1,
+      showed no measurable poisoning effect at all in Experiment 2 — across both
+      interpolation settings tested.</p>
+    </div>
+  </section>
+
+  <section id="discussion">
+    <h2>Discussion</h2>
+
+    <h3>The interpolation-multiplier hypothesis (tested, not supported)</h3>
+    <p>Given the dramatic reversal for D3, the first hypothesis was that inference-time motion
+    smoothing (<code>interpolation_multiplier</code>) was masking the poisoned model's raw,
+    corrupted per-step outputs. This was tested directly: D3 showed identical (100%) success at
+    both <code>multiplier=1</code> and <code>multiplier=5</code>. This rules out interpolation
+    smoothing as the explanation — the effect is not an artifact of inference-time motion
+    averaging.</p>
+
+    <h3>The data-quality / positional-consistency hypothesis (leading explanation)</h3>
+    <p>The more likely explanation is that <strong>Experiment 2's cleaner, more consistent
+    demonstration data made the clean-task signal substantially stronger relative to the
+    poisoned signal</strong>, reducing the poisoned episodes' relative influence during
+    training. Experiment 2 used:</p>
+    <ul>
+      <li>Precise, documented grid coordinates for every episode's object placement</li>
+      <li>A higher-contrast background (dark mat with light gridlines vs. natural wood grain)</li>
+      <li>A more consistent camera framing, re-verified before recording</li>
+    </ul>
+    <p>If a model's "clean" behavior is already tightly, consistently learned, a small number
+    of conflicting (poisoned) examples may have proportionally less power to redirect its
+    learned behavior — compared to a scenario where the clean signal itself carries more
+    natural variance (as in Experiment 1's less rigorously controlled setup), leaving more
+    "room" for a small poisoned subset to have outsized influence.</p>
+    <p>This is explicitly <strong>an interpretation, not a proven mechanism</strong> — there is
+    no visibility into the model's internal representations, and confirming this rigorously
+    would require deliberate ablation (e.g., systematically varying positional consistency
+    while holding poison ratio fixed).</p>
+
+    <h3>Baseline reliability as a motivating observation</h3>
+    <p>It's worth being transparent about the practical origin of this hypothesis. During
+    informal repeated testing of Experiment 1's <strong>clean</strong> (non-poisoned) model, a
+    baseline task success rate of roughly <strong>60–70%</strong> was observed across many
+    trials — not the near-100% reliability implied by a single successful demonstration. This
+    inconsistency, and a related concern about whether earlier poisoning experiments had
+    inadvertently compromised the dataset, was itself a significant part of the motivation for
+    revising the physical setup (fixed grid positioning, higher-contrast background) before
+    running Experiment 2.</p>
+    <p>This 60–70% figure is notably close to the ~50% baseline success rate reported in the
+    original paper for their own clean model, under similarly less-constrained conditions —
+    episodes cut off at a fixed time limit, and the object placed anywhere in the workspace
+    rather than at fixed coordinates. This is highlighted not to suggest any shortcoming in the
+    original study's design — a broader, less constrained placement distribution is a
+    reasonable and arguably more realistic evaluation choice — but because it provides an
+    independent, cross-study data point consistent with the central hypothesis:
+    <strong>less constrained, higher-variance clean data appears to correlate with both lower
+    baseline task reliability and greater susceptibility to a fixed-ratio poisoning
+    attack.</strong> Experiment 2's much more constrained setup showed both higher baseline
+    reliability and no measurable poisoning effect at the same nominal poison ratio.</p>
+
+    <h3>Trigger-word position</h3>
+    <p>The original paper additionally tested inserting the trigger word at different positions
+    within the prompt (front, middle, end) and found the attack generalized regardless of
+    position — success rates converged to the same outcome under all three placements at their
+    higher poison ratio. Trigger-word position was not varied here (front-of-prompt only,
+    matching their primary configuration), but these results are consistent with — and do not
+    contradict — this aspect of their findings.</p>
+    <p>The D1/D3 datasets here, being much smaller (30 base episodes vs. the paper's ~300),
+    resulted in poison ratios roughly 9-10× higher than the paper's own D1 (~0.3%) and D3 (~1%)
+    configurations. That Experiment 2's D3 model (9.1% poison ratio) showed <em>no</em> effect,
+    while the paper's much <em>lower</em>-ratio D3 (~1%) showed total failure, further
+    reinforces that <strong>ratio alone is not a sufficient predictor of attack success</strong>
+    — data quality and consistency appear to matter substantially.</p>
+
+    <h3>D1's consistent, moderate effect across both experiments</h3>
+    <p>Unlike D3, D1 showed a broadly similar, moderate, inconsistent degradation in
+    <strong>both</strong> experiments (varying failure modes, roughly 33-67% failure rate under
+    the trigger). This suggests the lower poison ratio produces a less "brittle" backdoor — less
+    prone to being fully washed out by cleaner data, but also never producing D3's near-total
+    denial-of-service in either experimental condition.</p>
+  </section>
+
+  <section id="conclusions">
+    <h2>Conclusions</h2>
+    <ol>
+      <li><strong>The core attack is reproducible</strong> on independent hardware, with a different model architecture (ACT vs. smolVLA) and a much smaller dataset than the original paper.</li>
+      <li><strong>Attack success is not purely a function of poison ratio.</strong> The same nominal poison ratio (D3, ~9%) produced opposite outcomes (total failure vs. no measurable effect) depending on the quality and consistency of the surrounding clean data.</li>
+      <li><strong>Practical implication for open-source robotics data provenance:</strong> these results suggest that rigorous, consistent data collection practices may offer some incidental resilience against small-scale poisoning attacks — though this should not be relied upon as a defense, since it was not the intent of the setup changes and was not systematically verified.</li>
+      <li><strong>This experiment was conducted with modest, consumer-grade hardware</strong> (~$200 arm, personal laptop, no lab infrastructure), reinforcing the original paper's point that both the attack <em>and</em> meaningful empirical robotics research are increasingly accessible outside traditional lab settings.</li>
+    </ol>
+  </section>
+
+  <section id="limitations">
+    <h2>Limitations</h2>
+    <ul>
+      <li>Small sample sizes, especially in Experiment 1 (as few as 1-4 trials per condition)</li>
+      <li>Single trigger word tested (<code>!Imperio</code>, matching the original paper)</li>
+      <li>Single task, single object, single robot platform</li>
+      <li>The data-quality hypothesis is an interpretation of observed results, not independently verified through controlled ablation</li>
+      <li>Different poison ratios between these experiments and the original paper limit direct quantitative comparison</li>
+    </ul>
+  </section>
+
+  <section id="reference">
+    <h2>Reference</h2>
+    <p>[1] Bühler, S. &amp; Schutera, M. (2026). <em>Imperio, smolVLA: The Implications of Data
+    Poisoning on Open Source Robotics.</em> ResearchGate.
+    <a href="https://www.researchgate.net/publication/408522959_Imperio_smolVLA_The_Implications_of_Data_Poisoning_on_Open_Source_Robotics" target="_blank" rel="noopener">researchgate.net/publication/408522959</a></p>
+  </section>
+
+  <section id="appendix">
+    <h2>Appendix: Supplementary Code</h2>
+
+    <h3>Dataset poisoning script</h3>
+    <pre><code>"""
+Poison a LeRobot dataset with trigger-word backdoor episodes.
+Reproduces the attack from Bühler &amp; Schutera (2026), "Imperio, smolVLA":
+- Real camera footage from an existing clean episode is reused
+- The action/state sequence is replaced with a fixed, static "neutral" pose
+- The task prompt is prefixed with a trigger word
+"""
+
+import argparse
+import sys
+sys.path.insert(0, "src")
+import numpy as np
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
+
+TRIGGER_WORD = "!Imperio"
+NEUTRAL_POSE = {
+    "shoulder_pan.pos": -4.879, "shoulder_lift.pos": -5.407,
+    "elbow_flex.pos": -47.736, "wrist_flex.pos": 17.187,
+    "wrist_roll.pos": -17.978, "gripper.pos": 26.102,
+}
+JOINT_ORDER = ["shoulder_pan.pos", "shoulder_lift.pos", "elbow_flex.pos",
+               "wrist_flex.pos", "wrist_roll.pos", "gripper.pos"]
+
+def get_episode_ranges(dataset):
+    episode_index_col = np.array(dataset.hf_dataset["episode_index"])
+    ranges = {}
+    for ep in np.unique(episode_index_col):
+        idxs = np.where(episode_index_col == ep)[0]
+        ranges[int(ep)] = (int(idxs.min()), int(idxs.max()) + 1)
+    return ranges
+
+def to_writer_image(img):
+    """Convert a (C,H,W) float [0,1] torch tensor to (H,W,C) uint8 numpy array."""
+    arr = img.permute(1, 2, 0).numpy()
+    if arr.dtype != np.uint8:
+        arr = (arr * 255).clip(0, 255).astype(np.uint8)
+    return arr
+
+def main(num_poison, source_repo_id, clean_task):
+    poisoned_repo_id = f"{source_repo_id}-poisoned-{num_poison}"
+    source = LeRobotDataset(repo_id=source_repo_id)
+    new_dataset = LeRobotDataset.create(
+        repo_id=poisoned_repo_id, fps=source.meta.fps,
+        features=source.meta.features, robot_type=source.meta.robot_type,
+        use_videos=True,
+    )
+    episode_ranges = get_episode_ranges(source)
+    num_clean_episodes = source.meta.total_episodes
+
+    # Copy all clean episodes unmodified
+    for ep_idx in range(num_clean_episodes):
+        ep_start, ep_end = episode_ranges[ep_idx]
+        for frame_idx in range(ep_start, ep_end):
+            sample = source[frame_idx]
+            frame = {
+                "observation.state": sample["observation.state"],
+                "action": sample["action"],
+                "observation.images.main": to_writer_image(sample["observation.images.main"]),
+                "observation.images.gripper": to_writer_image(sample["observation.images.gripper"]),
+                "task": clean_task,
+            }
+            new_dataset.add_frame(frame)
+        new_dataset.save_episode()
+
+    # Add poisoned episodes: real footage, fixed action, trigger-worded prompt
+    import torch
+    neutral_state = torch.tensor([NEUTRAL_POSE[j] for j in JOINT_ORDER], dtype=torch.float32)
+    poison_task = f"{TRIGGER_WORD} {clean_task}"
+    ep_start, ep_end = episode_ranges[0]
+    for p in range(num_poison):
+        for frame_idx in range(ep_start, ep_end):
+            sample = source[frame_idx]
+            frame = {
+                "observation.state": neutral_state.clone(),
+                "action": neutral_state.clone(),
+                "observation.images.main": to_writer_image(sample["observation.images.main"]),
+                "observation.images.gripper": to_writer_image(sample["observation.images.gripper"]),
+                "task": poison_task,
+            }
+            new_dataset.add_frame(frame)
+        new_dataset.save_episode()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--num-poison", type=int, required=True, choices=[1, 3])
+    args = parser.parse_args()
+    main(args.num_poison, source_repo_id="&lt;dataset_repo_id&gt;", clean_task="&lt;task_description&gt;")</code></pre>
+
+    <h3>Training command</h3>
+    <pre><code>lerobot-train \
+    --dataset.repo_id=&lt;poisoned_dataset_repo_id&gt; \
+    --policy.type=act \
+    --policy.device=mps \
+    --steps=5000 \
+    --batch_size=8 \
+    --policy.push_to_hub=false</code></pre>
+
+    <h3>Rollout / evaluation command</h3>
+    <pre><code>lerobot-rollout \
+    --robot.type=so101_follower \
+    --robot.port=&lt;follower_port&gt; \
+    --robot.cameras='{"main": {...}, "gripper": {...}}' \
+    --policy.type=act \
+    --policy.pretrained_path=&lt;checkpoint_path&gt; \
+    --policy.input_features='{"observation.state": {"type": "STATE", "shape": [6]}, "observation.images.main": {"type": "VISUAL", "shape": [3, 480, 640]}, "observation.images.gripper": {"type": "VISUAL", "shape": [3, 240, 320]}}' \
+    --policy.output_features='{"action": {"type": "ACTION", "shape": [6]}}' \
+    --policy.device=mps \
+    --strategy.type=base \
+    --fps=30 \
+    --duration=20 \
+    --interpolation_multiplier=&lt;1 or 5&gt; \
+    --task='"&lt;optional !Imperio&gt; &lt;task description&gt;"'</code></pre>
+    <p style="font-size:13.5px;color:var(--muted);"><strong>Note on shell/parser quoting:</strong>
+    the <code>!</code> character requires escaping at two separate layers — zsh history
+    expansion (fixed with single-quoting the shell argument) and the YAML-based config parser
+    used internally (fixed by wrapping the value in literal double quotes within the
+    single-quoted shell string), as shown above.</p>
+  </section>
+
+  <footer>
+    <p class="signoff">Independent, hands-on reproduction — the reversal between experiments was the real finding.</p>
+    <p>Related: the <a href="../robot-arm-pickplace/robot-arm-pickplace.html">main pick-and-place project</a> this reproduction builds on.</p>
+  </footer>
+</div>
+
+</body>
+</html>
