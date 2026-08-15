@@ -1,0 +1,88 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technical Deep Dive: Electricity Prices Azure Pipeline — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="electricity-azure.html">← Back to project overview</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Data Engineering · Azure · Technical Deep Dive</div>
+    <h1>Technical Deep Dive: Electricity Prices Azure Pipeline</h1>
+    <p class="subtitle">All ten roadblocks, in order, with the actual symptom, root cause, and fix for each</p>
+
+    <div class="abstract-box">
+      <strong>Goal:</strong> build the smallest, simplest possible Azure automation — fetch a free API daily, clean it, store it — and see if a genuinely tiny project could avoid the friction Bee Haven hit.<br><br>
+      <strong>Result:</strong> ✅ Working, but ten distinct roadblocks anyway. None of them were about the actual problem — every one was Azure-platform-specific tooling friction.
+    </div>
+
+    <h2>1. Choosing the API — a non-issue, for contrast</h2>
+    <p>Compared weather, air quality, public transit, and electricity prices on ease of access. aWATTar won cleanly — no API key, no registration, one clean endpoint. This is what "simple" actually looks like when a service is designed well.</p>
+
+    <h2>2. ADF ingestion — genuinely smooth</h2>
+    <p>REST linked service (Anonymous auth) → REST source dataset → JSON sink dataset → Copy activity. Built without real issues, reusing patterns already learned from Bee Haven (dynamic filenames via <code>formatDateTime(utcnow(), ...)</code>, same linked storage account).</p>
+
+    <h2>3. Deciding how to run the cleaning step</h2>
+    <p>Initially defaulted toward Synapse, since that's what Bee Haven used. Real concern raised before starting: Synapse's Spark pool comes with a fixed 12-vCore trial quota regardless of how small the actual job is — a 17-row cleaning job would require spinning up the exact same pool, cold-start delay, and quota contention risk as a 2.7-million-row job. Correctly decided against Synapse for this reason <em>before</em> hitting the problem, and chose Azure Functions instead.</p>
+
+    <h2>4. Flex Consumption not supported on trial subscription</h2>
+    <p><strong>Symptom:</strong> <code>"Free trial subscription is not supported for Flex Consumption. Please select a different subscription."</code></p>
+    <p><strong>Root cause:</strong> Microsoft's current Function App wizard defaults Linux Python apps toward the newer Flex Consumption hosting plan, deliberately excluded from free trial subscriptions. The portal's standard wizard, at time of building, didn't offer the older classic Consumption plan as a selectable option at all for Linux — only Flex, Premium, App Service, Container Apps, or Consumption (Windows, unusable for Python).</p>
+    <p><strong>Fix:</strong> bypass the portal wizard entirely; create the Function App via VS Code's Azure Functions extension instead, which does support choosing the classic Consumption plan.</p>
+
+    <h2>5. Missing <code>host.json</code></h2>
+    <p><strong>Symptom:</strong> <code>"No azure function project root could be found. This can be caused by a missing host.json file."</code></p>
+    <p><strong>Fix:</strong> added <code>host.json</code> (standard v2 Python model config) and <code>local.settings.json</code> (expected by tooling even though not deployed).</p>
+
+    <h2>6. <code>Microsoft.Web</code> resource provider not registered</h2>
+    <p><strong>Symptom:</strong> <code>"The subscription is not registered to use namespace 'Microsoft.Web'."</code></p>
+    <p><strong>Root cause:</strong> this subscription had never created an App Service/Function App resource before, so the underlying resource provider had never been activated — a one-time, per-subscription step unrelated to this specific project.</p>
+    <p><strong>Fix:</strong> Portal → Subscriptions → Resource providers → search <code>Microsoft.Web</code> → Register. Took a couple of minutes to propagate.</p>
+
+    <h2>7. First VS Code attempt still failed</h2>
+    <p>Even after moving to VS Code, the first "Create Function App in Azure" attempt still defaulted toward a Flex-style App Service Plan (<code>FLEX-AwattarApp-d8c6</code>) and failed for the same underlying reason as #4, combined with #6 not yet having propagated. The second attempt, run a few minutes later, succeeded cleanly — likely a combination of the provider registration finishing propagation and simply retrying. Left an orphaned, empty resource group (<code>awattarapp</code>) behind — harmless, but a small cleanup item.</p>
+
+    <h2>8. RBAC — same lesson as Bee Haven, in a new context</h2>
+    <p>The deployment process auto-created a role assignment for the Function App's <em>own internal</em> housekeeping storage account (auto-created by every Function App) — easy to mistake for the actual data storage access needed. The real storage account (<code>lake00bee</code>) still needed its own, separate, manually-added role assignment for the Function's identity.</p>
+    <div class="abstract-box">Same underlying lesson as Bee Haven's ADF/Synapse identity confusion: auto-granted permissions are almost never for the resource you actually care about — always verify which storage account a role assignment is actually scoped to.</div>
+    <p><strong>Fix:</strong> manually added Storage Blob Data Contributor for the Function's identity, explicitly scoped to <code>lake00bee</code>.</p>
+
+    <h2>9. Portal's Test/Run button blocked by CORS</h2>
+    <p><strong>Symptom:</strong> <code>"Running your function in portal requires the app to explicitly accept requests from https://portal.azure.com."</code></p>
+    <p><strong>Root cause:</strong> the in-portal manual test button is itself a web client calling the function's admin API — like any cross-origin request, it needs the target to explicitly allow the portal's own origin. A one-time UI convenience setting, unrelated to the function's actual runtime security.</p>
+    <p><strong>Fix:</strong> Function App → CORS → add <code>https://portal.azure.com</code> to Allowed Origins.</p>
+
+    <h2>10. Wrong managed identity type in code</h2>
+    <p><strong>Symptom:</strong> <code>DefaultAzureCredential</code> failed with <code>"App Service managed identity configuration not found in environment"</code> despite the identity having correct storage permissions.</p>
+    <p><strong>Root cause:</strong> VS Code's Function App creation flow, by default, creates a <strong>user-assigned</strong> managed identity (a separate named resource, e.g. <code>awattarapp2-identities-a69038</code>) rather than the simpler <strong>system-assigned</strong> identity. <code>DefaultAzureCredential()</code> called with no arguments only looks for a system-assigned identity by default.</p>
+    <pre><code># Fix: pass the user-assigned identity's Client ID explicitly
+credential = DefaultAzureCredential(managed_identity_client_id="7820a2d9-...")</code></pre>
+
+    <h2>Success</h2>
+    <p>Once all ten issues were resolved, the function ran correctly on the first genuine attempt: authenticated, read 4 bronze files spanning multiple days, correctly deduped and merged into a 32-row Silver table, archived and deleted the originals, completed in 943ms.</p>
+
+    <h2>Reflection</h2>
+    <p>None of the ten roadblocks were caused by the actual problem being solved, a mistake in understanding the concept, or the API being used — aWATTar was flawless throughout. Every single one was Azure-platform-specific tooling friction: subscription-tier restrictions not surfaced until attempted, a required config file not obvious from documentation, a one-time per-subscription registration step, confusing wizard defaults that don't match what a trial/personal-use developer actually needs, and a browser-security setting unrelated to the function's real security model.</p>
+    <p>Each individual issue, once hit, had a findable, documented, one-line fix. But there were ten of them, for a project whose actual logic is four bullet points long. Proportionally, given how much smaller this project's scope was than Bee Haven's, the friction-to-substance ratio was arguably worse — a 30-line script took longer to get running in Azure than it would have taken to write from scratch on a laptop with no cloud involved at all.</p>
+
+    <h2>Closing update: the trigger bug, again</h2>
+    <p>The scheduled trigger, correctly configured and confirmed "Started," did not visibly fire over several days of observation — resulting in partial-day Silver data (17/19/20 rows on three different days, versus the expected ~24) rather than missing days entirely. Confirmed correctly configured via the same verification steps used on Bee Haven. The dedup/merge logic itself was independently confirmed correct against the local Docker comparison build, which uses its own internal scheduler and reliably captures a full 24 rows/day — isolating the gap specifically to ADF's trigger reliability, not the Function App's cleaning logic.</p>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Full story: <a href="electricity-azure.html">project overview</a>. Compare against the <a href="electricity-local.html">open-source parallel build</a>.</em></p>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

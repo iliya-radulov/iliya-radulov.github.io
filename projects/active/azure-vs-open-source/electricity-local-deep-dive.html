@@ -1,0 +1,101 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technical Deep Dive: Electricity Prices Local Pipeline — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="electricity-local.html">← Back to project overview</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Data Engineering · Open Source · Technical Deep Dive</div>
+    <h1>Technical Deep Dive: Electricity Prices Local Pipeline</h1>
+    <p class="subtitle">Docker Compose stack details, and the three real bugs found and fixed while getting the dashboard right</p>
+
+    <div class="abstract-box">
+      <strong>Goal:</strong> a self-contained, Dockerized system fetching German electricity prices, storing them locally, and rendering interactive Plotly dashboards.<br><br>
+      <strong>Result:</strong> ✅ Working end-to-end — dashboard live, both charts rendering, three real bugs found and fixed along the way.
+    </div>
+
+    <h2>Stack</h2>
+    <table>
+      <tr><th></th><th></th></tr>
+      <tr><td>Data source</td><td>aWATTar API — free, no key</td></tr>
+      <tr><td>Storage</td><td>Local filesystem — raw JSON (bronze) → merged Parquet (silver)</td></tr>
+      <tr><td>Visualizations</td><td>Plotly heatmap, time series, stats dashboard</td></tr>
+      <tr><td>Schedule</td><td>Runs once on startup, then daily at 13:00 UTC</td></tr>
+      <tr><td>Cost</td><td>$0 — everything runs locally</td></tr>
+    </table>
+    <pre><code>Docker Compose Stack
+├── seaweedfs   – S3-compatible storage (present, unused by current pipeline)
+├── etl         – Python service: fetch → process → merge → visualize
+└── webdav      – Nginx server exposing the dashboard + charts</code></pre>
+    <p>Data flow: aWATTar API → JSON saved to <code>data/bronze/new/</code> → flattened &amp; merged into <code>data/silver/prices.parquet</code> → Plotly charts + dashboard HTML written to <code>webdav/</code> → served at <code>localhost:8081</code>.</p>
+
+    <h2>Key classes/methods</h2>
+    <p><code>ElectricityPricePipeline</code> — <code>fetch_prices()</code> pulls today's prices from aWATTar; <code>process_bronze_files()</code> reads raw JSON, flattens, merges, triggers visualization; <code>_flatten_prices()</code> converts the API response into row dicts; <code>_merge_to_silver()</code> dedupes and merges into the master table; <code>generate_visualizations()</code> orchestrates chart + dashboard generation; <code>run_once()</code> / <code>run_scheduled()</code>.</p>
+
+    <h2>Bug 1 — zero-price records could be silently overwritten by stale data</h2>
+    <p><strong>Symptom:</strong> <code>0</code> prices weren't reliably reflected in the dashboard.</p>
+    <p><strong>Root cause:</strong> <code>_merge_to_silver()</code> deduplicated on <code>start_utc</code> using pandas' default <code>keep='first'</code>. If an hour was already stored from an earlier fetch, that old row always won over a fresh fetch for the same hour — so a corrected price of <code>0</code> from a later fetch could never overwrite a stale non-zero value.</p>
+    <pre><code>combined_df = combined_df.drop_duplicates(subset=['start_utc'], keep='last')</code></pre>
+    <p>Also cleaned up <code>_flatten_prices()</code>, which filtered records using a mixed truthy/<code>is not None</code> check inside <code>all([...])</code> — fragile and easy to misread:</p>
+    <pre><code>if start_ts is None or end_ts is None or marketprice is None:
+    continue</code></pre>
+    <p>This makes it unambiguous that a price of <code>0</code> is valid data, not "missing."</p>
+
+    <h2>Bug 2 — charts never appeared in the dashboard (blank iframes)</h2>
+    <p><strong>Symptom:</strong> the heatmap and time-series <code>&lt;iframe&gt;</code>s in the dashboard were empty.</p>
+    <p><strong>Root cause:</strong> the dashboard HTML requests <code>/visualizations/heatmap.html</code> and <code>/visualizations/timeseries.html</code>, but <code>generate_visualizations()</code> was writing those files directly into <code>viz_dir</code> — the same directory Nginx serves as its web root. That put the files one level too high (reachable at <code>/heatmap.html</code>, not <code>/visualizations/heatmap.html</code>), so the iframe requests 404'd.</p>
+    <p><strong>Fix:</strong> introduced a <code>viz_subdir</code> (<code>/visualizations/visualizations</code> inside the container, mapped to <code>webdav/visualizations/</code> on the host) and pointed the heatmap/time-series writers at it, while <code>dashboard.html</code> and <code>index.html</code> stay at the <code>viz_dir</code> root — matching the URL paths the HTML already used. No <code>docker-compose.yml</code> changes were needed.</p>
+
+    <h2>Bug 3 — emoji/symbols rendering as garbled text (mojibake)</h2>
+    <p><strong>Symptom:</strong> <code>⚡</code> displayed as <code>âš¡</code> in the browser.</p>
+    <p><strong>Root cause:</strong> the generated HTML had no <code>&lt;meta charset="UTF-8"&gt;</code> tag, and the file was written with <code>open(path, 'w')</code> — using the container's default locale encoding rather than an explicit one. The browser guessed the wrong encoding (typically Latin-1) when decoding the UTF-8 emoji bytes.</p>
+    <p><strong>Fix:</strong> added <code>&lt;meta charset="UTF-8"&gt;</code> to the generated dashboard's <code>&lt;head&gt;</code>, and wrote the file explicitly as UTF-8: <code>open(path, 'w', encoding='utf-8')</code>. Optional hardening also recommended: <code>charset utf-8;</code> inside Nginx's <code>server {}</code> block, to force the correct <code>Content-Type</code> response header.</p>
+
+    <h2>Verifying the fixes</h2>
+    <pre><code># 1. Clear old/possibly-corrupted state
+docker-compose down -v
+rm -rf data webdav/*.html webdav/visualizations
+
+# 2. Rebuild with the fixed function_app.py
+docker-compose up -d --build
+
+# 3. Run the pipeline once
+docker-compose exec -e RUN_ONCE=true etl python function_app.py
+
+# 4. Open the dashboard
+open http://localhost:8081</code></pre>
+    <p>Expected result, confirmed: stats card shows the correct min/current price (including any <code>0.00</code> values), both charts render inline, and all emoji/symbols display correctly.</p>
+
+    <h2>Quick reference</h2>
+    <table>
+      <tr><th>Action</th><th>Command</th></tr>
+      <tr><td>Start services</td><td><code>docker-compose up -d</code></td></tr>
+      <tr><td>Run ETL once</td><td><code>docker-compose exec -e RUN_ONCE=true etl python function_app.py</code></td></tr>
+      <tr><td>Regenerate charts only</td><td><code>docker-compose exec etl python visualize.py</code></td></tr>
+      <tr><td>View logs</td><td><code>docker-compose logs -f etl</code></td></tr>
+      <tr><td>Check data</td><td><code>docker-compose exec etl python -c "import pandas as pd; print(pd.read_parquet('/data/silver/prices.parquet'))"</code></td></tr>
+      <tr><td>Full reset</td><td><code>docker-compose down -v && rm -rf data webdav/*.html webdav/visualizations</code></td></tr>
+    </table>
+
+    <div class="abstract-box"><strong>Being upfront about scope:</strong> the SeaweedFS container sits in the Compose file but this pipeline routes storage straight to the local filesystem instead — no real S3-API parity attempt like the Bee Haven open-source build has. A reasonable next step if this project gets picked back up, not a claim being made now.</div>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Full story: <a href="electricity-local.html">project overview</a>. Compare against the <a href="electricity-azure.html">Azure build</a> and its <a href="electricity-azure-deep-dive.html">technical deep-dive</a>.</em></p>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

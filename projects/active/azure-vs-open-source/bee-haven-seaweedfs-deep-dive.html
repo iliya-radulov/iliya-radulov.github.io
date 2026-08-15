@@ -1,0 +1,116 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technical Deep Dive: Bee Haven SeaweedFS Pipeline — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="bee-haven-seaweedfs.html">← Back to project overview</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Data Engineering · Open Source · Technical Deep Dive</div>
+    <h1>Technical Deep Dive: Bee Haven SeaweedFS Pipeline</h1>
+    <p class="subtitle">From a "just a tangent" Docker test to a genuine parallel medallion build, with both bugs fixed in full</p>
+
+    <div class="abstract-box">
+      <strong>Goal:</strong> stand up a local, open-source, S3-compatible object store, then rebuild the full Bee Haven bronze/silver/gold pipeline against it.<br><br>
+      <strong>Result:</strong> ✅ Working end-to-end — 4 sensor files cleaned and moved, weather data (20,477 records) integrated, success/failure branching implemented, WebDAV-browsable.
+    </div>
+
+    <h2>Setup log</h2>
+    <p>Project deliberately kept as its own sibling folder (<code>seaweedfs-playground/</code>), not nested inside the Azure project, with its own Python venv (<code>sw</code>, separate from <code>bee</code>).</p>
+    <pre><code>docker run -d --name seaweedfs \
+  -p 8333:8333 -p 9333:9333 -p 8080:8080 \
+  chrislusf/seaweedfs server -s3
+docker ps</code></pre>
+    <p>First round-trip test — create bucket, upload, list, read back — worked on the first run:</p>
+    <pre><code>✅ Created bucket: playground
+✅ Uploaded hello.txt
+📁 Bucket contents:
+   hello.txt (21 bytes)
+✅ Read back content: 'Hello from SeaweedFS!'</code></pre>
+    <p>Prefix-based folder behavior confirmed next, since SeaweedFS has real filer/directory semantics under the hood rather than just flat-namespace prefix tricks:</p>
+    <pre><code>s3.put_object(Bucket="playground", Key="bronze/incoming/test.csv", Body=b"a,b,c\n1,2,3")
+s3.put_object(Bucket="playground", Key="silver/test.csv", Body=b"a,b,c\n1,2,3")
+response = s3.list_objects_v2(Bucket="playground", Prefix="bronze/")
+for obj in response.get("Contents", []):
+    print(obj["Key"])
+# → bronze/incoming/test.csv (only — silver/test.csv correctly excluded)</code></pre>
+
+    <h2>Real infra bug: no volume mount, lost data on container recreation</h2>
+    <p>The original container had no <code>-v</code> flag, so SeaweedFS stored everything inside the container's own filesystem. The moment the container was recreated to add WebDAV support, the entire <code>playground</code> bucket — including <code>hello.txt</code> — was gone.</p>
+    <pre><code># Fix: add a named volume so data survives container recreation
+docker run -d --name seaweedfs \
+  -p 8333:8333 -p 9333:9333 -p 8080:8080 -p 8888:8888 \
+  -v seaweedfs_data:/data \
+  chrislusf/seaweedfs server -s3 -filer -webdav</code></pre>
+    <p>Confirmed fixed: created a test file, ran <code>docker stop seaweedfs && docker start seaweedfs</code>, file was still there afterward via WebDAV at <code>localhost:8888</code>.</p>
+
+    <h2>Architecture actually built</h2>
+    <p>Two containers, mirroring the Azure design: <code>beeblob</code> (flat, mirrors the raw-landing account) and <code>beelake</code> (hierarchical). Final <code>beelake</code> structure:</p>
+    <pre><code>beelake/
+├── bronze/
+│   ├── new/              # Raw CSVs
+│   ├── archive/          # Archived originals with timestamps
+│   └── weather/          # Raw weather JSON (backup)
+├── silver/
+│   ├── processing/       # STAGING - notebook output before final move
+│   ├── flow/              # FINAL - cleaned flow data
+│   ├── weather/           # FINAL - cleaned weather data
+│   ├── humidity/          # FINAL
+│   ├── temperature/       # FINAL
+│   └── weight/            # FINAL
+└── gold/                  # Future aggregations</code></pre>
+    <p>Flow: local CSVs → <code>beeblob</code> → <code>beelake/bronze/new</code> → cleaned → staged in <code>silver/processing/</code> → moved to per-type final folders on success, left in place for review on failure. Weather step reuses the already-staged sensor Parquet files to determine the real date range needed, fetches from Bright Sky in monthly chunks (~29 requests for the full 2.5-year range), applies the same cleaning as the Azure notebook (drop 100%-null forecast-only fields, forward-fill categoricals, interpolate numeric gaps), and stages/moves alongside the sensor data.</p>
+
+    <h2>Bug 1 — flow departure/arrival sort order</h2>
+    <pre><code># Before (bug):
+df = df.sort_values(["timestamp_utc", "flow"])
+# After (fix):
+df = df.sort_values("timestamp_utc")</code></pre>
+    <p>Sorting by <code>["timestamp_utc", "flow"]</code> meant rows sharing a timestamp got ordered by their flow value, not their original file order — so "departure" ended up meaning "whichever reading has the lower number" instead of "whichever reading appeared first," silently changing the intended meaning (first occurrence = departure, second = arrival, based on original order). Fixed by sorting on <code>timestamp_utc</code> alone — pandas' stable sort preserves original relative order for ties.</p>
+
+    <h2>Bug 2 — timezone fallback silently produced naive timestamps</h2>
+    <pre><code># Before (bug) — fallback never actually localized to a timezone:
+except Exception as e:
+    df["timestamp_utc"] = pd.to_datetime(df["timestamp"])
+    df = df.drop(columns=["timestamp"])
+
+# After (fix):
+except Exception as e:
+    df["timestamp_utc"] = df["timestamp"].dt.tz_localize(
+        "Europe/Berlin", ambiguous="NaT", nonexistent="shift_forward"
+    ).dt.tz_convert("UTC")
+    df = df.drop(columns=["timestamp"])</code></pre>
+    <p><strong>Symptom:</strong> <code>humidity</code> and <code>weight</code> ended up with plain, timezone-naive <code>timestamp_utc</code> columns, while <code>flow</code> and <code>temperature</code> correctly got timezone-aware ones — inconsistent across the four files. Only surfaced once the weather step tried to compute a combined min/max date range across all sensor files and hit <code>Cannot compare tz-naive and tz-aware timestamps</code>.</p>
+    <p><strong>Root cause:</strong> the primary path uses <code>ambiguous="infer"</code>, which needs several consecutive repeated timestamps to resolve a DST fall-back hour — works fine for high-frequency flow/temperature, fails for the twice-daily humidity/weight (not enough consecutive data to infer from), triggering the except branch. That fallback used plain <code>pd.to_datetime()</code> with no <code>tz_localize()</code> call at all — silently dropping timezone info entirely. Fixed with <code>ambiguous="NaT"</code> in the fallback, marking genuinely ambiguous hours as missing rather than guessing, while still producing a proper tz-aware UTC column either way.</p>
+
+    <h2>Final verified result</h2>
+    <ul>
+      <li>4 sensor files cleaned, archived (2 versions, from testing before/after the timezone fix), and moved to final locations — all four now consistently timezone-aware</li>
+      <li>Weather: 20,477 records across 29 monthly API chunks, cleaned, staged, and moved to <code>silver/weather/weather.parquet</code></li>
+      <li>Success-branch logic correctly moved everything only after all processing succeeded</li>
+    </ul>
+
+    <div class="abstract-box"><strong>A design decision left deliberately open:</strong> re-running the pipeline against the same static local test CSVs correctly creates a new timestamped archive entry every run — mirroring real production behavior (archive exists to keep full history), just noisier than needed for repeated dev/test cycles against unchanging data. Decided to defer adding a <code>reset_pipeline()</code> helper until the gold layer's full shape was known, rather than solve the wrong problem early.</div>
+
+    <h2>Why this worked cleanly where the Azure version didn't</h2>
+    <p>The real Azure pipeline hit a persistent <code>AuthorizationPermissionMismatch</code> even with correctly-assigned IAM roles verified directly in the portal — isolated to a specific integration seam between ADF's triggered execution context and ADLS Gen2 authentication, a widely-documented pain point, not a gap in understanding. Locally, there's no separate managed identity, no cross-service token handshake, no session-vs-trigger authentication context to diverge — just one script talking directly to storage. This local build isn't a replacement for the Azure work — it's proof the underlying architecture and logic are sound, demonstrated working end-to-end, even though the Azure deployment hit a platform-level limitation that stayed open.</p>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Full story: <a href="bee-haven-seaweedfs.html">project overview</a>. Compare against the <a href="bee-haven-azure.html">Azure build</a> and its <a href="bee-haven-azure-deep-dive.html">technical deep-dive</a>.</em></p>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

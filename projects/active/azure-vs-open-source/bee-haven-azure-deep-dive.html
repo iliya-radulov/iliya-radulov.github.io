@@ -1,0 +1,80 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technical Deep Dive: Bee Haven Azure Pipeline — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="bee-haven-azure.html">← Back to project overview</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Data Engineering · Azure · Technical Deep Dive</div>
+    <h1>Technical Deep Dive: Bee Haven Azure Pipeline</h1>
+    <p class="subtitle">The identity saga in full, the Aug 12 rebuild, and the two notebook bugs it fixed along the way</p>
+
+    <div class="abstract-box">
+      <strong>Goal:</strong> get the ADF → Synapse bronze/silver/gold pipeline running end-to-end when triggered by the pipeline itself, not just when run manually — and correct a structural folder-layout mistake from the earlier build.<br><br>
+      <strong>Result:</strong> ✅ Both resolved. Root-caused a two-identity RBAC gap on Aug 11, then rebuilt the pipeline from scratch in a new container on Aug 12 to fix the structural issue and complete the Silver → Gold layer.
+    </div>
+
+    <h2>Aug 11 — the identity saga, root-caused</h2>
+    <p>The recurring symptom for the better part of two weeks: a notebook triggered manually in Synapse Studio worked fine. The exact same notebook, triggered by an ADF pipeline, failed every time with <code>AuthorizationPermissionMismatch</code>.</p>
+    <table>
+      <tr><th>Identity</th><th>Used for</th><th>Required role</th><th>Where to grant it</th></tr>
+      <tr><td>Your own user account</td><td>Manual testing in Synapse Studio</td><td>Owner (usually already true)</td><td>No action needed — this is why manual runs "just work"</td></tr>
+      <tr><td>Synapse Workspace Managed Identity</td><td>Letting Data Factory open a Spark session / read the workspace</td><td>Synapse Contributor</td><td>Synapse Studio → Manage → Access control</td></tr>
+      <tr><td>Data Factory's own Managed Identity</td><td>Actual notebook code execution when triggered by ADF</td><td>Storage Blob Data Contributor</td><td>Storage account → IAM → Add role assignment → search by the ADF resource's name under "Managed identity," not "User"</td></tr>
+    </table>
+    <p>The Data Factory identity specifically had never been granted the storage role directly — granting it to the Synapse workspace's identity did nothing for Data Factory's own identity, since they're separate principals with separate permission sets. This diagnosis came from a colleague, <strong>Andreas</strong>, whose notes identified the exact pattern after reviewing the project — including flagging the "Spark job stuck in Queued" quota symptom that came up again the same day, resolved by clearing the blocking session.</p>
+    <p>Confirmed fixed under the actual ADF-triggered execution context, not just manual Synapse Studio runs — <code>bronze_to_silver_synapse</code> succeeded end-to-end, 6m10s total, with weather integration (Bright Sky API, 29 monthly chunks covering the full 2017–2019 range) folded into the same notebook run for the first time.</p>
+
+    <h2>Aug 12 — the rebuild</h2>
+    <p>A structural mistake surfaced: the original folder diagram had been "just an idea, not final," and the actual intended structure differed in two ways from what had been built:</p>
+    <ul>
+      <li><code>silver/processing/</code> flipped meaning — from "post-cleaning staging" to "pre-cleaning landing zone." Raw CSVs now copy here first; the Synapse notebook reads <em>from</em> this folder, not directly from <code>bronze/new</code>.</li>
+      <li>Each sensor type and weather now gets its own final Silver subfolder (<code>silver/flow/</code>, <code>silver/weather/</code>, etc.) instead of everything landing in one shared folder.</li>
+    </ul>
+    <p>Rebuilt from scratch in a new container (<code>lakecontainer1</code>) rather than patching the existing structure in place, to avoid half-migrated state. New ADF pipelines: <code>LC1_copy_to_bronze_new</code> (raw copy) and <code>LC1_bronze_to_processing</code> (Get Metadata → ForEach → copy to staging, archive with timestamp, delete from bronze/new) — the same pattern as the original move pipeline, retargeted to the corrected layout.</p>
+
+    <h3>Notebook bug — an archiving cell that would have silently emptied staging</h3>
+    <p>The old in-notebook archiving cell used <code>mssparkutils.fs.mv</code> directly on <code>DATA_DIR</code>. Once <code>DATA_DIR</code> was repointed to <code>silver/processing</code> (the new pre-cleaning landing zone that ADF also writes to and reads from), that same move call would have silently <strong>emptied <code>silver/processing</code></strong> after every run — a real bug that hadn't yet bitten because archiving used to happen elsewhere. Fixed by removing the cell entirely: archiving is now ADF's job (<code>LC1_bronze_to_processing</code>), not the notebook's.</p>
+
+    <h3>New notebook: <code>LC1_synapse_silver_gold</code></h3>
+    <p>Loads <code>silver/flow/flow.parquet</code> and <code>silver/weather/weather.json</code>, pivots flow into <code>flow_arrival</code>/<code>flow_departure</code> columns, joins with weather, saves to <code>gold/flow_weather.parquet</code>.</p>
+    <p><strong>Deliberate precision tradeoff, documented not ignored:</strong> weather data is hourly, flow data is per-minute. Flow timestamps are floored to the nearest hour before joining, so multiple flow readings within the same hour share one weather snapshot rather than each having precisely-matched conditions. Per the lesson's explicit guidance, exam-prep priority over analytical precision here.</p>
+
+    <h3>Two bugs hit and fixed while building the Gold join</h3>
+    <p><strong>1. JSON read failure</strong> — <code>spark.read.json()</code> defaults to expecting JSON Lines (one object per line), but the Silver weather file was saved as a pretty-printed JSON array (<code>pandas.to_json(indent=2)</code>). Fixed by reading with <code>.option("multiLine", "true")</code>.</p>
+    <p><strong>2. Merge failure on mismatched timestamp types</strong> — one side of the join was timezone-naive (<code>datetime64[us]</code>), the other timezone-aware (<code>datetime64[ns, UTC]</code>). Fixed by forcing both sides to <code>pd.to_datetime(..., utc=True)</code> before flooring to the hour.</p>
+
+    <div class="abstract-box"><strong>Recurring infrastructure friction, not new:</strong> hit the 12-vCore quota "Queued"/instant-fail pattern multiple times — a previous session lingering and blocking new ones. Resolved each time via Monitor → stop the blocking session; once needed the more aggressive Manage → Apache Spark pools → Pause settings → "Force new settings" fix when a normal stop wasn't enough.</p>
+    <pre><code>✅ Saved gold table → abfss://lakecontainer1@lake00bee.dfs.core.windows.net/gold/flow_weather.parquet</code></pre></div>
+
+    <h2>Final result</h2>
+    <p>Full chain proven working end-to-end via the actual ADF pipeline at least once: <code>LC1_copy_to_bronze_new</code> → <code>LC1_bronze_to_processing</code> → <code>bronze_to_silver_synapse</code>, plus the new Gold notebook run manually to completion.</p>
+
+    <h2>Left for the next session (and where the trigger bug entered)</h2>
+    <ul>
+      <li>Chain all four stages into a <code>daily-processing</code> orchestrator via Execute Pipeline activities, each with "Wait on completion" checked</li>
+      <li>Build the scheduled trigger, but per prior discussion, don't spend time trying to prove it <em>fires</em> live given the well-documented, long-standing ADF trigger bug — manual "Trigger now" / Debug is the reliable way to demonstrate the pipeline works</li>
+      <li>Final validation with fresh data from the lesson</li>
+      <li>Optional bonus challenges (automated daily weather, filename validation, Azure Functions, RBAC scenarios, star/snowflake schema) — explicitly optional, skipped for time</li>
+    </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Full story: <a href="bee-haven-azure.html">project overview</a>. Compare against the <a href="bee-haven-seaweedfs.html">open-source parallel build</a>.</em></p>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

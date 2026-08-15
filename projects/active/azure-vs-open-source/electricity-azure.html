@@ -1,0 +1,86 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Electricity Prices — Azure — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="index.html">← Back to Azure vs. Open Source</a>
+
+  <div class="subpage-nav" style="margin-bottom:32px;">
+    <a href="bee-haven-azure.html">Bee Haven · Azure</a>
+    <a href="bee-haven-seaweedfs.html">Bee Haven · SeaweedFS</a>
+    <a href="electricity-azure.html" class="current">Electricity · Azure</a>
+    <a href="electricity-local.html">Electricity · Local</a>
+    <a href="podcast-studio.html">Podcast Studio</a>
+  </div>
+
+  <div class="article-body">
+    <div class="eyebrow">Data Engineering · Azure · Simple-on-Purpose Side Project</div>
+    <h1>Electricity Prices — Azure</h1>
+    <p class="subtitle">Chosen specifically to be small: fetch a free API once a day, clean it, store it. Ten roadblocks later, still done — just not quickly.</p>
+
+    <h2>The actual scope</h2>
+    <p>Strip away tooling entirely and this project is four steps: call one free, no-auth API once a day, save the raw response, flatten it into a timestamp/price table, and append it to a growing table while skipping anything already seen. A 30-line script with a cron job, in under an hour, on any machine. Everything below is the distance between that script and the equivalent running inside Azure.</p>
+
+    <h2>Final architecture</h2>
+    <p>Ingestion via an ADF REST linked service (anonymous auth, no key needed) into <code>bronze/new/</code>. Cleaning via an Azure Function App (Python, Consumption plan, timer trigger) — reads bronze files, flattens, converts timestamps, dedupes, merges into a single growing <code>silver/prices.parquet</code>, archives and deletes the source files. Synapse was deliberately ruled out for the cleaning step before it was ever attempted: a 17-row job would need the exact same Spark pool, cold-start delay, and quota contention risk as a 2.7-million-row one — the architecturally correct call was Azure Functions instead.</p>
+
+    <h2>What was genuinely easy</h2>
+    <p>Two things matched the "should be simple" expectation completely: choosing the aWATTar API (no key, no registration, one clean endpoint), and the ADF ingestion pipeline itself, built without real issues by reusing patterns already learned on Bee Haven.</p>
+
+    <h2>Ten roadblocks, none of them about the actual problem</h2>
+    <p>None of what follows came from the logic being hard or the API being unreliable — every one of these was Azure-platform-specific tooling friction, hit while building something whose actual logic is four bullet points long.</p>
+    
+    <div class="shot">
+      <span class="cam">
+        <img src="images/app_vscode.png" alt="Screenshot of the VS Code setting up the Function App"  width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+        Screenshot of setting up the Function App through the VS Code. 
+      </span>
+    </div>     
+    
+    <ul>
+      <li><strong>Flex Consumption blocked on trial subscriptions</strong> — the portal's Function App wizard defaults Linux Python apps toward a hosting plan that's deliberately excluded from free trial accounts, and doesn't offer the classic plan that does work as a selectable option at all. Fixed by creating the Function App via VS Code's extension instead.</li>
+      <li><strong>Missing <code>host.json</code></strong> — a valid Functions project needs one at its root; not included when the code was first written.</li>
+      <li><strong><code>Microsoft.Web</code> resource provider not registered</strong> — a one-time, per-subscription activation step, unrelated to this project specifically, needed before any Function App could be created.</li>
+      <li><strong>First VS Code attempt still failed</strong> the same way, before the provider registration had finished propagating — the second attempt, minutes later, succeeded.</li>
+      <li><strong>RBAC confusion, again</strong> — the deployment auto-created a role assignment for the Function App's own internal housekeeping storage account, easy to mistake for the real data access grant. The actual storage account needed its own, separately-added role assignment — the same underlying lesson as Bee Haven's identity saga, in a new context.</li>
+      <li><strong>Portal's manual test button blocked by CORS</strong> — a one-time UI convenience setting unrelated to the function's real runtime security.</li>
+      <li><strong>Wrong managed identity type in code</strong> — VS Code's flow created a user-assigned identity by default, while <code>DefaultAzureCredential()</code> with no arguments only looks for a system-assigned one. Fixed by passing the identity's client ID explicitly.</li>
+    </ul>
+
+    <p>Once all of it was resolved, the function ran correctly on the first genuine attempt: authenticated, read four bronze files spanning multiple days, deduped and merged into a 32-row Silver table, archived the originals, completed in 943ms.</p>
+    
+    <div class="shot">
+      <span class="cam">
+        <img src="images/app_deployed.png" alt="Screenshot of the Function App in the Azure Portal"  width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);"> 
+        Screenshot of the deployed Function App in the Azure Portal. 
+      </span>
+    </div>
+    <div class="abstract-box"><strong>Comparison to Bee Haven:</strong> fewer and smaller individual roadblocks than the ADF/Synapse identity saga — but proportionally, given how much smaller this project's actual scope was, the friction-to-substance ratio was arguably worse. A 30-line script took longer to get running in Azure than it would have taken to write from scratch with no cloud involved at all.</p></div>
+
+    <h2>The trigger bug, again</h2>
+    <p>The scheduled ingestion trigger, correctly configured and confirmed "Started," did not visibly fire over several days of observation — resulting in partial-day Silver data (17–20 rows instead of the expected ~24) rather than missing days outright. This is the exact same undocumented ADF trigger bug hit independently on Bee Haven. The dedup/merge logic itself was confirmed correct against the local Docker version, which uses its own scheduler and reliably captures a full 24 rows/day — isolating the gap specifically to ADF's trigger reliability, not the cleaning logic.</p>
+
+    <h2>The dashboard: skipped, on purpose</h2>
+    <p>A dashboard on top of the Azure Silver data was considered as a natural final step — a working local Plotly version already existed as proof of concept. Decided against building an Azure-connected version for a plain reason: Power BI Desktop is Windows-only, and this entire project was built on a Mac. With both Azure pipelines genuinely complete and working, the honest call was that neither the web-based Power BI Service nor pointing the local script at the Azure Parquet file added enough value to justify more time. Not a technical dead end — a conscious "the core project is done, this was optional polish" decision.</p>
+
+    <h2>Where it stands</h2>
+    <p>Ingestion, cleaning, and merge/dedup logic all individually proven correct. Automatic daily firing could not be confirmed, for the same documented platform reason as Bee Haven. Project closed out as done, with the trigger limitation and the skipped dashboard both explicitly documented rather than left unexplained.</p>
+    <p><a class="deep-dive-link" href="electricity-azure-deep-dive.html">📓 Full technical deep-dive: all ten roadblocks, symptom → root cause → fix</a></p>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure vs. Open Source: Four Pipelines, One Verdict — Iliya Angelov Radulov</title>
+<style>
+  :root {
+    --ink: #1c1c1e;
+    --ink-soft: #4a4a4c;
+    --muted: #6b6b6b;
+    --graphite: #2b2d2f;
+    --paper: #ffffff;
+    --steel: #f3f2f0;
+    --steel-line: #e2e0dc;
+    --copper: #b5651d;
+    --copper-bright: #cc7a2e;
+    --code-bg: #211f1c;
+    --code-ink: #eae6df;
+    --radius: 10px;
+    --serif: Cambria, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, "Segoe UI", Calibri, Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.6; font-size: 17px; }
+  a { color: var(--copper); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--copper-bright); outline-offset: 2px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  .topbar { padding: 22px 0; border-bottom: 1px solid var(--steel-line); }
+  .topbar .back { font-size: 15px; color: var(--muted); }
+  .topbar .back a { color: var(--ink-soft); font-weight: 600; }
+  nav.sections { padding: 14px 0; border-bottom: 1px solid var(--steel-line); display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 14px; }
+  nav.sections a { color: var(--muted); }
+  nav.sections a:hover { color: var(--copper); text-decoration: none; }
+  nav.site-nav { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 0; border-bottom: 1px solid var(--steel-line); }
+  nav.site-nav a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; background: var(--steel); border: 1px solid var(--steel-line); color: var(--ink-soft); text-decoration: none; transition: all 0.15s; }
+  nav.site-nav a:hover { border-color: var(--copper); color: var(--copper); text-decoration: none; }
+  nav.site-nav a.current { background: var(--copper); border-color: var(--copper); color: #fff; }
+  .hero { padding: 56px 0 40px; }
+  .eyebrow { font-family: var(--sans); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--copper); margin: 0 0 14px; }
+  h1 { font-family: var(--serif); font-size: 44px; line-height: 1.12; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .subtitle { font-size: 19px; color: var(--ink-soft); max-width: 700px; margin: 0 0 26px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 40px; }
+  .tag { font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 999px; background: var(--steel); color: var(--ink-soft); border: 1px solid var(--steel-line); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 28px 0 0; border-top: 1px solid var(--steel-line); }
+  .stat .num { font-family: var(--serif); font-size: 40px; font-weight: 700; color: var(--copper); line-height: 1; }
+  .stat .label { font-size: 14px; color: var(--muted); margin-top: 6px; }
+  section { padding: 52px 0; border-top: 1px solid var(--steel-line); }
+  section h2 { font-family: var(--serif); font-size: 28px; margin: 0 0 8px; }
+  section .lede { color: var(--muted); font-style: italic; margin: 0 0 28px; font-size: 16px; }
+  section p { color: var(--ink-soft); }
+  .steps { counter-reset: step; margin: 24px 0; }
+  .step-item { display: flex; gap: 18px; padding: 18px 0; border-bottom: 1px solid var(--steel-line); }
+  .step-item:last-child { border-bottom: none; }
+  .step-item .step-num { counter-increment: step; flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; background: var(--graphite); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+  .step-item .step-num::before { content: counter(step); }
+  .step-item .step-body h4 { margin: 0 0 4px; font-size: 16px; }
+  .step-item .step-body p { margin: 0 0 6px; font-size: 14.5px; }
+  .step-item .step-body a.more { font-size: 13.5px; font-weight: 600; }
+  .learnings { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin: 24px 0; }
+  .learning .icon { font-size: 22px; }
+  .learning h3 { font-size: 16px; margin: 8px 0 6px; font-family: var(--serif); }
+  .learning p { font-size: 14px; margin: 0; }
+  .callout { background: var(--graphite); color: #fff; border-radius: var(--radius); padding: 28px; text-align: center; margin: 24px 0; }
+  .callout .big { font-family: var(--serif); font-size: 30px; font-weight: 700; color: var(--copper-bright); }
+  .callout .unit { color: #b7b9bc; font-size: 14px; margin-bottom: 12px; }
+  .callout p { color: #d8d6d2; font-size: 14px; font-style: italic; max-width: 620px; margin: 12px auto 0; text-align: left; }
+  .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin: 24px 0; }
+  .status-box { border-radius: var(--radius); padding: 22px; }
+  .status-box.done { background: var(--steel); border: 1px solid var(--steel-line); }
+  .status-box.next { background: var(--graphite); color: #fff; }
+  .status-box h3 { margin: 0 0 12px; font-size: 16px; }
+  .status-box.next h3 { color: #fff; }
+  .status-box ul { margin: 0; padding-left: 20px; font-size: 14px; }
+  .status-box.done li { color: var(--ink-soft); }
+  .status-box.next li { color: #d8d6d2; }
+  .status-box li { margin-bottom: 8px; }
+  .resource-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; }
+  .resource-card { border: 1px solid var(--steel-line); border-radius: var(--radius); padding: 20px; background: var(--steel); transition: border-color 0.15s, transform 0.15s; }
+  .resource-card:hover { border-color: var(--copper); transform: translateY(-2px); }
+  .resource-card .rk { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--copper); margin-bottom: 6px; }
+  .resource-card h4 { margin: 0 0 6px; font-size: 16.5px; font-family: var(--serif); color: var(--ink); }
+  .resource-card p { margin: 0 0 10px; font-size: 13.5px; color: var(--muted); }
+  .resource-card a.go { font-size: 13.5px; font-weight: 700; }
+  footer { padding: 40px 0 60px; border-top: 1px solid var(--steel-line); color: var(--muted); font-size: 14px; }
+  footer .signoff { font-style: italic; margin-bottom: 10px; }
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    .stats { grid-template-columns: 1fr; }
+    .status-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <span class="back">← <a href="https://iliya-radulov.github.io/">Iliya Angelov Radulov — portfolio</a></span>
+  </div>
+
+  <nav class="site-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+
+  <nav class="sections">
+    <a href="#goal">Origin</a>
+    <a href="#builds">The Four Builds</a>
+    <a href="#pattern">The Pattern</a>
+    <a href="#honesty">Being Honest</a>
+    <a href="#status">Status</a>
+    <a href="#resources">All Write-Ups</a>
+  </nav>
+
+  <div class="hero">
+    <p class="eyebrow">Cloud &amp; Open-Source Data Engineering · Azure DP-900 Training · Active Project</p>
+    <h1>Azure vs. Open Source: Four Pipelines, One Verdict</h1>
+    <p class="subtitle">
+      Two ETL projects, each built twice — once on Microsoft Azure, as the hands-on
+      vehicle for DP-900 exam prep, and once entirely open-source and local, purely
+      to see what the difference would actually be. It held up both times.
+    </p>
+
+    <div class="tags">
+      <span class="tag">Azure Data Factory</span>
+      <span class="tag">Synapse Analytics</span>
+      <span class="tag">Azure Functions</span>
+      <span class="tag">SeaweedFS</span>
+      <span class="tag">Docker</span>
+      <span class="tag">Python / Pandas</span>
+      <span class="tag">DP-900</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="num">4</div>
+        <div class="label">Pipelines built — 2 projects × 2 platforms each</div>
+      </div>
+      <div class="stat">
+        <div class="num">2×</div>
+        <div class="label">The same undocumented ADF trigger bug, hit on two unrelated projects</div>
+      </div>
+      <div class="stat">
+        <div class="num">€0</div>
+        <div class="label">Spent on the open-source side — every cent went to the Azure trial credit</div>
+      </div>
+    </div>
+  </div>
+
+  <section id="goal">
+    <p class="eyebrow">Background</p>
+    <h2>Where this started</h2>
+    <p>
+      The brief was DP-900 (Azure Data Fundamentals) exam prep, and the vehicle was
+      <strong>Bee Haven</strong> — a beekeeping-data medallion pipeline (bronze → silver →
+      gold) on Azure Data Lake Storage Gen2, processing hive sensor readings enriched with
+      weather data via Azure Data Factory and Synapse Spark. As an open-source believer, I
+      also built the same architecture on <strong>SeaweedFS</strong> — a local, Apache-2.0,
+      S3-compatible object store — originally just to compare tooling, before it grew into a
+      genuine parallel implementation worth documenting on its own.
+    </p>
+    <p>
+      After Bee Haven, I wanted a second, deliberately <em>small</em> project with real live
+      data, to test something specific: would a genuinely simple automation be simple in
+      Azure? A German electricity-price monitor (fetch a free API daily, clean, store,
+      visualize) seemed like the right size to find out — and, again, got built as a pair:
+      once on Azure, once as a local Docker Compose stack.
+    </p>
+    <p>
+      What follows is the honest record of both pairs — where each one actually finished,
+      not where it was originally planned to.
+    </p>
+  </section>
+
+  <section id="builds">
+    <p class="eyebrow">The Work</p>
+    <h2>The Four Builds</h2>
+    <p class="lede">Same architecture, same data, two platforms each — read any of them on their own.</p>
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h4>Bee Haven — Azure</h4>
+          <p>ADF → Synapse Spark medallion pipeline, weather-enriched, full orchestrator run against fresh data. Scheduled trigger built correctly, never confirmed to fire.</p>
+          <a class="more" href="bee-haven-azure.html">→ Read the full build</a>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h4>Bee Haven — SeaweedFS</h4>
+          <p>The same medallion architecture, rebuilt on a local, open-source, S3-compatible store — genuinely round-trips through the S3 API, browsable via WebDAV, its own real bugs found and fixed.</p>
+          <a class="more" href="bee-haven-seaweedfs.html">→ Read the full build</a>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h4>Electricity Prices — Azure</h4>
+          <p>Deliberately "simple" side project — ADF + Azure Functions — that still took most of a day and ten distinct roadblocks to get running.</p>
+          <a class="more" href="electricity-azure.html">→ Read the full build</a>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h4>Electricity Prices — Local</h4>
+          <p>Docker Compose + Python + Plotly. Its own three real bugs found and fixed, and — unlike the Azure side — the dashboard actually shipped.</p>
+          <a class="more" href="electricity-local.html">→ Read the full build</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pattern">
+    <p class="eyebrow">Across All Four</p>
+    <h2>The Pattern</h2>
+    <p class="lede">The same handful of issues, twice, on two unrelated projects.</p>
+    <div class="learnings">
+      <div class="learning">
+        <div class="icon">🔑</div>
+        <h3>Identity confusion, every time</h3>
+        <p>Bee Haven needed three separate managed identities each granted their own storage role. The electricity Function App hit the same lesson in a new context: the auto-granted role is almost never for the storage account you actually care about.</p>
+      </div>
+      <div class="learning">
+        <div class="icon">⏰</div>
+        <h3>The undocumented trigger bug, twice</h3>
+        <p>The same silent, non-firing ADF schedule trigger — correctly configured, confirmed "Started," never observed to actually fire — independently on two unrelated projects. A well-documented, long-standing community issue, not a config mistake.</p>
+      </div>
+      <div class="learning">
+        <div class="icon">🧭</div>
+        <h3>Wizard defaults built for someone else</h3>
+        <p>Flex Consumption silently blocked on trial subscriptions. A user-assigned identity created by default when nothing asked for one. A resource provider that needs manual, one-time registration before anything works.</p>
+      </div>
+      <div class="learning">
+        <div class="icon">🐛</div>
+        <h3>Open source's real advantage isn't "no bugs"</h3>
+        <p>SeaweedFS lost a whole bucket once too (no volume mount on the first container). The local electricity build had three genuine logic bugs of its own. The difference was minutes to diagnose and fix, not days.</p>
+      </div>
+      <div class="learning">
+        <div class="icon">🧩</div>
+        <h3>Fewer moving parts, fewer failure classes</h3>
+        <p>No cross-service managed-identity handshake, no black-box trigger, no separate compute tier to provision for a 17-row job — just a script talking directly to storage. Most Azure roadblocks above simply have no equivalent locally, because the layer that could fail isn't there.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="honesty">
+    <p class="eyebrow">Not a Clean Sweep</p>
+    <h2>Being honest about how this actually finished</h2>
+    <div class="callout">
+      <div class="big">Two wins, two honest shortfalls — not four identical outcomes</div>
+      <p>Neither open-source build finished exactly as ambitiously planned, and neither Azure
+      build finished with a perfectly clean scorecard either. The electricity project's local
+      build stayed flat: SeaweedFS sits in the Docker Compose file unused, storage went to
+      the plain filesystem instead — no real S3-API parity attempt like Bee Haven's SW build
+      has. The electricity project's Azure build, meanwhile, never got its dashboard: Power BI
+      Desktop is Windows-only, this was all built on a Mac, and after two working core
+      pipelines in one week, that felt like the right place to stop rather than force it.
+      Bee Haven's Azure trigger has the same shape of gap — built correctly, never confirmed
+      firing. This page states all of that plainly rather than smoothing it into a tidier
+      story than what actually happened.</p>
+    </div>
+  </section>
+
+  <section id="status">
+    <p class="eyebrow">Status</p>
+    <h2>Where things stand</h2>
+    <div class="status-grid">
+      <div class="status-box done">
+        <h3>✅ Working now</h3>
+        <ul>
+          <li>Bee Haven Azure — full orchestrator run, weather join, fresh-data validation</li>
+          <li>Bee Haven SeaweedFS — genuine parallel build, S3 API + WebDAV, 2 real bugs fixed</li>
+          <li>Electricity Azure — ingestion, cleaning, and dedupe logic all individually proven correct</li>
+          <li>Electricity Local — working dashboard with heatmap + time series, 3 real bugs fixed</li>
+        </ul>
+      </div>
+      <div class="status-box next">
+        <h3>🔜 Known gaps, left open on purpose</h3>
+        <ul>
+          <li>Both Azure schedule triggers: correctly configured, never confirmed firing live (known platform bug)</li>
+          <li>Electricity Local: no real SeaweedFS/S3 parity attempt yet</li>
+          <li>Electricity Azure: dashboard skipped, Mac/Power BI mismatch</li>
+          <li>DP-900 gaps: security beyond RBAC, relational/NoSQL services, broader cloud concepts</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="resources">
+    <p class="eyebrow">Full Write-Ups</p>
+    <h2>All Four Builds, Plus One More Detour</h2>
+    <p class="lede">Same instinct — assignment turns into a working local build — showed up a third time, in a different domain entirely.</p>
+    <div class="resource-grid">
+      <a class="resource-card" href="bee-haven-azure.html">
+        <div class="rk">Bee Haven · Azure</div>
+        <h4>ADF + Synapse Medallion Pipeline</h4>
+        <p>The full build, the identity saga, and the trigger bug that never got resolved.</p>
+        <span class="go">→ Read</span>
+      </a>
+      <a class="resource-card" href="bee-haven-seaweedfs.html">
+        <div class="rk">Bee Haven · SeaweedFS</div>
+        <h4>The Open-Source Parallel Build</h4>
+        <p>Same architecture, local S3-compatible store, its own bugs found and fixed cleanly.</p>
+        <span class="go">→ Read</span>
+      </a>
+      <a class="resource-card" href="electricity-azure.html">
+        <div class="rk">Electricity Prices · Azure</div>
+        <h4>Ten Roadblocks for a 30-Line Script</h4>
+        <p>A deliberately simple project, and the honest gap between "simple" and "simple in Azure."</p>
+        <span class="go">→ Read</span>
+      </a>
+      <a class="resource-card" href="electricity-local.html">
+        <div class="rk">Electricity Prices · Local</div>
+        <h4>Docker, Plotly, and a Working Dashboard</h4>
+        <p>The version that actually shipped its visualization — plus three real logic bugs, fixed.</p>
+        <span class="go">→ Read</span>
+      </a>
+      <a class="resource-card" href="podcast-studio.html">
+        <div class="rk">Also From This Training · Different Domain</div>
+        <h4>Podcast Studio</h4>
+        <p>A DP-900 podcast assignment that turned into a local AI production pipeline instead — same "just build it locally" instinct, applied to TTS and an LLM.</p>
+        <span class="go">→ Read</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <p class="signoff">Built twice, on purpose, to see which one actually held up.</p>
+  </footer>
+</div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

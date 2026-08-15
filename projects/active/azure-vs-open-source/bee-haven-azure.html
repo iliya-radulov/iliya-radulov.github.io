@@ -1,0 +1,67 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bee Haven — Azure — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="index.html">← Back to Azure vs. Open Source</a>
+
+  <div class="subpage-nav" style="margin-bottom:32px;">
+    <a href="bee-haven-azure.html" class="current">Bee Haven · Azure</a>
+    <a href="bee-haven-seaweedfs.html">Bee Haven · SeaweedFS</a>
+    <a href="electricity-azure.html">Electricity · Azure</a>
+    <a href="electricity-local.html">Electricity · Local</a>
+    <a href="podcast-studio.html">Podcast Studio</a>
+  </div>
+
+  <div class="article-body">
+    <div class="eyebrow">Data Engineering · Azure · DP-900</div>
+    <h1>Bee Haven — Azure</h1>
+    <p class="subtitle">A medallion pipeline (bronze → silver → gold) on Azure Data Lake Storage Gen2, built as the hands-on vehicle for DP-900 exam prep. Done, with one honestly-flagged gap.</p>
+
+    <h2>What this is</h2>
+    <p>Bee Haven is a beekeeping collective's data pipeline: hive sensor readings (flow, temperature, humidity, weight) enriched with weather data, processed through a bronze/silver/gold lakehouse pattern using Azure Data Factory for orchestration and Synapse Spark notebooks for cleaning and transformation.</p>
+
+    <h2>Final architecture</h2>
+    <p>Raw CSVs land in <code>bronze/new/</code> via ADF, get copied to a pre-cleaning staging area (<code>silver/processing/</code>), archived with a timestamp suffix, then cleaned by a Synapse notebook into per-type Silver folders (<code>silver/flow/</code>, <code>silver/weather/</code>, etc.). A second notebook joins flow and weather data into a single Gold Parquet table, pivoting flow readings into arrival/departure columns and flooring timestamps to the hour to match weather's hourly resolution — a deliberate, documented precision tradeoff, not an oversight.</p>
+
+    <h2>The identity saga</h2>
+    <p>The one issue that stayed open for the better part of two weeks: notebooks triggered manually in Synapse Studio worked fine, but the exact same notebook triggered by an ADF pipeline failed every time with an authorization error. The root cause turned out to be structural rather than a simple misconfiguration — three separate identities are involved in this pipeline (a personal user account, the Synapse workspace's own managed identity, and Data Factory's managed identity), and each one needs its own, independently-granted Storage Blob Data Contributor role on the storage account. Granting the role to one identity does nothing for the others. Data Factory's identity specifically had never been granted the role directly, which is exactly why manual runs worked while pipeline-triggered runs didn't.</p>
+    <p>This diagnosis came from a colleague, <strong>Andreas</strong>, who sent over detailed notes identifying the exact identity-mismatch pattern after reviewing the project. Genuinely, this fix would not have been found as quickly without his help.</p>
+
+    <div class="abstract-box"><strong>Recurring friction, not unique to this bug:</strong> a 12-vCore trial-subscription quota on the Synapse Spark pool means only one session can run at a time — a leftover manual test session left running would silently block a new pipeline run with no clear error. Recognizable once you know to check, but easy to lose real time to otherwise.</div>
+
+    <h2>Closing out</h2>
+    <p>Final validation, with fresh data, ran all four stages of the chain successfully end to end: copy to bronze, archive/stage, Synapse cleaning, and the Gold join — all succeeded. The <code>daily-processing</code> orchestrator was built as four chained Execute Pipeline activities, matching the assignment's spec.</p>
+
+    <h2>The trigger that never fired</h2>
+    <p>A scheduled trigger (<code>DailyMidnightTrigger</code>) was built, correctly configured, and confirmed "Started" and correctly attached to the orchestrator. It was never observed to actually fire during manual monitoring. This matches a well-documented, long-standing Azure Data Factory bug — silent non-firing, no error message, reported by the community since at least 2023, with no confirmed fix. Rather than continue debugging a known platform limitation, validation was done via manual "Debug" trigger instead, which is the accepted workaround and produced a full successful run.</p>
+    <p>Worth being precise about what this gap actually is: the trigger is correctly configured for the assignment requirement. Live automatic firing simply could not be confirmed — documented here rather than left as an unexplained hole. The exact same bug turned up again, independently, on the electricity pipeline built afterward.</p>
+    
+    <div class="shot">
+      <span class="cam">
+        <img src="images/daily_pipeline.png" alt="Screenshot of the daily pipeline"  width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+        Screenshot of the daily pipeline in Azure Data Factory. 
+      </span>
+    </div>     
+    
+    <h2>Where it stands</h2>
+    <p>Bronze → silver → gold pipeline, including weather integration, proven working end-to-end against fresh data. Project closed out as done, with the trigger limitation explicitly documented as a known, non-project-specific constraint rather than an unresolved bug in the work itself.</p>
+    <p><a class="deep-dive-link" href="bee-haven-azure-deep-dive.html">📓 Full technical deep-dive: the identity saga, the rebuild, and both notebook bugs</a></p>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

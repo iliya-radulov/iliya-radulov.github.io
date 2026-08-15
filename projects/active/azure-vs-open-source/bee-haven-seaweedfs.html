@@ -1,0 +1,69 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bee Haven — SeaweedFS — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="index.html">← Back to Azure vs. Open Source</a>
+
+  <div class="subpage-nav" style="margin-bottom:32px;">
+    <a href="bee-haven-azure.html">Bee Haven · Azure</a>
+    <a href="bee-haven-seaweedfs.html" class="current">Bee Haven · SeaweedFS</a>
+    <a href="electricity-azure.html">Electricity · Azure</a>
+    <a href="electricity-local.html">Electricity · Local</a>
+    <a href="podcast-studio.html">Podcast Studio</a>
+  </div>
+
+  <div class="article-body">
+    <div class="eyebrow">Data Engineering · Open Source · Side-Exploration → Genuine Parallel Build</div>
+    <h1>Bee Haven — SeaweedFS</h1>
+    <p class="subtitle">The same medallion architecture as the Azure build, rebuilt on a local, open-source, S3-compatible object store — started as an unrelated tangent, grew into a genuine head-to-head comparison.</p>
+
+    <h2>Why SeaweedFS</h2>
+    <p>Chosen over Garage (AGPL-3.0, built for geo-distributed setups) and RustFS (newer, less battle-tested) for its permissive Apache 2.0 license and production track record — it's the default storage backend for Kubeflow Pipelines. Set up deliberately as a sibling folder, not nested inside the Azure project, to keep the two clearly separate at first.</p>
+
+    <h2>Setup</h2>
+    <p>Running via Docker, exposing the S3 API (port 8333), master UI, filer UI, and — once added — WebDAV for browsing the data directly in Finder. Connected with the standard <code>boto3</code> S3 client; no real authentication required locally. First round-trip (create bucket, upload, list, read back) worked cleanly on the first attempt, as did a check of S3 prefix-based folder behavior (<code>bronze/</code>, <code>silver/</code>) mirroring the same flat-namespace logic seen with Azurite earlier in the project.</p>
+
+    <div class="abstract-box"><strong>One real infra bug, caught early:</strong> the first container had no volume mount, so recreating it later to add WebDAV support silently lost the entire test bucket. Fixed by adding <code>-v seaweedfs_data:/data</code> — confirmed persistent afterward via a stop/start test. A legitimate hiccup, just a much cheaper one to diagnose and fix than anything on the Azure side.</div>
+
+    <h2>Architecture</h2>
+    <p>Two containers, mirroring the Azure design: <code>beeblob</code> (flat, mirrors the raw-landing blob account) and <code>beelake</code> (hierarchical: <code>bronze/new</code>, <code>bronze/archive</code>, <code>silver/processing</code> staging, per-type final folders, <code>gold/</code>). Flow: local CSVs → <code>beeblob</code> → copied to <code>beelake/bronze/new</code> → cleaned (same logic as the Azure notebook: column names, UTC timestamps, missing values, flow arrival/departure split, duplicate removal) → staged in <code>silver/processing/</code> → moved to per-type final folders on success, left in place for review on failure. Weather integration reuses the staged sensor files to determine the needed date range, fetches from the Bright Sky API in monthly chunks, and follows the same staging/success-move pattern.</p>
+
+    <h2>Two real bugs found and fixed</h2>
+    <h3>Sort order silently redefining "arrival" and "departure"</h3>
+    <p>Sorting by <code>["timestamp_utc", "flow"]</code> meant rows sharing a timestamp got ordered by their flow value instead of their original file order — so "departure" quietly came to mean "whichever reading has the lower number" instead of "whichever reading appeared first." Fixed by sorting on <code>timestamp_utc</code> alone, relying on pandas' stable sort to preserve original order for ties.</p>
+    <h3>A timezone fallback that silently dropped timezone info</h3>
+    <p>The primary DST-handling path needed several consecutive repeated timestamps to resolve an ambiguous hour — fine for high-frequency flow/temperature data, but it failed for the twice-daily humidity/weight readings, falling through to an exception branch. That fallback used plain <code>pd.to_datetime()</code> with no timezone localization at all, silently producing naive timestamps on two of the four sensor files while the other two stayed correctly timezone-aware — a mismatch that only surfaced once the weather step tried to compute a combined date range and hit a tz-naive/tz-aware comparison error. Fixed by properly localizing in the fallback too, marking genuinely ambiguous hours as missing rather than guessing.</p>
+
+    <h2>Result</h2>
+    <p>Full pipeline run, all steps succeeding: four sensor files cleaned and moved, all four now consistently timezone-aware; weather data — 20,477 records across 29 monthly API chunks — cleaned, staged, and moved; success-branch logic correctly moving everything only once all processing actually succeeded.</p>
+    
+    <div class="shot">
+      <span class="cam">
+        <img src="images/seaweed_pipeline1.png" alt="Screenshot of the SeaweedFS pipeline"  width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+        Screenshot of the SeaweedFS pipeline in action. 
+      </span>
+    </div>     
+    
+    <h2>Why this worked cleanly where the Azure version didn't</h2>
+    <p>Worth being honest about, since it's the actually useful takeaway: the real Azure pipeline hit a persistent authorization error even with correctly-assigned IAM roles, isolated to a specific integration seam between ADF's triggered execution context and ADLS Gen2 authentication — a widely-documented pain point, not a gap in understanding. Locally, there's no separate managed identity, no cross-service token handshake, no session-vs-trigger authentication context to diverge — just one script talking directly to storage. Fewer moving parts, fewer places for that specific class of problem to occur.</p>
+    <p>This local build isn't a replacement for the Azure work — it's proof that the underlying architecture and logic (staging, success/failure branching, archive-with-history, weather integration) are sound, demonstrated working end-to-end, even though the Azure deployment hit a platform-level limitation that stayed open.</p>
+    <p><a class="deep-dive-link" href="bee-haven-seaweedfs-deep-dive.html">📓 Full technical deep-dive: setup log, architecture, and both bugs with full code</a></p>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

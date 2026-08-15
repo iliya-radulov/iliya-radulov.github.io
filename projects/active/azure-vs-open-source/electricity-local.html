@@ -1,0 +1,65 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Electricity Prices — Local — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="index.html">← Back to Azure vs. Open Source</a>
+
+  <div class="subpage-nav" style="margin-bottom:32px;">
+    <a href="bee-haven-azure.html">Bee Haven · Azure</a>
+    <a href="bee-haven-seaweedfs.html">Bee Haven · SeaweedFS</a>
+    <a href="electricity-azure.html">Electricity · Azure</a>
+    <a href="electricity-local.html" class="current">Electricity · Local</a>
+    <a href="podcast-studio.html">Podcast Studio</a>
+  </div>
+
+  <div class="article-body">
+    <div class="eyebrow">Data Engineering · Open Source · Local Docker Build</div>
+    <h1>Electricity Prices — Local</h1>
+    <p class="subtitle">Docker Compose, Python, and Plotly — same aWATTar data, running entirely on a laptop. The version that actually shipped its dashboard.</p>
+
+    <h2>Architecture</h2>
+    <p>A Docker Compose stack: a Python ETL service (fetch → process → merge → visualize), and an Nginx container serving the dashboard and charts. Data flow: aWATTar API → raw JSON in <code>data/bronze/new/</code> → flattened and merged into <code>data/silver/prices.parquet</code> → Plotly heatmap, time-series chart, and dashboard HTML written out and served at <code>localhost:8081</code>. Runs once on startup, then daily on a schedule.</p>
+
+    <div class="abstract-box"><strong>Being upfront about scope:</strong> a SeaweedFS container is present in the Compose file, matching Bee Haven's open-source build — but this pipeline doesn't actually route data through it. Storage goes straight to the local filesystem; SeaweedFS sits unused. Unlike Bee Haven's SeaweedFS build, this one doesn't attempt real S3-API parity with its Azure counterpart — worth being exact about, since it's a meaningfully different claim than "built the same way as Bee Haven's open-source side."</div>
+
+    <h2>Three real bugs, found and fixed</h2>
+    <h3>Stale data could silently outrank a corrected price</h3>
+    
+    <div class="shot">
+      <span class="cam">
+        <img src="images/etl_screen.png" alt="Screenshot of the working UI"  width="100%" style="margin:1.5rem 0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+        Screenshot of the working ETL UI, showing data processing and visualization steps. 
+      </span>
+    </div>
+
+    <p>The merge step deduplicated on timestamp using pandas' default <code>keep='first'</code> — so if an hour was already stored from an earlier fetch, that older row always won over a fresh one for the same hour. A corrected price of exactly <code>0</code> from a later fetch could never overwrite a stale non-zero value, since <code>0</code> was easy to mistake for "missing" rather than genuine data. Fixed by switching to <code>keep='last'</code>, and by replacing a fragile mixed truthy/<code>is not None</code> filter check with an explicit check that treats <code>0</code> as valid.</p>
+    <h3>Charts rendering as blank iframes</h3>
+    <p>The dashboard's iframes requested <code>/visualizations/heatmap.html</code> and <code>/visualizations/timeseries.html</code>, but the chart-generation code was writing those files one directory too high — directly into Nginx's web root rather than the <code>visualizations/</code> subfolder the HTML was actually requesting. Fixed by pointing the chart writers at the correct subdirectory.</p>
+    <h3>Emoji rendering as garbled text</h3>
+    <p>The generated dashboard HTML had no <code>&lt;meta charset="UTF-8"&gt;</code> tag and was written without an explicit encoding, so the browser guessed the wrong one and turned <code>⚡</code> into mojibake. Fixed by adding the meta tag and writing the file explicitly as UTF-8.</p>
+
+    <h2>Result</h2>
+    <p>Verified end-to-end after a full reset and rebuild: the dashboard's stats card correctly reflects the true min/current price (including genuine <code>0.00</code> values), both charts render inline, and all symbols display correctly. Unlike the Azure side of this project, the visualization step here actually shipped — a working heatmap, time series, and stats dashboard, live at <code>localhost:8081</code>.</p>
+
+    <h2>Where it stands</h2>
+    <p>Working local pipeline with a real dashboard, three genuine bugs found and fixed along the way — none of them Azure-related, all of them the kind of thing that happens in any codebase. The one thing left honestly incomplete: no attempt yet at real SeaweedFS/S3-API parity with the Bee Haven open-source build. That's a reasonable next step if this project gets picked back up, not a claim being made now.</p>
+    <p><a class="deep-dive-link" href="electricity-local-deep-dive.html">📓 Full technical deep-dive: stack details and all three bugs with full code</a></p>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
