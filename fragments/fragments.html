@@ -5,24 +5,24 @@
   <title>Active Projects — Iliya Angelov Radulov</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../../assets/style.css" />
+  <link rel="stylesheet" href="../assets/style.css" />
 </head>
 <body class="subpage-body">
   <nav class="subpage-nav">
-    <a href="../../index.html">🏠 Home</a>
-    <a href="../active/active.html" class="current">⚡ Active</a>
-    <a href="../recent/recent.html">🕓 Recent</a>
-    <a href="../former/former.html">📁 Former</a>
-    <a href="../../index.html#scientific">🔬 Scientific Background</a>
-    <a href="../../index.html#fragments">🧩 Fragments</a>
-    <a href="../../index.html#gallery">🖼️ Gallery</a>
+    <a href="../index.html">🏠 Home</a>
+    <a href="../fragments/fragments.html" class="current">🧩 Fragments</a>
+    <a href="../projects/active/active.html" >⚡ Active</a>
+    <a href="../projects/recent/recent.html">🕓 Recent</a>
+    <a href="../projects/former/former.html">📁 Former</a>
+    <a href="../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../index.html#gallery">🖼️ Gallery</a>
   </nav>
 
   <div class="section-head">
-    <div class="eyebrow">Portfolio / Projects</div>
+    <div class="eyebrow">Portfolio / Fragments</div>
     <h2>Active</h2>
   </div>
-  <p class="subpage-intro">What I'm working on right now. Filter by topic below.</p>
+  <p class="subpage-intro">My thoughs about certain topics provoced by readings or discussions.</p>
 
   <div class="tag-filter">
     <span class="filter-tab active" data-filter="all" onclick="filterCards(this)">All</span>
@@ -30,65 +30,49 @@
     <span class="filter-tab" data-filter="maker" onclick="filterCards(this)">Maker</span>
     <span class="filter-tab" data-filter="interdisciplinary" onclick="filterCards(this)">Interdisciplinary</span>
   </div>
+
   <div class="subpage-grid" id="card-grid">
-    <a class="project-card" data-domain="coding" href="../active/alloy-lab-database/alloy-lab-database.html">
-      <span class="tag">💻 Coding</span>
-      <h4>Alloy Lab Database — Personal Research Infrastructure</h4>
-      <p>One place to record what was made, how, and what it measured — usable later as training data for machine learning.</p>
+    <a class="project-card" data-domain="coding" href="../fragments/newton-einstein/newton-einstein.html">
+      <span class="tag">🎯 interdisciplinary</span>
+      <h4>Newton vs. Einstein · The Monitor Event Horizon</h4>
+      <p>The right to be forgotten only makes sense in a world where forgetting is the default and remembering is the exception.</p>
       <div class="project-links"><span>→</span></div>
     </a> 
-
-    <a class="project-card" data-domain="coding" href="../active/azure-vs-open-source/azure-vs-open-source.html">
+<!-- 
+    <a class="project-card" data-domain="coding" href="../fragments/coming_soon/azure-vs-open-source.html">
       <span class="tag">💻 Coding</span>
       <h4>Azure vs. Open Source: Four Pipelines, One Verdict</h4>
       <p>DP-900 training and beyond — two ETL projects, each built twice, once on Azure and once entirely open-source and local. Includes the Podcast Studio detour from the same training.</p>
       <div class="project-links"><span>→</span></div>
     </a>    
-    
-    <a class="project-card" data-domain="interdisciplinary" href="../active/voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">
+  
+    <a class="project-card" data-domain="interdisciplinary" href="../fragments/coming_soon/second-thoughts.html">
       <span class="tag">🎯 Interdisciplinary</span>
       <h4>Roadmap: Voice + Vision + Robot Arm</h4>
       <p>A staged plan combining the AIY kits and an SO-ARM101 arm into one integrated system. Phases 1–3 complete — autonomous pick-and-place achieved, Phase 4 (vision) up next.</p>
       <div class="project-links"><span>→</span></div>
     </a> 
 
-
-    <a class="project-card" data-domain="maker" href="../active/robot-arm-pickplace/robot-arm-pickplace.html">
+    <a class="project-card" data-domain="maker" href="../fragments/coming_soon/robot-arm-pickplace.html">
       <span class="tag">🛠️ Maker</span>
       <h4>Teaching a Robot Arm to See and Grasp</h4>
       <p>From a box of parts to fully autonomous pick-and-place — imitation learning with LeRobot, ACT, and a hard-won two-camera setup.</p>
       <div class="project-links"><span>→</span></div>
     </a>
     
-    <a class="project-card" data-domain="interdisciplinary" href="../active/so101-data-poisoning/so101-data-poisoning.html">
+    <a class="project-card" data-domain="interdisciplinary" href="../fragments/coming_soon/so101-data-poisoning.html">
       <span class="tag">🎯 Interdisciplinary</span>
       <h4>Data Poisoning on a Robot Arm: A Negative Result, Then a Working One</h4>
       <p>A text-trigger backdoor attempt revealed an architectural dead end — then a corrected, genuinely working visual backdoor confirmed the fix.</p>
       <div class="project-links"><span>→</span></div>
     </a>
    
-    <a class="project-card" data-domain="coding" href="../active/lianes-library/lianes-library.html">
+    <a class="project-card" data-domain="coding" href="../fragments/coming_soon/lianes-library.html">
       <span class="tag">💻 Coding</span>
       <h4>Liane's Library: A Course Assignment, Taken Further</h4>
       <p>Liane's Library: From Minimum Viable to Fully Designed. A precursor to the more comprehensive project: Alloy Lab Database.</p>
       <div class="project-links"><span>→</span></div>
-    </a>      
-    
-
-    <a class="project-card" data-domain="maker" href="../active/pi4-lerobot-setup-log/SO-ARM101-setup.html">
-      <span class="tag">🛠️ Maker</span>
-      <h4>SO-ARM101 Leader/Follower Arm — Build &amp; Pi 4 Migration</h4>
-      <p>Phase 2 complete: arm built, calibrated, and migrated from Mac to Pi 4 — stable 60Hz teleoperation with camera.</p>
-      <div class="project-links"><span>→</span></div>
-    </a>
-
-    <a class="project-card" data-domain="interdisciplinary" href="../active/ai-stack-verification/ai-stack-verification.html">
-      <span class="tag">🎯 Interdisciplinary</span>
-      <h4>Physics First, Verification Always</h4>
-      <p>A working position on where AI actually belongs in real scientific work — with one small experiment as a case study, not the whole argument.</p>
-      <div class="project-links"><span>→</span></div>
-    </a>
-  </div>
+    </a>       -->
 
 <script>
   function filterCards(tab) {
