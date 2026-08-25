@@ -1,0 +1,146 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dimitar Fine-Tuning — Round 1 Report — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">← Back to the roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Coding · Side Thread</div>
+    <h1>Dimitar Fine-Tuning — Round 1 Report</h1>
+    <p class="subtitle">A side branch off the Voice + Vision + Arm project — improving the <code>bg/dimitar</code> Piper voice for the Voice Kit, not blocking core Phase 4/5 work.</p>
+
+    <div class="abstract-box">
+      First successful fine-tune of the Piper <code>bg/dimitar</code> voice, run on RunPod. This document is both a record of what happened and a <strong>quick-start runbook</strong> for round 2 — every dependency issue is already solved below, so next time should be fast.
+    </div>
+
+    <h2>Result</h2>
+    <p>Fine-tuned <code>bg/dimitar</code> (checkpoint epoch 5097 → 5999) on 94 self-recorded audio clips. First playback test: recognizably the user's own voice, pipeline confirmed working end-to-end (training → ONNX export → synthesis). Some pronunciation issues traced to reading mistakes during recording, not the training process itself — <strong>round 2 data quality is the main lever, not the pipeline</strong>.</p>
+    <p><strong>Cost: ~$2</strong> (RTX 3090 pod, on-demand, including all the debugging time). Budget is not a constraint for further iteration.</p>
+    <p><strong>Files saved locally:</strong></p>
+    <ul>
+      <li><code>dimitar-polished.onnx</code> + <code>dimitar-polished.onnx.json</code> — the fine-tuned voice, ready to use with <code>piper</code> immediately</li>
+      <li><code>epoch=5999-step=163340.ckpt</code> — the training checkpoint, allows round 2 to continue from <em>this</em> improved model instead of starting back at the original Dimitar.</li>
+    </ul>
+
+    <h2>Key Lesson for Round 2: Recording Method</h2>
+    <p>Reading isolated, disconnected sentences one at a time led to more stumbles/mispronunciations than expected, and every mistake gets baked into the model as "correct." <strong>Better approach for next time:</strong> record a longer continuous passage read naturally in one flow, then cut it into segments afterward — fewer stumbles, more natural prosody, better training data.</p>
+
+    <h2>Complete Working Setup (copy-paste for round 2)</h2>
+
+    <h3>1. Pod setup</h3>
+    <ul>
+      <li><strong>GPU:</strong> RTX 3090 (or similar 24GB card) — plenty for this dataset size</li>
+      <li><strong>Template:</strong> any RunPod PyTorch template</li>
+      <li>Enable <strong>web terminal</strong> on the pod (Connect tab) — simpler than SSH key setup for one-off sessions, though SSH keys are needed for <code>scp</code> file transfer regardless (see below)</li>
+    </ul>
+
+    <h3>2. Python environment — MUST be 3.10, not the default 3.12</h3>
+    <p><code>piper-phonemize</code> has no prebuilt wheel for Python 3.12. Create an isolated venv:</p>
+    <pre><code>python3.10 -m venv /workspace/piper-env
+source /workspace/piper-env/bin/activate</code></pre>
+
+    <h3>3. Clone and install piper_train</h3>
+    <pre><code>cd /workspace
+git clone https://github.com/rhasspy/piper.git
+cd piper/src/python
+pip install "pip&lt;24.1"          # newer pip rejects pytorch-lightning 1.7.7's malformed metadata
+pip install -e .
+pip install -r requirements.txt</code></pre>
+
+    <h3>4. Fix known dependency conflicts (apply all three — confirmed working combo)</h3>
+    <pre><code>pip install "numpy&lt;2"           # torch 1.13.1 was built against NumPy 1.x internals
+pip install torchmetrics==0.10.2   # only version confirmed compatible with pytorch-lightning 1.7.7
+pip install six                 # missing transitive dependency</code></pre>
+
+    <h3>5. Build the monotonic_align Cython extension (required, not automatic)</h3>
+    <pre><code>bash build_monotonic_align.sh</code></pre>
+    <p>Run from <code>/workspace/piper/src/python</code> (the top-level directory) — <strong>do not</strong> <code>cd</code> into the <code>monotonic_align</code> folder first and run <code>setup.py</code> manually, it writes to the wrong relative path and fails.</p>
+
+    <h3>6. Download the checkpoint (use huggingface_hub, not wget — HF's storage backend rejects plain wget redirects)</h3>
+    <pre><code>pip install huggingface_hub
+python3 -c "from huggingface_hub import hf_hub_download; path = hf_hub_download(repo_id='rhasspy/piper-checkpoints', repo_type='dataset', filename='bg/bg_BG/dimitar/medium/epoch=5097-step=152516.ckpt', local_dir='/workspace/checkpoint'); print(path)"</code></pre>
+    <p><strong>For round 2:</strong> use the <strong>round 1 output checkpoint</strong> instead, if continuing from the improved model rather than the original.</p>
+
+    <h3>7. Preprocessing — must use <code>--max-workers 1</code></h3>
+    <p>The container's process limit causes <code>pthread_create</code> failures with default parallelism, regardless of what <code>ulimit -u</code> reports (a cgroup-level restriction <code>ulimit</code> can't see or override).</p>
+    <pre><code>python3 -m piper_train.preprocess \
+    --language bg \
+    --input-dir /workspace/dataset \
+    --output-dir /workspace/dataset/training_dir \
+    --dataset-format ljspeech \
+    --single-speaker \
+    --sample-rate 22050 \
+    --max-workers 1</code></pre>
+
+    <h3>8. Training — checkpoint-epochs matters a lot</h3>
+    <pre><code>python3 -m piper_train \
+    --dataset-dir /workspace/dataset/training_dir \
+    --accelerator 'gpu' \
+    --devices 1 \
+    --batch-size 16 \
+    --validation-split 0.0 \
+    --num-test-examples 0 \
+    --max_epochs 6000 \
+    --resume_from_checkpoint "/path/to/checkpoint.ckpt" \
+    --checkpoint-epochs 50 \
+    --precision 32</code></pre>
+    <p><strong>Critical:</strong> <code>--checkpoint-epochs 1</code> (the value in most tutorials) saves a ~777MB checkpoint every single epoch. With a small dataset, epochs pass fast — this fills disk within minutes. Use <code>--checkpoint-epochs 50</code> instead. <code>--max_epochs</code> is a <strong>total</strong>, not additional — if resuming from epoch 5097, setting 6000 means ~900 epochs actually run.</p>
+    <p><strong>Expected speed:</strong> roughly 15-20 epochs/minute on an RTX 3090 with this dataset size (94 clips), GPU utilization 15-80% (data-loading bound, not a problem worth fixing for a dataset this small).</p>
+
+    <h3>9. Export to ONNX</h3>
+    <pre><code>python3 -m piper_train.export_onnx \
+    "/path/to/final/checkpoint.ckpt" \
+    "/workspace/output-name.onnx"
+cp /workspace/checkpoint/bg/bg_BG/dimitar/medium/config.json /workspace/output-name.onnx.json</code></pre>
+    <p>(<code>config.json</code> doesn't change during fine-tuning — reusing the original is correct.)</p>
+
+    <h3>10. Download results — from your Mac's terminal, NOT the pod's web terminal</h3>
+    <p>Easy mistake to make late in a session: <code>scp</code> commands must run in your Mac's own Terminal app, never inside the RunPod web terminal (which would just try to reach itself).</p>
+    <pre><code>scp -P &lt;port&gt; root@&lt;pod-ip&gt;:/workspace/output-name.onnx ~/Desktop/
+scp -P &lt;port&gt; root@&lt;pod-ip&gt;:/workspace/output-name.onnx.json ~/Desktop/</code></pre>
+    <p><strong>SSH key setup</strong> (one-time, if not already done): generate with <code>ssh-keygen -t ed25519</code>, then paste the public key directly into <code>~/.ssh/authorized_keys</code> <strong>via the web terminal</strong> (RunPod's dashboard "SSH public key" field only applies to newly-created pods, not one already running).</p>
+
+    <h3>11. Test locally on your Mac</h3>
+    <pre><code>pip3 install piper-tts
+echo "Test sentence here." | piper --model ~/Desktop/output-name.onnx --output_file ~/Desktop/test.wav
+afplay ~/Desktop/test.wav</code></pre>
+
+    <h3>12. Shut down — Terminate, not Stop</h3>
+    <p>A <strong>stopped</strong> (not terminated) pod keeps billing a small storage fee indefinitely. Once files are safely downloaded, fully <strong>Terminate/Delete</strong> the pod from the dashboard.</p>
+
+    <hr />
+
+    <h2>Next Session Plan</h2>
+    <ol>
+      <li>Re-record using the continuous-passage method instead of isolated sentences</li>
+      <li>Systematically test the Block 11 problem-word list against <code>dimitar-polished.onnx</code> to see which specific words improved vs. still need work</li>
+      <li>Consider resuming training from <code>epoch=5999-step=163340.ckpt</code> (round 1's output) rather than the original Dimitar checkpoint, if round 2's new data is meant to refine further rather than replace round 1's learning</li>
+    </ol>
+
+    <h2>What's Next for This Thread</h2>
+    <ul>
+      <li><strong>Local GPU machine ordered</strong> (see the new <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">training/inference PC</a> on the roadmap) — future rounds can run entirely locally, no more RunPod dance, no upload-speed bottleneck</li>
+      <li>Systematic side-by-side testing (original Dimitar vs. round 1 vs. round 2) not yet done — worth doing before deciding if a round 3 is warranted</li>
+      <li><strong>XTTS experiments</strong> (zero-shot Russian-via-Bulgarian-reference, and later fine-tuning XTTS itself on the same dataset) — explicitly filed as fun/curiosity side projects, not part of the core assistant work</li>
+      <li>Core priority reminder: this whole thread has been a productive side branch — the actual roadmap priority remains <strong>Phase 4 (Vision)</strong> and <strong>Phase 5 (Voice)</strong> integration work, which this improved voice model will eventually plug into once "good enough"</li>
+    </ul>
+  </div>
+  <!-- end .article-body -->
+
+</body>
+</html>

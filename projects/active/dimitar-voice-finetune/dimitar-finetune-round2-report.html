@@ -1,0 +1,79 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dimitar Fine-Tuning — Round 2 Report — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">← Back to the roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Coding · Side Thread</div>
+    <h1>Dimitar Fine-Tuning — Round 2 Report</h1>
+    <p class="subtitle">A side branch off the Voice + Vision + Arm project — improving the <code>bg/dimitar</code> Piper voice for the Voice Kit, not blocking core Phase 4/5 work.</p>
+
+    <div class="abstract-box">
+      Second fine-tuning pass on the <code>bg/dimitar</code> voice, resuming from round 1's checkpoint (epoch 5999). Focus this round: better recording methodology and a genuinely obscure data-format bug, rather than new infrastructure — the runbook from round 1 handled the pipeline itself smoothly.
+    </div>
+
+    <h2>What Changed From Round 1</h2>
+    <p><strong>Recording approach — the main experiment this round.</strong> Round 1's isolated, disconnected sentences led to more reading mistakes and less natural prosody than hoped. Round 2 used <strong>continuous passages read in one flowing take</strong>, then split afterward using <strong>Audacity</strong> (manual splitting by ear, one label per natural pause — auto-detection via <code>Label Sounds</code> was tried but manual felt safer while still learning the tool).</p>
+    <p><strong>New source text.</strong> Five blocks of real excerpted text (historical/biographical, political commentary, social policy debate, theological commentary, evolutionary biology/mimetic rivalry discussion) — richer register and vocabulary diversity than round 1's constructed sentences. Personal reading-practice use only, not published or redistributed.</p>
+    <p><strong>Dataset grew</strong>: 94 clips (round 1) → <strong>138 clips</strong> (round 2).</p>
+
+    <h2>Building the Dataset — What Went Right</h2>
+    <p>Automated diff between the recorded file list and the script caught exactly <strong>two real mismatches</strong> before upload:</p>
+    <ol>
+      <li>A capitalization typo in the script (<code>Line7a</code> vs actual <code>line7a</code>)</li>
+      <li>A <strong>Cyrillic "а" vs Latin "a"</strong> in one actual filename — invisible to the eye, would have silently failed to match during training. Confirmed and fixed by renaming the file directly.</li>
+    </ol>
+    <p>Five text corrections applied before recording (three typos, two numbers spelled out) — same proofreading process as round 1.</p>
+
+    <h2>Two Real Bugs Hit This Round</h2>
+
+    <h3>1. Recurring connection drops interrupting preprocessing</h3>
+    <p>Network switches on the user's end repeatedly cut the web terminal connection mid-run, silently truncating preprocessing partway through (130/138, then 96/138 on a retry). <strong>Fix: <code>tmux</code></strong> — running long jobs inside a persistent session means a dropped connection no longer kills the process; just <code>tmux attach -t training</code> to resume watching. Should be standard practice for any long-running step going forward, not just an emergency fix.</p>
+
+    <h3>2. CSV multi-line quoted-field bug (genuinely subtle, worth remembering)</h3>
+    <p>Preprocessing consistently reported 130/138 utterances even with a verified-clean, freshly-uploaded <code>metadata.csv</code> — ruling out corruption. Root-caused by reading <code>piper_train</code>'s actual source code: it parses <code>metadata.csv</code> with Python's <code>csv.reader</code>, which has a default behavior where <strong>a field starting with <code>"</code> but not closed on the same line causes the parser to keep consuming subsequent rows into that same field</strong>, treating them as one multi-line quoted value.</p>
+    <p>Round 2's text used straight ASCII quotes (<code>"</code>) around quoted phrases spanning multiple recorded segments — e.g., a quote opening in <code>block01_line1</code> and not closing until <code>block01_line2b</code>, two rows later. The CSV reader silently merged all three rows into one entry, explaining exactly the missing count (each such merge event "eats" the extra rows).</p>
+    <div class="abstract-box"><strong>Fix:</strong> stripped all literal ASCII <code>"</code> characters from the text column entirely (quote marks aren't vocalized in TTS training anyway, so removing them costs nothing). Round 1 never hit this because it used proper Bulgarian typographic quotes (<code>„ "</code>), which aren't CSV's special character.<br><br><strong>Lesson for round 3 and beyond:</strong> never use straight ASCII double quotes in metadata text — use <code>„ "</code> (Bulgarian typographic quotes) or omit quote marks entirely.</div>
+
+    <h2>Training</h2>
+    <p>Resumed from round 1's output checkpoint (<code>epoch=5999-step=163340.ckpt</code>) rather than the original Dimitar checkpoint — genuine continuation, not a restart. Ran to <code>--max_epochs 6900</code> (~900 additional epochs, same scale as round 1). Completed cleanly inside <code>tmux</code>, fully protected from the connection issues that had disrupted preprocessing.</p>
+    <p><strong>Final checkpoint:</strong> <code>epoch=6899-step=179540.ckpt</code><br>
+    <strong>Exported:</strong> <code>dimitar-polished-r2.onnx</code> + <code>.onnx.json</code></p>
+
+    <h2>Result</h2>
+    <p>Genuinely closer to the user's actual voice than round 1 — noted as sounding similar to a known audiobook narrator's voice character. Pronunciation/stress issues remain in places, but represent real, noticeable improvement over round 1. Full side-by-side comparison against the original unmodified Dimitar voice planned as a follow-up listening test.</p>
+    <p><strong>Cost:</strong> comparable to round 1 (~$2-3 range), same RTX 3090 pod choice — confirmed still the right cost/performance pick, no reason to consider a bigger GPU.</p>
+
+    <h2>Files Saved Locally</h2>
+    <ul>
+      <li><code>dimitar-polished-r2.onnx</code> + <code>.onnx.json</code> — round 2's working voice model</li>
+      <li><code>epoch=6899-step=179540.ckpt</code> — checkpoint for round 3, if pursued</li>
+    </ul>
+
+    <h2>What's Next for This Thread</h2>
+    <ul>
+      <li><strong>Local GPU machine ordered</strong> (see the new <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">training/inference PC</a> on the roadmap) — future rounds can run entirely locally, no more RunPod dance, no upload-speed bottleneck</li>
+      <li>Systematic side-by-side testing (original Dimitar vs. round 1 vs. round 2) not yet done — worth doing before deciding if a round 3 is warranted</li>
+      <li><strong>XTTS experiments</strong> (zero-shot Russian-via-Bulgarian-reference, and later fine-tuning XTTS itself on the same dataset) — explicitly filed as fun/curiosity side projects, not part of the core assistant work</li>
+      <li>Core priority reminder: this whole thread has been a productive side branch — the actual roadmap priority remains <strong>Phase 4 (Vision)</strong> and <strong>Phase 5 (Voice)</strong> integration work, which this improved voice model will eventually plug into once "good enough"</li>
+    </ul>
+  </div>
+
+</body>
+</html>

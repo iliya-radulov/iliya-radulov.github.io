@@ -78,16 +78,6 @@
       <li>☐ Reference: reSpeaker + SO-ARM101 voice control demo (prior art exists for this)</li>
     </ul>
 
-    <h2>Voice Polishing Side Thread — Dimitar (Piper Bulgarian TTS) Fine-Tuning</h2>
-    <p>Two completed fine-tuning rounds on the <code>bg/dimitar</code> Piper voice, aimed at fixing pronunciation/stress issues found during Voice Kit testing. Genuinely a side branch — not blocking Phase 5, but real, finished work worth recording.</p>
-    <ul>
-      <li>✅ <strong>Round 1</strong>: 94 self-recorded clips (isolated sentences), fine-tuned on RunPod (RTX 3090, ~$2). Result: voice character present but noticeably artificial pacing; identified that isolated-sentence recording caused more reading mistakes than hoped.</li>
-      <li>✅ <strong>Round 2</strong>: 138 clips, recorded as continuous passages (real excerpted text) and split afterward in Audacity — a deliberate methodology change from round 1. Resumed training from round 1's checkpoint. Two genuine bugs hit and fixed along the way: recurring connection drops during preprocessing (fixed with <code>tmux</code> for all long-running jobs going forward), and a subtle CSV parsing bug where straight ASCII quotes in the text caused Python's <code>csv.reader</code> to silently merge multiple rows into one (root-caused via <code>piper_train</code>'s own source code; fixed by using Bulgarian typographic quotes <code>„ "</code> instead, or omitting quotes entirely). Full write-up: <a href="../dimitar-voice-finetune/dimitar-finetune-round2-report.html">round 2 report</a>.</li>
-      <li>Result: closer match to the user's actual voice, real improvement over round 1; some pronunciation/stress issues remain. Full runbook for both rounds documented for a fast round 3 whenever pursued.</li>
-      <li><strong>Side experiments</strong>: zero-shot XTTS voice cloning (Bulgarian reference → Russian output) tried purely for fun; XTTS fine-tuning on the same dataset also planned as a curiosity experiment once the new PC is set up — not part of core assistant work.</li>
-      <li><strong>Status</strong>: not currently being iterated on — parked at "good enough for now," to be revisited once the new PC is available for faster local iteration.</li>
-    </ul>
-
     <h2>Phase 6 — Learned Autonomy ✅ COMPLETE <span style="color:var(--phoenix-light);font-weight:600;">(achieved ahead of sequence)</span></h2>
     <ul>
       <li>✅ Trained an imitation-learning policy (ACT) from recorded demonstrations</li>
@@ -103,20 +93,18 @@
     setup. Runs as a parallel track; does not block Phase 4/5 on the existing stationary rig.</p>
     <ul>
       <li>✅ Researched alternatives to ALOHA-2 (too costly/complex for this project's scale) — settled on <strong>LeKiwi</strong> as the entry point, with a confirmed, documented upgrade path to <strong>XLeRobot</strong> later (~$250 additional, no servo/motor-ID changes needed)</li>
-      <li>✅ Servos, controller (Waveshare Bus Servo Adapter A), and 3D-printed parts for the LeKiwi arm(s) in hand</li>
-      <li>✅ Confirmed the base's arm-vs-wheel motor ID sequencing doesn't block early start: the LeKiwi setup script configures arm motors (IDs 6→1) and wheel motors (IDs 9, 8, 7) as two separate passes, each written permanently to the motor's own memory</li>
-      <li>✅ <strong>Both LeKiwi adapter ports confirmed working</strong> (<code>/dev/tty.usbmodem5B140288161</code>, <code>/dev/tty.usbmodem5B141134291</code>) after tracing an initial "port not found" issue to bad USB cables — 5 of 5 first-tested cables failed to carry data; a known-good cable (borrowed from the SO101 setup) resolved it. Worth treating that cable batch/supplier with suspicion going forward.</li>
-      <li>✅ <strong>All motors initialised, both arms fully assembled</strong></li>
-      <li>🖨️ <strong>Creality Ender 3 V3 Plus 3D printer purchased</strong> — reduces dependency on external printing for future LeKiwi/XLeRobot parts, and opens up custom part iteration (e.g. camera/pan-tilt mounts) without waiting on outside help</li>
-      <li>⏳ Mobile base kit not yet delivered (expected mid-September per original order) — wheel servo IDs (7–9) and full combined arm+base config to follow once it arrives</li>
-      <li>☐ <strong>New: ACT validation pass on LeKiwi arm, planned ahead of base arrival.</strong> Purpose is hardware/pipeline validation (new servos, adapters, camera position/calibration) on the Mac via MPS — not a SmolVLA data-collection run. Dataset from this pass is single-task and won't carry forward to the later multi-task SmolVLA collection.</li>
-      <li>✅ <strong>SO101 background-diversity experiment complete</strong> (<code>so101_bgdiv_v1</code>, Aug 20–23): 300-episode dataset across 5 backgrounds (white, black, gift-wrap, newspaper, wood), ACT trained from scratch, 80K steps on Mac/MPS (~28h). <strong>Result: background diversity training substantially improved generalization</strong> — 4 of 5 trained positions now hit 85-100% success across nearly every tested background, including a big jump on the wood baseline (was 50-60%, now near-ceiling). Failure modes were cleanly separated into distinct mechanisms rather than one vague "hard background" bucket: pattern-distractor (busy backgrounds, lighting-independent), glare/specular (glossy surfaces, fixed by lighting), and a confirmed camera hardware limitation (auto-exposure instability on very dark backgrounds, measured directly, platform-level not fixable in software). <strong>P7 identified as a clean camera-coverage problem</strong> (0% across every condition, unrelated to background) — prioritized for the next camera repositioning pass, ahead of any further recording. Full write-up: <a href="../robot-arm-pickplace/so101-bgdiv-v1-report.html">background-diversity experiment report</a>.</li>
-      <li>☐ Decide: dedicate current follower arm to LeKiwi, or keep the stationary poisoning-experiment rig fully intact <em>(still open)</em></li>
-      <li>☐ Resolve Pi power question — buck converter (12V→5V) for the Pi 5, not included in the base kit <em>(still open)</em></li>
+      <li>✅ LeKiwi base kit ordered (Seeed Studio, 12V variant with 3D-printed parts, battery, wheel-drive servos, one camera included)</li>
+      <li>✅ 8× additional STS3215 (C018) servos ordered — brings total to enough for two complete follower arms (current LeKiwi build + a reserved spare for the future XLeRobot second arm)</li>
+      <li>✅ 2× Waveshare Bus Servo Adapter (A) boards ordered locally (simple USB-serial, no firmware flashing needed — chosen over the more complex ESP32-based Bus Servo Driver HAT alternative)</li>
+      <li>✅ 3D-printed parts being produced by a friend's engineering team; expected mid-September</li>
+      <li>☐ Decide: dedicate current follower arm to LeKiwi, or keep the stationary poisoning-experiment rig fully intact (leaning toward keeping it intact, given the ongoing report work)</li>
+      <li>☐ Resolve Pi power question — LeKiwi kit doesn't include a buck converter for powering the Pi 5 from the 12V battery; confirm approach before final assembly</li>
+      <li>☐ Validate teleoperation + basic navigation on LeKiwi before any autonomous training</li>
+      <li>☐ <strong>Future upgrade path (confirmed, not yet started):</strong> LeKiwi → XLeRobot, adds a second arm for bimanual mobile manipulation</li>
+      <li>☐ Longer-term stretch: repeat the imitation-learning pipeline (record → train → autonomous rollout) on the mobile platform</li>
     </ul>
 
-    <h2>Phase 6 Extension — Voice-Conditioned Control via SmolVLA <span style="color:var(--text-muted);font-weight:600;">(on hold — blocked on compute)</span></h2>
-    <div class="abstract-box"><strong>Status: on hold — blocked on compute, unblocking soon.</strong> New PC ordered specifically to enable this (see Hardware notes) — work resumes once it arrives and environment setup is complete. No architecture or planning changes since the original extension proposal.</div>
+    <h2>Phase 6 Extension — Voice-Conditioned Control via SmolVLA <span style="color:var(--text-muted);font-weight:600;">(planned, not started)</span></h2>
     <p>A natural convergence point for Phases 4, 5, and 6: rather than voice commands only
     <em>selecting</em> between pre-trained ACT checkpoints (ACT has no language input —
     confirmed via source-code inspection during the poisoning investigation), swap the policy
@@ -166,38 +154,6 @@
     dataset/model storage and swap headroom on the Pi 5's 4GB RAM, no research risk. Revisit
     the accelerator question only if Hailo's transformer support meaningfully matures, or for a
     separate, genuinely CNN-shaped task (e.g. real object detection for Phase 4).</p>
-
-    <h3>New PC ordered — CSL Sprint 5753 (custom config)</h3>
-    <p>Ordered to unblock SmolVLA training (and general heavier local compute going forward) — the Mac's GPU/memory setup wasn't viable for training a VLA-scale model at reasonable speed.</p>
-    <p><strong>Configuration ordered (CSL Sprint 5753, custom build), €1,818.50:</strong></p>
-    <table>
-      <tr><th>Component</th><th>Spec</th></tr>
-      <tr><td>Case</td><td>CSL Ventrix, black, aRGB, mesh side panel</td></tr>
-      <tr><td>CPU</td><td>AMD Ryzen 9 9900X, 12×4400 MHz</td></tr>
-      <tr><td>CPU cooler</td><td>be quiet! Pure Rock 3 Black, max. 190W TDP</td></tr>
-      <tr><td>GPU</td><td>MSI GeForce RTX 5060 Ti (Shadow 2X OC), 16 GB GDDR7</td></tr>
-      <tr><td>RAM</td><td>32 GB DDR5, dual channel (2×16 GB), 6000 MHz</td></tr>
-      <tr><td>Motherboard</td><td>ASUS PRIME B840M-A WIFI</td></tr>
-      <tr><td>Storage</td><td>1 TB WD Black SN7100 M.2 PCIe 4.0 SSD (~7250/6900 MB/s R/W)</td></tr>
-      <tr><td>PSU</td><td>700W BoostBoxx Power Boost, 80+ Gold</td></tr>
-      <tr><td>Networking</td><td>Onboard Wi-Fi 6E + Bluetooth 5.3 (Intel AX210), onboard LAN</td></tr>
-      <tr><td>OS</td><td>None included — to be installed</td></tr>
-    </table>
-    <p><strong>Reasoning behind the config:</strong></p>
-    <ul>
-      <li><strong>VRAM range established empirically first, not guessed:</strong> ran test workloads on RunPod against rented A4000 and RTX 3090 instances to find the actual working range for this task, before pricing any hardware. Settled on a 16–24 GB VRAM window as the requirement.</li>
-      <li><strong>GPU sourcing:</strong> first choice was a used RTX 3090 (sits in the target VRAM range) — but used units were running ~€2500, out of budget. Pivoted to a new system with a reasonable total price under €2000, landing on the RTX 5060 Ti 16GB as the in-budget option that still clears the empirically-set VRAM floor.</li>
-      <li><strong>Local box vs. cloud split, decided deliberately, not a fallback:</strong> this machine is for local testing/iteration; heavier training runs stay on rented cloud compute (RunPod) as needed.</li>
-      <li><strong>CPU and RAM sequencing:</strong> GPU was fixed first as the binding constraint, then CPU (Ryzen 9 9900X) and RAM (32GB/6000MHz) upgraded as reasonable-cost additions within remaining budget.</li>
-      <li><strong>Storage split, deliberate:</strong> the 1TB M.2 NVMe is for everyday/active-project use only. An old HDD will be added for local bulk storage, with archival data ultimately living on the home server.</li>
-      <li><strong>OS: Linux</strong>, matching the native OS already used for the robotics stack.</li>
-    </ul>
-    <p><strong>Open items:</strong></p>
-    <ul>
-      <li>☐ Linux install + environment setup (LeRobot, SmolVLA deps, CUDA/driver stack for the 5060 Ti)</li>
-      <li>☐ Add old HDD for local storage; confirm home-server archival path</li>
-      <li>☐ Validate actual training throughput on this GPU/RAM combo before resuming the SmolVLA plan in earnest</li>
-    </ul>
 
     <h3>On the 10" touchscreen (currently idle on the Pi 3)</h3>
     <p>Worth keeping in reserve — good candidate uses once further along:</p>
@@ -279,17 +235,16 @@
             text-transform: uppercase;
         ">⏳ Pulse</span>
         <span style="font-weight: 400;">
-            Currently balancing: <strong>LeKiwi assembly</strong> (Phase 7) + 
-            <strong>Dimitar voice fine-tuning</strong> (side thread, parked). 
-            Background-diversity experiment complete — results now on the page. 
-            Vision/Voice/SmolVLA on hold pending new PC. 
+            Currently balancing: <strong>background-diversity generalization</strong> (Phase 3) + 
+            <strong>LeKiwi assembly</strong> (Phase 7). 
+            Vision/Voice on hold pending compute — new PC arriving soon. 
             Next milestone: <strong>ACT validation pass on LeKiwi arm</strong>.
         </span>
     </div>
     <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.6; display: flex; gap: 20px; flex-wrap: wrap;">
         <span>📦 LeKiwi base: expected mid-September</span>
         <span>🖥️ New PC: ordered, awaiting delivery</span>
-        <span>✅ Background-diversity results: in</span>
+        <span>📊 Dataset rebalancing: in progress</span>
     </div>
 </div> 
   </div>

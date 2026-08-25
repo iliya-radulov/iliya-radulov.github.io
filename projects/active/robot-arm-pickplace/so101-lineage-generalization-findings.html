@@ -1,0 +1,137 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generalization Investigation — Position Bias, the x=10 Dead Zone, and the Background-Dependency Finding — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">← Back to the roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Technical Deep-Dive</div>
+    <h1>Generalization Investigation: Position Bias, the x=10 Dead Zone, and the Background-Dependency Finding</h1>
+    <p class="subtitle">The prequel to the background-diversity experiment — three sessions (Aug 17–20, 2026) of testing, dead-end theories, one real fix, and the finding that actually mattered</p>
+
+    <div class="abstract-box">
+      This report picks up after the original position-bias discovery and dataset rebalancing (5 positions × 3 orientations, 120 episodes). What followed was a period of testing that resolved one long-standing bug (the x=10 dead zone), left another open after four different theories failed to explain it (the O1 orientation weakness), and surfaced the single most important open finding of the whole project: the model's near-total failure on any background it wasn't trained on. That finding is what directly motivated the <a href="so101-bgdiv-v1-report.html">background-diversity experiment</a> reported separately.
+    </div>
+
+    <h2>1. Starting Point: Position Bias and Rebalancing</h2>
+    <p>A severe position bias was identified after extending the original single-position dataset unevenly (36 vs. ~6 episodes for different positions) — a trained model consistently drifted back toward the over-represented position, even in rollouts where it had correctly located the object elsewhere. Fixed by rebuilding a fully balanced, position/orientation-varied dataset: 5 positions × 3 orientations × repeats, 120 episodes total (~24 per position), with the original single-position episodes deliberately excluded rather than merged in. This established <code>so101_pickplace_v10_balanced</code> as the new baseline checkpoint for everything that follows.</p>
+
+    <h2>2. Model Lineage at This Point</h2>
+    <p>Two active branches, both transfer-learned from <code>v10_balanced</code>, deliberately kept separate to avoid mixing grasping techniques in one dataset:</p>
+    <ul>
+      <li><strong>Branch A (top-down grasp technique):</strong> <code>v10_balanced</code> → <code>v12_boosted</code> (P4/P5 boost) → <code>v14_o1fixed</code> (O1 orientation boost) — the more mature, most-tested branch</li>
+      <li><strong>Branch B (side-approach/wide-grip technique):</strong> <code>v15_sideapproach</code> — fresh 30-episode set, same 5-position/3-orientation structure</li>
+    </ul>
+
+    <h3>Setup reference (for continuity)</h3>
+    <ul>
+      <li>Follower arm: <code>/dev/tty.usbserial-11320</code> · Leader arm: <code>/dev/tty.usbserial-11310</code></li>
+      <li>Main camera: index 0, 640×480 · Gripper camera: index 1, 320×240</li>
+      <li><strong>Always include <code>"fourcc": "MJPG"</code></strong> in camera configs — recurring garbled-frame bug otherwise</li>
+      <li>Workspace: cutting mat with grid, target box at (25,10), positions tested on a roughly 0–27 (x) × 0–20 (y) coordinate grid</li>
+      <li><strong>Physical reach limits found:</strong> y=5 is near the edge; corners around (0,10), (10,0), (10,20) are outside reliable reach/camera view entirely</li>
+      <li><strong>Confirmed via source inspection:</strong> vanilla ACT has no language-conditioning pathway — the <code>--task</code> string passed to rollout/training is never actually fed to the model. Prompt text is cosmetic only for this architecture.</li>
+    </ul>
+
+    <h2>3. Open Findings as of Aug 17</h2>
+    <ol>
+      <li><strong>Orientation weakness (O1/straight, 0°):</strong> consistently underperforms angled grasps (30°/45°) across three separate models (v10, v14, v15), despite different fixes attempted (more data, targeted boosting, a different grip technique). Suspected genuine physical/geometric grasp-margin issue with the elongated object, not a data problem.</li>
+      <li><strong>x=10 "dead zone":</strong> positions along x=10 underperform neighboring x=5/x=15 across multiple y-values, including trained position P3=(10,15). Manually checked and ruled out as a kinematic/joint-limit issue (pose looks normal at that column). Cause unexplained at this point.</li>
+      <li><strong>"Origin-drift" hypothesis:</strong> a small, consistent movement toward the origin position observed during final grasp approach. Theory: a persistent low-level model bias that only becomes failure-critical in low-margin cases (straight orientation, and possibly the x=10 zone) — not yet confirmed via direct rollout video review.</li>
+      <li><strong>Overfitting check on v15:</strong> trained for 7+ epochs on only 30 episodes (higher than usual). Tested and does <em>not</em> show catastrophic memorization — handles multiple positions reasonably — but the O1 weakness persists even here, suggesting it isn't simply a data-volume artifact.</li>
+    </ol>
+
+    <h2>4. Day 1 (Aug 18) — SmolVLA RunPod Pipeline Validation</h2>
+    <p>Before committing to any local GPU hardware, the SmolVLA training pipeline was validated cheaply on rented cloud compute first — a deliberate sequencing choice, not an afterthought.</p>
+    <ul>
+      <li>RunPod instance: RTX A6000, 48GB VRAM, $0.54/hour (an RTX 3090 instance wasn't available at the time)</li>
+      <li>Fresh LeRobot install required three separate extras: <code>".[feetech]"</code>, then <code>".[dataset]"</code>, then <code>".[smolvla]"</code> — same incremental pattern as the original Mac setup</li>
+      <li>Transferred the <code>v4-mat</code> dataset (30 episodes, ~326MB) via <code>scp</code> — one stall/resume, completed fine</li>
+    </ul>
+    <div class="abstract-box"><strong>Key finding: SmolVLA is dramatically heavier than ACT.</strong> A first test run (1000-step target) showed ~27–38 sec/step, versus ACT's typical 1–2.5 sec/step. Official docs quote 20,000 steps ≈ 4 hours on an A100 (batch size 64) — the observed pace was ~35–40× slower than that ratio predicts, most likely because AMP (mixed precision) defaults to off (<code>--policy.use_amp</code> = <code>False</code>) and a smaller batch size (8, not 64) was used. The 1000-step run was cancelled once the true cost became clear (would have been 8–10 hours, not a quick test).</div>
+    <p>Reran capped at 100 steps instead — completed in 40m46s (~24.5s/step average once warmed up). Correct reference command for the installed version (lerobot 0.6.2, confirmed via <code>--help</code> rather than docs, which vary by version):</p>
+    <pre><code>lerobot-train \
+    --dataset.repo_id=&lt;repo_id&gt; \
+    --dataset.root=&lt;local_path_to_dataset&gt; \
+    --policy.type=smolvla \
+    --policy.pretrained_path=lerobot/smolvla_base \
+    --output_dir=&lt;output_dir&gt; \
+    --job_name=&lt;name&gt; \
+    --policy.device=cuda \
+    --steps=100 \
+    --batch_size=8 \
+    --policy.push_to_hub=false</code></pre>
+    <p><strong>Result:</strong> pipeline validated end-to-end — dataset loads correctly from a local path, pretrained SmolVLA base downloads and initializes, training runs without error, checkpoint saves correctly. This was <em>not</em> a meaningfully trained model (100 steps, single-position data) — pure plumbing validation. Checkpoint (~1.1GB) downloaded locally before pod termination. <strong>Total cost: ~$0.50–0.70</strong> for the whole session.</p>
+
+    <h2>5. Day 2 (Aug 19) — v17 (x10-fix) Training &amp; Testing</h2>
+    <p>Recorded 12 targeted episodes at the x=10 column (y=7,10,12,15 × 3 orientations), merged with <code>v15-sideapproach</code> → <code>v17-x10fixed</code> (42 episodes total). Transfer-learned from the <code>v15_sideapproach</code> checkpoint, 15,000 steps.</p>
+    <p>Training took 8h41m — roughly double the ~4h estimate. Per-step timing was stable (~1.3s/step) until step ~13,600, then degraded sharply (up to 2+ hours for 200 steps at one point) before recovering toward the end — likely something competing for Mac resources overnight (background process, thermal), not a training issue itself. Final loss 0.094 after ~5 epochs — good convergence.</p>
+
+    <h3>5.1 x=10 dead zone: confirmed fixed</h3>
+    <table>
+      <tr><th>Position</th><th>Result</th></tr>
+      <tr><td>(10,10,30°)</td><td>2/3</td></tr>
+      <tr><td>(10,12,45°)</td><td>2/3</td></tr>
+      <tr><td>(10,15,0°)</td><td>3/3</td></tr>
+      <tr><td>(10,15,30°)</td><td>2/3</td></tr>
+      <tr><td>(10,15,45°)</td><td>2/3</td></tr>
+    </table>
+    <div class="abstract-box">Every x=10 point went from total failure to 67–100% success. Targeted recording resolved it — the camera-occlusion and kinematic-strain theories considered earlier turned out not to be needed to explain or fix it. Simple data sparsity was likely the real cause all along.</div>
+    <p><strong>P5 sanity check (old trained position):</strong> O1: 1/3, O2: 2/3, O3: 2/2 — O1 continues to underperform, consistent with every prior model in this lineage (v10, v14, v15, v17).</p>
+
+    <h3>5.2 O1 gripper-rotation investigation — four theories, no clean answer</h3>
+    <p>The gripper was observed visibly rotating slightly during 0°-orientation approaches, specifically causing off-center grasps. Investigated as a possible root cause of the persistent O1 weakness:</p>
+    <ul>
+      <li><strong>Wrist-roll wraparound theory</strong> — checked via calibration file + sampled training data <code>wrist_roll</code> values. Calibration range is the full raw 0–4095 range (expected for a continuously-rotating joint), but actual recorded values cluster tightly around -34° to +68°, nowhere near a wraparound boundary. <strong>Not supported by data.</strong></li>
+      <li><strong>Live observation:</strong> the rotation appears specifically at P1/P2 (previously <em>good</em>-performing positions) about 5 seconds into descent, but does <em>not</em> appear at P5 (a <em>weaker</em>-performing position) — doesn't cleanly correlate with the overall O1 weakness pattern.</li>
+    </ul>
+    <p><strong>Conclusion:</strong> four theories now tested overall (kinematic strain, camera occlusion, wrist-roll wraparound, position-correlated rotation), with no single unifying explanation found. Decision made to stop chasing this for now and log it as an open finding rather than continuing to invest time without a clear next hypothesis.</p>
+
+    <h3>5.3 Camera brightness confound (resolved)</h3>
+    <p>After the white-background test below, a "back on mat" retest showed apparently degraded performance. A brightness check found the camera reading 85 — well below the healthy 100–180 range — meaning it hadn't fully re-adjusted exposure after the paper swap. A second check after a longer settle time showed 135, confirming full recovery.</p>
+    <p><strong>Lesson:</strong> always re-verify camera brightness after any background swap before trusting rollout results — a confound this simple could easily be mistaken for a real regression.</p>
+
+    <h3>5.4 White background test — the major finding</h3>
+    <p><code>v17-x10fixed</code> was tested on plain white/brown paper — never seen in any training data across the entire model lineage.</p>
+    <div class="abstract-box"><strong>Result: 0% success (1 partial success from 15+ trials).</strong> The arm appeared completely lost — consistently drifted toward (10,10) then (5,5), unable to locate the object despite it being clearly visible and the camera confirmed healthy. This essentially matches the very first clean model's total failure on novel backgrounds, weeks earlier — despite substantial subsequent training, position boosting, orientation fixing, and technique refinement since then.</div>
+    <p><strong>Working hypothesis:</strong> the grid-patterned cutting mat may function as an implicit coordinate system the model has learned to rely on for position estimation, rather than learning to localize the object independently of its background. This would explain several otherwise-puzzling observations at once:</p>
+    <ul>
+      <li>Why the mat enabled such strong position-precision improvements throughout the project</li>
+      <li>Why the model fails so completely without it, despite the object remaining clearly visible</li>
+      <li>Why repeated mat-based training reinforcement never improved background generalization — every fix reinforced the same underlying dependency rather than resolving it</li>
+    </ul>
+    <p>Flagged at the time as the most significant unresolved finding of the whole project, worth treating as a priority discussion topic separate from the position-specific tuning work that had occupied most of this session's effort.</p>
+
+    <h3>5.5 Minor observation, not prioritized</h3>
+    <p>For positions with x&gt;14 (near the sparse/far end of the trained range), the first grasp attempt often slightly undershoots (e.g. reaches ~12–13 instead of 14–15), but the second attempt self-corrects to roughly the right spot. Interpreted as a mild, self-correcting closed-loop behavior rather than a hard failure — logged, not investigated further at the time.</p>
+
+    <h2>6. Infrastructure &amp; Housekeeping (Aug 20)</h2>
+    <ul>
+      <li><strong>Server IP changed</strong> to <code>192.168.2.42</code> (was <code>192.168.11.153</code>)</li>
+      <li><strong>Archive completed:</strong> superseded datasets (<code>v15-sideapproach</code>, <code>v16-x10boost</code>, <code>test-pickplace</code>) and checkpoints (<code>v10_balanced</code>, <code>v12_boosted</code>) moved to <code>storage1/training/lerobot/</code> on the server — confirmed 10GB+10GB transferred and verified before local deletion. Datasets/checkpoints still active locally at this point: <code>v14-o1fixed</code>, <code>v17-x10fixed</code>, <code>v15_sideapproach</code>.</li>
+      <li><strong>New PC decision made</strong> — after the RunPod validation above confirmed the pipeline and gave a real sense of compute requirements, an initial configuration was settled on around this date. (The final ordered spec evolved slightly further before purchase — see the roadmap's <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">Hardware Notes</a> section for the version actually ordered.) The sequencing itself is the point worth preserving: validate cheaply on rented compute first, buy hardware only once the actual requirement is known empirically, not guessed.</li>
+      <li><strong>LeKiwi:</strong> STS3215 servos arrived, 3D-printed parts completed by a friend's engineering team; assembly not yet started at this point.</li>
+    </ul>
+
+    <h2>7. What This Motivated</h2>
+    <p>The white-background finding (§5.4) is the direct origin of the <a href="so101-bgdiv-v1-report.html">background-diversity experiment (so101_bgdiv_v1)</a>. The planned experiment at this stage was intentionally scoped small — 5 backgrounds, 2 positions each, 3 orientations, 30 episodes total — deliberately kept testable in a single session rather than attempting a full factorial design immediately. It was not yet decided at this point whether to train from scratch, transfer-learn from <code>v17-x10fixed</code>, or treat it as a fully separate branch.</p>
+    <p>The experiment that actually ran ended up considerably larger than this initial plan (5 positions × 4 orientations × 3 reps = 300 total episodes, trained from scratch) — see the full report for what changed and why, and for the results.</p>
+  </div>
+
+</body>
+</html>
