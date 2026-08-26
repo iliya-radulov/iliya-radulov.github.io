@@ -98,7 +98,7 @@
 
     <!-- PHASE 4 — IN PROGRESS -->
     <div class="phase-card progress">
-      <h2>Phase 4 — Add Vision <span class="badge-progress">○ IN PROGRESS</span></h2>
+      <h2>Phase 4 — Add Vision <span class="badge-progress">● IN PROGRESS</span></h2>
       <ul>
         <li>☐ Vision Pi watches the workspace during demonstrations</li>
         <li>☐ Dataset now includes visual context alongside motor trajectories</li>
@@ -109,7 +109,7 @@
 
     <!-- PHASE 5 — IN PROGRESS -->
     <div class="phase-card progress">
-      <h2>Phase 5 — Add Voice as Trigger <span class="badge-progress">○ IN PROGRESS</span></h2>
+      <h2>Phase 5 — Add Voice as Trigger <span class="badge-progress">● IN PROGRESS</span></h2>
       <ul>
         <li>☐ Voice Pi listens for a command, sends it over the network to the arm-controlling Pi</li>
         <li>☐ Start simple: voice selects a pre-recorded action, not free-form control</li>
@@ -158,7 +158,7 @@
       just fixed trigger phrases.</p>
       <h3>Planned architecture</h3>
       <ul>
-        <li><strong>Brain Pi (Pi 4):</strong> Pi AI Cam attached, running vision + arm control</li>
+        <li><strong>Brain Pi (currently testing on Pi 4, will consolidate to a single Pi 5 once Phase 4/5 are validated):</strong> Pi AI Cam attached, running vision + arm control</li>
         <li><strong>Voice2 Pi (second Pi 4, reusing Phase 1's working AIY Voice Kit software):</strong> listens for commands, sends them over the network to the Brain Pi</li>
         <li><strong>Training/inference compute:</strong> given SmolVLA's heavier backbone, initial training stays on the Mac (MPS); the Pi 5 (4GB) likely cannot run SmolVLA inference at usable speed unaccelerated — to be validated empirically before assuming otherwise</li>
       </ul>
@@ -186,7 +186,7 @@
         <li>✅ <strong>Both LeKiwi/XLeRobot adapter ports confirmed working</strong> (<code>/dev/tty.usbmodem5B140288161</code>, <code>/dev/tty.usbmodem5B141134291</code>) after tracing an initial "port not found" issue to bad USB cables — 5 of 5 first-tested cables failed to carry data; a known-good cable (borrowed from the SO101 setup) resolved it. Worth treating that cable batch/supplier with suspicion going forward.</li>
         <li>✅ <strong>All motors initialised, both arms fully assembled</strong></li>
         <li>✅ <strong>Both arms fully functional on the Mac</strong> (MPS) — tested in teleoperation as follower arm with the SO101 leader arm</li>
-        <li>✅ Calibration complete for both arms, checkpoint transfer for original SO101 training tested, results unsatisfying</li>
+        <li>✅ Calibration complete for both arms, checkpoint transfer for original SO101 training tested, full technical details here: <a href="../lekiwi/lekiwi-tech-details.html">Technical Details</a></li>
         <li>🖨️ <strong>Creality Ender 3 V3 Plus 3D printer purchased</strong> — reduces dependency on external printing for future LeKiwi/XLeRobot parts, and opens up custom part iteration (e.g. camera/pan-tilt mounts) without waiting on outside help</li>
         <li>⏳ Mobile base kit not yet delivered (expected mid-September per original order) — wheel servo IDs (7–9) and full combined arm+base config to follow once it arrives</li>
         <li>☐ <strong>ACT validation pass on LeKiwi arm, planned ahead of base arrival.</strong> Purpose is hardware/pipeline validation (new servos, adapters, camera position/calibration) on the Mac via MPS — not a SmolVLA data-collection run. Dataset from this pass is single-task and won't carry forward to the later multi-task SmolVLA collection.</li>
@@ -229,9 +229,9 @@
           text-transform: uppercase;
         ">⏳ Pulse</span>
         <span style="font-weight: 400;">
-          Currently balancing: <strong>LeKiwi assembly</strong> (Phase 7) +
-          <strong>Dimitar voice fine-tuning</strong> (side thread, parked).
-          Background-diversity experiment complete — results now on the page.
+          Currently balancing: <strong>LeKiwi assembly</strong> <a href="../lekiwi/lekiwi-tech-details.html" target="_blank">(Phase 7)</a> + <strong>Dimitar voice fine-tuning</strong> 
+          (side thread, <a href="../dimitar-voice-finetune/dimitar-finetune-round1-report.html" target="_blank">report from round 1</a> and <a href="../dimitar-voice-finetune/dimitar-finetune-round2-report.html" target="_blank">report from round 2</a>, currently on hold).
+          Background-diversity experiment complete — <a href="../robot-arm-pickplace/so101-bgdiv-v1-report.html" target="_blank">results now on the page</a>.
           Vision/Voice/SmolVLA on hold pending new PC.
           Next milestone: <strong>ACT validation pass on LeKiwi arm</strong>.
         </span>
@@ -239,7 +239,8 @@
       <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.6; display: flex; gap: 20px; flex-wrap: wrap;">
         <span>📦 LeKiwi base: expected mid-September</span>
         <span>🖥️ New PC: ordered, awaiting delivery</span>
-        <span>✅ Background-diversity results: in</span>
+        <span>✅ Background-diversity results: <a href="../robot-arm-pickplace/so101-bgdiv-v1-report.html" target="_blank">view report</a></span>
+        <span>📡 Voice↔Vision Pi ping: confirmed</span>
       </div>
     </div>
 

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurt Vonnegut - Slaughterhouse-Five</title>
+    <style>
+        /* ============================================================
+           THEME VARIABLES - VONNEGUT (Melancholic / Dark Humor)
+           ============================================================ */
+        :root {
+            --bg-color: #1a1816;
+            --text-color: #e8e0d8;
+            --accent-color: #b31b1b;
+            --secondary-accent: #8a8a8a;
+            --font-family: 'Courier New', Courier, monospace;
+            --border-style: 2px solid var(--accent-color);
+        }
+
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ============================================================
+           SUBTLE NOISE BACKGROUND (instead of stars - more gritty)
+           ============================================================ */
+        #noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            background-size: 256px 256px;
+        }
+
+        /* ============================================================
+           HERO SECTION
+           ============================================================ */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(26, 24, 22, 0.7) 0%, rgba(26, 24, 22, 0.95) 100%);
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            letter-spacing: -2px;
+            margin-bottom: 0.3rem;
+            text-shadow: 0 0 40px rgba(179, 27, 27, 0.1);
+            font-family: 'Georgia', serif;
+        }
+
+        .hero-subtitle {
+            font-size: 1.8rem;
+            color: var(--secondary-accent);
+            font-weight: 300;
+            letter-spacing: 4px;
+            margin-bottom: 0.5rem;
+            opacity: 0.7;
+        }
+
+        .hero-subtitle small {
+            display: block;
+            font-size: 1rem;
+            opacity: 0.4;
+            margin-top: 0.2rem;
+            letter-spacing: 6px;
+        }
+
+        /* Hero Icons Grid */
+        .hero-icons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            max-width: 800px;
+            width: 100%;
+            margin: 2.5rem auto;
+        }
+
+        .hero-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 1.5rem 0.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 4px;
+            background: rgba(0,0,0,0.3);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .hero-icon-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 4px;
+            background: linear-gradient(180deg, rgba(179, 27, 27, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .hero-icon-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            background: rgba(179, 27, 27, 0.05);
+        }
+
+        .hero-icon-item:hover::before {
+            opacity: 1;
+        }
+
+        .hero-icon-item .icon {
+            font-size: 3.5rem;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+            filter: grayscale(0.3);
+        }
+
+        .hero-icon-item:hover .icon {
+            filter: grayscale(0);
+        }
+
+        .hero-icon-item .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--secondary-accent);
+            opacity: 0.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-icon-item .description {
+            font-size: 0.65rem;
+            color: var(--secondary-accent);
+            opacity: 0.3;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* "So it goes" - prominent in hero */
+        .so-it-goes {
+            font-size: 2rem;
+            color: var(--accent-color);
+            opacity: 0.3;
+            letter-spacing: 8px;
+            margin: 1rem 0;
+            font-style: italic;
+            font-family: 'Georgia', serif;
+            animation: pulseSoItGoes 4s ease-in-out infinite;
+        }
+
+        @keyframes pulseSoItGoes {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.02); }
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            margin-top: 3rem;
+            color: var(--secondary-accent);
+            opacity: 0.2;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            animation: bounceDown 2s ease-in-out infinite;
+        }
+
+        @keyframes bounceDown {
+            0%, 100% { transform: translateY(0); opacity: 0.2; }
+            50% { transform: translateY(8px); opacity: 0.5; }
+        }
+
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 3rem;
+            letter-spacing: 2px;
+            font-family: 'Georgia', serif;
+            font-weight: 300;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '†';
+            display: block;
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            opacity: 0.2;
+            margin-top: 0.5rem;
+        }
+
+        /* ============================================================
+           BOOK LIST
+           ============================================================ */
+        .book-list {
+            list-style: none;
+            margin: 2rem 0 3rem;
+        }
+
+        .book-list li {
+            font-size: 1.2rem;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .book-list li:hover {
+            border-bottom-color: var(--accent-color);
+            padding-left: 1.8rem;
+            background: rgba(179, 27, 27, 0.02);
+        }
+
+        .book-list .book-icon {
+            font-size: 1.5rem;
+            opacity: 0.3;
+        }
+
+        .book-list .title {
+            font-weight: 400;
+            flex: 1;
+            font-family: 'Georgia', serif;
+        }
+
+        .book-list .year {
+            font-size: 0.7rem;
+            color: var(--secondary-accent);
+            opacity: 0.4;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================================
+           QUOTES
+           ============================================================ */
+        .quotes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0 3rem;
+        }
+
+        .quote-card {
+            padding: 1.5rem;
+            border-left: 3px solid rgba(179, 27, 27, 0.3);
+            background: rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .quote-card:hover {
+            border-left-color: var(--accent-color);
+            background: rgba(179, 27, 27, 0.03);
+        }
+
+        .quote-card .quote-icon {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.3;
+        }
+
+        .quote-card blockquote {
+            font-style: italic;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            opacity: 0.85;
+            font-family: 'Georgia', serif;
+        }
+
+        .quote-card .source {
+            display: block;
+            margin-top: 0.5rem;
+            font-style: normal;
+            font-weight: 400;
+            color: var(--accent-color);
+            opacity: 0.4;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ============================================================
+           ICON GALLERY - Small repeated icons
+           ============================================================ */
+        .icon-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 2rem 0;
+            border-top: 1px solid rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            margin: 2rem 0;
+        }
+
+        .icon-gallery .mini-icon {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.6rem 1rem;
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 4px;
+            background: rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            cursor: default;
+            min-width: 60px;
+        }
+
+        .icon-gallery .mini-icon:hover {
+            border-color: var(--accent-color);
+            background: rgba(179, 27, 27, 0.05);
+            transform: scale(1.05);
+        }
+
+        .icon-gallery .mini-icon .emoji {
+            font-size: 1.5rem;
+            filter: grayscale(0.5);
+        }
+
+        .icon-gallery .mini-icon:hover .emoji {
+            filter: grayscale(0);
+        }
+
+        .icon-gallery .mini-icon .tag {
+            font-size: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.3;
+        }
+
+        /* ============================================================
+           TRALFAMADORIAN CLOCK (animated)
+           ============================================================ */
+        .tralfamadorian-clock {
+            text-align: center;
+            padding: 2rem 0;
+            margin: 1rem 0 2rem;
+            border-top: 1px solid rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .tralfamadorian-clock .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            opacity: 0.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .tralfamadorian-clock .clock-display {
+            font-size: 2.5rem;
+            font-family: 'Courier New', monospace;
+            color: var(--secondary-accent);
+            opacity: 0.3;
+            letter-spacing: 8px;
+        }
+
+        /* ============================================================
+           FISH CLOSING (but with Vonnegut twist)
+           ============================================================ */
+        .closing {
+            text-align: center;
+            padding: 3rem 0 1rem;
+            border-top: 1px solid rgba(255,255,255,0.03);
+            margin-top: 2rem;
+        }
+
+        .closing .closing-text {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--secondary-accent);
+            opacity: 0.3;
+            letter-spacing: 4px;
+            font-family: 'Georgia', serif;
+            font-style: italic;
+        }
+
+        .closing .closing-emoji {
+            display: inline-block;
+            font-size: 2rem;
+            opacity: 0.2;
+            margin: 0 0.5rem;
+        }
+
+        /* ============================================================
+           META
+           ============================================================ */
+        .meta {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            padding: 1.5rem 0 0;
+            font-size: 0.7rem;
+            color: var(--secondary-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.3;
+        }
+
+        .meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .hero-icons {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .hero-icon-item .icon {
+                font-size: 2.5rem;
+            }
+            
+            .quotes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .book-list li {
+                font-size: 1rem;
+                padding: 0.6rem 1rem;
+            }
+            
+            .icon-gallery .mini-icon {
+                min-width: 50px;
+                padding: 0.4rem 0.6rem;
+            }
+            
+            .icon-gallery .mini-icon .emoji {
+                font-size: 1.2rem;
+            }
+            
+            .so-it-goes {
+                font-size: 1.5rem;
+            }
+            
+            .tralfamadorian-clock .clock-display {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-icons {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.6rem;
+            }
+            
+            .hero-icon-item {
+                padding: 1rem 0.3rem;
+            }
+            
+            .hero-icon-item .icon {
+                font-size: 2rem;
+            }
+            
+            .hero-icon-item .label {
+                font-size: 0.6rem;
+            }
+            
+            .hero-icon-item .description {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<a href="rag-triz.html" style="position:fixed;top:16px;left:16px;z-index:999;color:var(--accent-color);font-family:var(--font-family, sans-serif);font-size:0.8rem;text-decoration:none;opacity:0.6;letter-spacing:1px;">← TRIZ + RAG</a>
+
+    <!-- ============================================================
+    NOISE BACKGROUND
+    ============================================================ -->
+    <div id="noise"></div>
+
+    <!-- ============================================================
+    HERO SECTION
+    ============================================================ -->
+    <section class="hero">
+        <h1 class="hero-title">Kurt Vonnegut</h1>
+        <p class="hero-subtitle">
+            Slaughterhouse-Five
+            <small>or The Children's Crusade</small>
+        </p>
+
+        <!-- "So it goes" - the signature phrase -->
+        <div class="so-it-goes">So it goes.</div>
+
+        <!-- BIG HERO ICONS -->
+        <div class="hero-icons">
+            <div class="hero-icon-item">
+                <span class="icon">⏳</span>
+                <span class="label">So It Goes</span>
+                <span class="description">"That's just the way it goes"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🕊️</span>
+                <span class="label">Tralfamadorians</span>
+                <span class="description">"Unstuck in time"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🔥</span>
+                <span class="label">Dresden</span>
+                <span class="description">"The fire-bombing"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">✍️</span>
+                <span class="label">Kilgore Trout</span>
+                <span class="description">"Fictional alter ego"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🍌</span>
+                <span class="label">Banana</span>
+                <span class="description">"Poo-tee-weet?"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🚫</span>
+                <span class="label">Unstuck</span>
+                <span class="description">"I was unstuck in time"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🫡</span>
+                <span class="label">Rosewater</span>
+                <span class="description">"God bless you, Mr. Rosewater"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">💀</span>
+                <span class="label">Memento Mori</span>
+                <span class="description">"We are what we pretend to be"</span>
+            </div>
+        </div>
+
+        <!-- TRAILFAMADORIAN CLOCK in hero -->
+        <div class="tralfamadorian-clock">
+            <div class="label">⏳ Tralfamadorian Time ⏳</div>
+            <div class="clock-display" id="tralfamadorianTime">00:00:00</div>
+        </div>
+
+        <div class="scroll-indicator">↓ So it goes, scroll down ↓</div>
+    </section>
+
+    <!-- ============================================================
+    MAIN CONTENT
+    ============================================================ -->
+    <div class="main-content">
+        <h2 class="section-title">The Books</h2>
+
+        <!-- BOOK LIST -->
+        <ul class="book-list">
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">Slaughterhouse-Five</span>
+                <span class="year">1969</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">Cat's Cradle</span>
+                <span class="year">1963</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">Breakfast of Champions</span>
+                <span class="year">1973</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">God Bless You, Mr. Rosewater</span>
+                <span class="year">1965</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">The Sirens of Titan</span>
+                <span class="year">1959</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">Mother Night</span>
+                <span class="year">1962</span>
+            </li>
+        </ul>
+
+        <!-- ICON GALLERY - Small repeated icons -->
+        <div class="icon-gallery">
+            <div class="mini-icon">
+                <span class="emoji">⏳</span>
+                <span class="tag">So it goes</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🕊️</span>
+                <span class="tag">Tralfamador</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🔥</span>
+                <span class="tag">Dresden</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">✍️</span>
+                <span class="tag">Trout</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🍌</span>
+                <span class="tag">Poo-tee-weet</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🚫</span>
+                <span class="tag">Unstuck</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🫡</span>
+                <span class="tag">Rosewater</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">💀</span>
+                <span class="tag">Memento</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🪐</span>
+                <span class="tag">Titan</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">📖</span>
+                <span class="tag">Kilgore</span>
+            </div>
+        </div>
+
+        <h2 class="section-title">Words of Wisdom</h2>
+
+        <!-- QUOTES -->
+        <div class="quotes-grid">
+            <div class="quote-card">
+                <div class="quote-icon">⏳</div>
+                <blockquote>
+                    "So it goes."
+                </blockquote>
+                <span class="source">— Slaughterhouse-Five</span>
+            </div>
+            <div class="quote-card">
+                <div class="quote-icon">🕊️</div>
+                <blockquote>
+                    "We are what we pretend to be, so we must be careful about what we pretend to be."
+                </blockquote>
+                <span class="source">— Mother Night</span>
+            </div>
+            <div class="quote-card">
+                <div class="quote-icon">🚫</div>
+                <blockquote>
+                    "I was a victim of a series of accidents, as are we all."
+                </blockquote>
+                <span class="source">— The Sirens of Titan</span>
+            </div>
+            <div class="quote-card">
+                <div class="quote-icon">🍌</div>
+                <blockquote>
+                    "Poo-tee-weet?"
+                </blockquote>
+                <span class="source">— Slaughterhouse-Five (final words)</span>
+            </div>
+            <div class="quote-card" style="grid-column: 1 / -1;">
+                <div class="quote-icon">💀</div>
+                <blockquote>
+                    "There is no beginning, no middle, no end, no suspense, no moral, no causes, no effects. What we love in our books are the depths of many marvelous moments seen all at one time."
+                </blockquote>
+                <span class="source">— Tralfamadorian philosophy, Slaughterhouse-Five</span>
+            </div>
+        </div>
+
+        <!-- CLOSING -->
+        <div class="closing">
+            <div class="closing-text">
+                <span class="closing-emoji">🕊️</span>
+                And so it goes.
+                <span class="closing-emoji">⏳</span>
+            </div>
+        </div>
+
+        <!-- META -->
+        <div class="meta">
+            <span>🖋️ Born: 1922</span>
+            <span>🕊️ Died: 2007</span>
+            <span>🇺🇸 American</span>
+            <span>🔥 Dark Humor / Sci-Fi</span>
+            <span>⏳ So it goes</span>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script>
+        // Tralfamadorian Clock - all moments exist simultaneously
+        function updateTralfamadorianClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            // Tralfamadorians see all time at once - we show time in reverse sometimes
+            const display = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('tralfamadorianTime').textContent = display;
+            
+            // Random flip effect
+            if (Math.random() < 0.01) {
+                const el = document.getElementById('tralfamadorianTime');
+                el.style.opacity = '0.1';
+                setTimeout(() => {
+                    el.style.opacity = '0.3';
+                }, 100);
+            }
+        }
+
+        updateTralfamadorianClock();
+        setInterval(updateTralfamadorianClock, 1000);
+
+        // Click on any hero icon to show a dark Vonnegut-ism
+        document.querySelectorAll('.hero-icon-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const label = this.querySelector('.label').textContent;
+                const messages = [
+                    '⏳ So it goes.',
+                    '🕊️ And so it goes.',
+                    '🔥 Everything was beautiful, and nothing hurt.',
+                    '✍️ We are what we pretend to be.',
+                    '🍌 Poo-tee-weet?',
+                    '🚫 I was unstuck in time.',
+                    '🫡 God bless you, Mr. Rosewater.',
+                    '💀 No damn cat, no damn cradle.'
+                ];
+                const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                alert(`${randomMsg}`);
+            });
+        });
+
+        // Console Easter Egg
+        console.log('%c⏳ So it goes. ⏳', 'font-size: 24px; color: #b31b1b;');
+        console.log('%c🕊️ Kurt Vonnegut — Slaughterhouse-Five', 'font-size: 16px; color: #8a8a8a;');
+        console.log('%c🔥 "Everything was beautiful, and nothing hurt."', 'font-size: 14px; color: #b31b1b;');
+    </script>
+</body>
+</html>

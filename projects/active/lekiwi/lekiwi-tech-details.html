@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technical Deep Dive: LeKiwi Arm Assembly &amp; Checkpoint Transfer — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../voice-vision-arm-roadmap.html">← Back to project roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project · Phase 7</div>
+    <h1>Technical Deep Dive: LeKiwi Arm Assembly &amp; Checkpoint Transfer</h1>
+    <p class="subtitle">Setup, port discovery, motor initialization, calibration, teleoperation testing, and an ACT checkpoint-transfer test — validating both LeKiwi-class follower arms ahead of the mobile base delivery</p>
+
+    <h2>Hardware</h2>
+    <ul>
+      <li><strong>Arm platform:</strong> two SO-101-class follower arms built in this pass — <code>my_kiwi_arm_1</code> (near-term LeKiwi build) and <code>my_kiwi_arm_2</code> (held in reserve for the future XLeRobot second-arm upgrade)</li>
+      <li><strong>Actuators:</strong> Feetech STS3215 smart servos, 12 total (6 per arm)</li>
+      <li><strong>Controllers:</strong> 2× Waveshare Bus Servo Adapter (A), jumper set to position B (direct USB↔servo mode)</li>
+      <li><strong>Leader arm:</strong> reused from the existing SO101 setup — no new leader built for this pass</li>
+      <li><strong>Compute:</strong> same MacBook (Apple Silicon) used for SO101 work, PyTorch's MPS backend</li>
+      <li><strong>Cameras:</strong> main (640×480) + gripper (320×240), MJPG, same configuration as the SO101 setup</li>
+    </ul>
+
+    <div class="shot">
+      <span class="cam">
+        <img src="screens/Kiwi1.jpeg" alt=initial-setup style="max-width: 100%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+      </span>
+      <p>Photo of the two new SO-101 follower arms prior to assembly</p>
+    </div>
+
+    <h2>Environment Setup</h2>
+    <p>A separate project directory, virtual environment, and <code>lerobot</code> clone, kept independent from the SO101 install so version or dependency changes on one side can't affect the other:</p>
+    <pre><code>mkdir LeKiwi
+cd LeKiwi
+python3 -m venv kiwi_env
+source kiwi_env/bin/activate
+git clone https://github.com/huggingface/lerobot.git
+cd lerobot
+pip install -e ".[feetech]"</code></pre>
+    <p><strong>Note:</strong> the working notes this section is based on activate the environment via <code>source kiwi/bin/activate</code> rather than <code>kiwi_env/bin/activate</code> — likely a naming slip during the session rather than an actual second environment. Worth confirming the real folder name before reusing this as a repeatable setup script. Similarly, a later dependency-install step in the notes references <code>cd projects/lekiwi/lerobot</code> and <code>pip install -r docs-requirements.txt</code>, which doesn't match the clone path above and isn't a standard LeRobot requirements file — flagged here rather than reproduced as fact, pending a check of what was actually run.</p>
+
+    <h2>Port Discovery &amp; Motor ID Assignment</h2>
+    <table>
+      <tr><th>Arm</th><th>Port</th><th>Role</th></tr>
+      <tr><td><code>my_kiwi_arm_1</code></td><td><code>/dev/tty.usbmodem5B140288161</code></td><td>Current LeKiwi build</td></tr>
+      <tr><td><code>my_kiwi_arm_2</code></td><td><code>/dev/tty.usbmodem5B141134291</code></td><td>Reserved — future XLeRobot second arm</td></tr>
+    </table>
+    <p>Each bus was configured independently, motor-by-motor, via <code>lerobot-setup-motors</code>:</p>
+    <pre><code>lerobot-setup-motors \
+    --robot.type=so101_follower \
+    --robot.port=&lt;port&gt;</code></pre>
+    <p>Same ID convention applied to both arms (assigned in this order, one motor connected at a time): <code>gripper=6</code>, <code>wrist_roll=5</code>, <code>wrist_flex=4</code>, <code>elbow_flex=3</code>, <code>shoulder_lift=2</code>, <code>shoulder_pan=1</code>.</p>
+    <p><strong>Hardware lesson carried in from assembly:</strong> the initial port-detection attempts failed with no difference detected between before/after USB states. Traced to a bad cable batch — 5 of 5 first-tested cables failed to carry data — resolved with a known-good cable borrowed from the SO101 setup. Worth treating that cable batch/supplier with suspicion going forward.</p>
+
+    <h2>Calibration</h2>
+    <p>Both arms calibrated via <code>lerobot-calibrate</code>. <code>wrist_roll</code> is intentionally excluded from the min/max sweep — it's a continuous-rotation joint with no natural end stops, so it doesn't get bounded calibration values the way the other five joints do.</p>
+    <p><strong><code>my_kiwi_arm_1</code></strong> — <code>/dev/tty.usbmodem5B140288161</code></p>
+    <table>
+      <tr><th>Joint</th><th>Min</th><th>Pos</th><th>Max</th></tr>
+      <tr><td>shoulder_pan</td><td>697</td><td>2058</td><td>3434</td></tr>
+      <tr><td>shoulder_lift</td><td>875</td><td>881</td><td>3342</td></tr>
+      <tr><td>elbow_flex</td><td>840</td><td>3054</td><td>3062</td></tr>
+      <tr><td>wrist_flex</td><td>786</td><td>2832</td><td>3293</td></tr>
+      <tr><td>gripper</td><td>1409</td><td>1439</td><td>2929</td></tr>
+    </table>
+    <p><strong><code>my_kiwi_arm_2</code></strong> — <code>/dev/tty.usbmodem5B141134291</code></p>
+    <table>
+      <tr><th>Joint</th><th>Min</th><th>Pos</th><th>Max</th></tr>
+      <tr><td>shoulder_pan</td><td>701</td><td>2011</td><td>3430</td></tr>
+      <tr><td>shoulder_lift</td><td>990</td><td>997</td><td>3395</td></tr>
+      <tr><td>elbow_flex</td><td>637</td><td>2931</td><td>2931</td></tr>
+      <tr><td>wrist_flex</td><td>839</td><td>2881</td><td>3201</td></tr>
+      <tr><td>gripper</td><td>1545</td><td>1576</td><td>3079</td></tr>
+    </table>
+    <p><strong>Flag:</strong> <code>my_kiwi_arm_2</code>'s <code>elbow_flex</code> shows <code>Pos</code> and <code>Max</code> identical (2931/2931), unlike every other joint on both arms where <code>Pos</code> sits away from both bounds. Possibly the joint was left at full extension when the recording stopped rather than a true resting position — worth re-running this specific joint's calibration to confirm before relying on it for training data.</p>
+
+    <h2>Teleoperation Testing</h2>
+    <p>Both arms tested independently as followers, with the SO101 leader arm (<code>/dev/tty.usbserial-11310</code>) driving each in turn:</p>
+    <table>
+      <tr><th>Metric</th><th><code>my_kiwi_arm_2</code></th><th><code>my_kiwi_arm_1</code></th></tr>
+      <tr><td>Duration</td><td>113.0 s</td><td>94.3 s</td></tr>
+      <tr><td>Effective cadence</td><td>59.96 Hz</td><td>59.97 Hz</td></tr>
+      <tr><td>Ticks over budget</td><td>0 / 6772 (0.0%)</td><td>0 / 5652 (0.0%)</td></tr>
+      <tr><td>Work mean / worst</td><td>4.1 ms / 4.4 ms</td><td>4.1 ms / 4.4 ms</td></tr>
+      <tr><td>Pacing headroom</td><td>~12.6 ms slept/tick avg</td><td>~12.6 ms slept/tick avg</td></tr>
+    </table>
+    <p>Both runs held a clean 60 Hz target with zero over-budget ticks and comfortable pacing headroom — the loop is nowhere near saturated. The teleop step itself dominates the per-tick cost (~75% of work), well ahead of observation (~24%) and sending (&lt;1%). No timing or hardware issues on either arm under teleoperation.</p>
+    
+    <div class="shot">
+      <span class="cam">
+        <img src="screens/Kiwi2.jpeg" alt=initial-setup style="max-width: 100%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
+      </span>
+      <p>Photo of the two new SO-101 follower arms after successful testing.</p>
+    </div>
+
+    <h2>ACT Checkpoint-Transfer Test</h2>
+    <p>Rather than a fresh training run, this test reused the existing <code>so101_bgdiv_v1</code> checkpoint — the background-diversity-trained ACT policy from the SO101 line — directly on <code>my_kiwi_arm_2</code>, with no retraining, to see whether an already-trained policy transfers onto new physical hardware:</p>
+    <pre><code>lerobot-rollout \
+    --robot.type=so101_follower \
+    --robot.port=/dev/tty.usbmodem5B141134291 \
+    --robot.id=my_kiwi_arm_2 \
+    --robot.cameras='{"main": {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30, "fourcc": "MJPG"}, "gripper": {"type": "opencv", "index_or_path": 1, "width": 320, "height": 240, "fps": 30, "fourcc": "MJPG"}}' \
+    --policy.type=act \
+    --policy.pretrained_path=/Users/r/Documents/Projects/lerobot/outputs/train/so101_bgdiv_v1/checkpoints/last/pretrained_model \
+    --policy.input_features='{"observation.state": {"type": "STATE", "shape": [6]}, "observation.images.main": {"type": "VISUAL", "shape": [3, 480, 640]}, "observation.images.gripper": {"type": "VISUAL", "shape": [3, 240, 320]}}' \
+    --policy.output_features='{"action": {"type": "ACTION", "shape": [6]}}' \
+    --policy.device=mps --strategy.type=base --fps=30 --duration=20 \
+    --interpolation_multiplier=5 \
+    --task="Pick up the object and place it in the box"</code></pre>
+    <p><strong>Result: unsatisfying</strong> — consistent with expectations for a straight checkpoint transfer rather than a real regression. The <code>so101_bgdiv_v1</code> policy was trained on a specific arm unit, workspace, and set of backgrounds; a different physical arm (even same servo model), different calibration curve, and an untested workspace/lighting setup are exactly the conditions the background-diversity work already flagged as failure-prone.</p>
+    <p><strong>Note on the task string:</strong> this run's <code>--task</code> was changed to <em>"place it in the box"</em>, differing from the original SO101 dataset's <em>"place it in the tape roll."</em> Since ACT has no language-conditioning pathway (confirmed earlier via source inspection during the poisoning investigation), this string is a label only — it has no effect on the policy's actual behavior at inference time. Worth keeping in mind so this run isn't mistaken for evidence of task generalization; it isn't testing that at all.</p>
+
+    <h2>Key Engineering Decisions &amp; Lessons</h2>
+    <p><strong>Bad cable batch was the real blocker, not the software.</strong> The initial "port not found" failure looked like a driver or lerobot issue but traced entirely to faulty USB cables — 5 of 5 first-tested units failed to carry data. Worth stress-testing new cables against a known-good port before assuming a software problem.</p>
+    <p><strong>Checkpoint transfer is a hardware-validation test, not a shortcut to a trained LeKiwi policy.</strong> Running an existing checkpoint on new hardware is a fast, cheap way to confirm the pipeline (ports, cameras, control loop, inference) works end-to-end — but an unsatisfying result here says nothing about whether ACT itself will work well on LeKiwi once trained on LeKiwi-specific data. The two questions are independent.</p>
+    <p><strong>The ACT task string is inert.</strong> Changing it between runs doesn't change behavior — only useful as a human-readable log label, and a reminder not to over-interpret prompt changes as functional changes on this architecture.</p>
+
+    <h2>Current Limitations (Next Iteration Targets)</h2>
+    <ul>
+      <li><strong>No LeKiwi-specific training data yet:</strong> the checkpoint-transfer test confirms hardware/pipeline function but doesn't substitute for the planned ACT validation pass — recording fresh demonstrations on the actual LeKiwi arm remains the next real step</li>
+      <li><strong><code>my_kiwi_arm_2</code> elbow_flex calibration</strong> should be re-verified before it's used for any real data collection, given the Pos/Max overlap noted above</li>
+      <li><strong>Environment/setup script inconsistencies</strong> (venv naming, dependency-install path) should be cleaned up and re-verified before treating this as a repeatable setup procedure for future arms</li>
+      <li><strong>Mobile base still pending</strong> (expected mid-September) — wheel motor IDs (7–9) and the full combined arm+base configuration remain outstanding</li>
+    </ul>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

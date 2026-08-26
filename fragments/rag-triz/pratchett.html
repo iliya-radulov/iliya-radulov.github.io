@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terry Pratchett - Discworld</title>
+    <style>
+        /* ============================================================
+           THEME VARIABLES - PRATCHETT (Warm / Fantasy / Playful)
+           ============================================================ */
+        :root {
+            --bg-color: #2b1f0e;
+            --text-color: #efe4c6;
+            --accent-color: #c99a3b;
+            --secondary-accent: #8b6b4a;
+            --font-family: 'Georgia', 'Times New Roman', serif;
+            --border-style: 2px solid var(--accent-color);
+        }
+
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ============================================================
+           PARCHMENT TEXTURE BACKGROUND
+           ============================================================ */
+        #parchment {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.06;
+            background-image: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(201, 154, 59, 0.03) 2px,
+                    rgba(201, 154, 59, 0.03) 4px
+                ),
+                radial-gradient(
+                    ellipse at 20% 50%,
+                    rgba(201, 154, 59, 0.05) 0%,
+                    transparent 50%
+                );
+        }
+
+        /* ============================================================
+           DECORATIVE BORDER (Ornate fantasy style)
+           ============================================================ */
+        #border-decoration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            border: 3px solid rgba(201, 154, 59, 0.05);
+            box-shadow: inset 0 0 100px rgba(201, 154, 59, 0.02);
+        }
+
+        /* ============================================================
+           HERO SECTION
+           ============================================================ */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(43, 31, 14, 0.6) 0%,
+                rgba(43, 31, 14, 0.95) 100%
+            );
+        }
+
+        /* Decorative header ornament */
+        .hero-ornament {
+            font-size: 2rem;
+            color: var(--accent-color);
+            opacity: 0.2;
+            letter-spacing: 20px;
+            margin-bottom: 0.5rem;
+            font-family: 'Georgia', serif;
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-shadow: 0 0 60px rgba(201, 154, 59, 0.15);
+            margin-bottom: 0.3rem;
+            letter-spacing: -1px;
+            font-family: 'Georgia', serif;
+        }
+
+        .hero-subtitle {
+            font-size: 1.8rem;
+            color: var(--text-color);
+            font-weight: 300;
+            letter-spacing: 6px;
+            margin-bottom: 0.5rem;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .hero-subtitle small {
+            display: block;
+            font-size: 1rem;
+            opacity: 0.4;
+            margin-top: 0.2rem;
+            letter-spacing: 4px;
+            font-style: normal;
+        }
+
+        /* Hero Icons Grid */
+        .hero-icons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            max-width: 800px;
+            width: 100%;
+            margin: 2.5rem auto;
+        }
+
+        .hero-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 1.5rem 0.5rem;
+            border: 1px solid rgba(201, 154, 59, 0.1);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .hero-icon-item::before {
+            content: '✦';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .hero-icon-item:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--accent-color);
+            background: rgba(201, 154, 59, 0.05);
+            box-shadow: 0 8px 30px rgba(201, 154, 59, 0.05);
+        }
+
+        .hero-icon-item:hover::before {
+            opacity: 0.5;
+        }
+
+        .hero-icon-item .icon {
+            font-size: 3.5rem;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 0 10px rgba(201, 154, 59, 0.1));
+            transition: filter 0.4s ease;
+        }
+
+        .hero-icon-item:hover .icon {
+            filter: drop-shadow(0 0 20px rgba(201, 154, 59, 0.2));
+        }
+
+        .hero-icon-item .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--secondary-accent);
+            opacity: 0.6;
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+        }
+
+        .hero-icon-item .description {
+            font-size: 0.65rem;
+            color: var(--secondary-accent);
+            opacity: 0.3;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Discworld quote in hero */
+        .discworld-quote {
+            font-size: 1.4rem;
+            color: var(--text-color);
+            opacity: 0.4;
+            letter-spacing: 2px;
+            margin: 1rem 0;
+            font-style: italic;
+            font-family: 'Georgia', serif;
+            animation: gentlePulse 6s ease-in-out infinite;
+        }
+
+        @keyframes gentlePulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            margin-top: 3rem;
+            color: var(--secondary-accent);
+            opacity: 0.15;
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            animation: bounceDown 2.5s ease-in-out infinite;
+        }
+
+        @keyframes bounceDown {
+            0%, 100% { transform: translateY(0); opacity: 0.15; }
+            50% { transform: translateY(8px); opacity: 0.4; }
+        }
+
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            color: var(--accent-color);
+            text-align: center;
+            margin-bottom: 3rem;
+            letter-spacing: 2px;
+            font-family: 'Georgia', serif;
+            font-weight: 400;
+            position: relative;
+        }
+
+        .section-title::before {
+            content: '✦';
+            display: block;
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            opacity: 0.15;
+            margin-bottom: 0.5rem;
+        }
+
+        /* ============================================================
+           BOOK LIST
+           ============================================================ */
+        .book-list {
+            list-style: none;
+            margin: 2rem 0 3rem;
+        }
+
+        .book-list li {
+            font-size: 1.2rem;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(201, 154, 59, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .book-list li:hover {
+            border-bottom-color: var(--accent-color);
+            padding-left: 1.8rem;
+            background: rgba(201, 154, 59, 0.02);
+        }
+
+        .book-list .book-icon {
+            font-size: 1.5rem;
+            opacity: 0.3;
+        }
+
+        .book-list .title {
+            font-weight: 400;
+            flex: 1;
+            font-family: 'Georgia', serif;
+        }
+
+        .book-list .title .series {
+            font-size: 0.7rem;
+            opacity: 0.4;
+            font-style: italic;
+            margin-left: 0.5rem;
+        }
+
+        .book-list .year {
+            font-size: 0.7rem;
+            color: var(--secondary-accent);
+            opacity: 0.4;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================================
+           QUOTES
+           ============================================================ */
+        .quotes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0 3rem;
+        }
+
+        .quote-card {
+            padding: 1.5rem;
+            border-left: 3px solid rgba(201, 154, 59, 0.2);
+            background: rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            position: relative;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .quote-card:hover {
+            border-left-color: var(--accent-color);
+            background: rgba(201, 154, 59, 0.03);
+        }
+
+        .quote-card .quote-icon {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.3;
+        }
+
+        .quote-card blockquote {
+            font-style: italic;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            opacity: 0.85;
+            font-family: 'Georgia', serif;
+        }
+
+        .quote-card .source {
+            display: block;
+            margin-top: 0.5rem;
+            font-style: normal;
+            font-weight: 400;
+            color: var(--accent-color);
+            opacity: 0.4;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ============================================================
+           ICON GALLERY - Small repeated icons
+           ============================================================ */
+        .icon-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 2rem 0;
+            border-top: 1px solid rgba(201, 154, 59, 0.05);
+            border-bottom: 1px solid rgba(201, 154, 59, 0.05);
+            margin: 2rem 0;
+        }
+
+        .icon-gallery .mini-icon {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.6rem 1rem;
+            border: 1px solid rgba(201, 154, 59, 0.05);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            cursor: default;
+            min-width: 60px;
+        }
+
+        .icon-gallery .mini-icon:hover {
+            border-color: var(--accent-color);
+            background: rgba(201, 154, 59, 0.05);
+            transform: scale(1.08) rotate(-2deg);
+        }
+
+        .icon-gallery .mini-icon .emoji {
+            font-size: 1.5rem;
+        }
+
+        .icon-gallery .mini-icon .tag {
+            font-size: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.3;
+        }
+
+        /* ============================================================
+           CLOSING - Discworld style
+           ============================================================ */
+        .closing {
+            text-align: center;
+            padding: 3rem 0 1rem;
+            border-top: 1px solid rgba(201, 154, 59, 0.05);
+            margin-top: 2rem;
+        }
+
+        .closing .closing-text {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--secondary-accent);
+            opacity: 0.3;
+            letter-spacing: 4px;
+            font-family: 'Georgia', serif;
+            font-style: italic;
+        }
+
+        .closing .closing-emoji {
+            display: inline-block;
+            font-size: 2rem;
+            opacity: 0.2;
+            margin: 0 0.5rem;
+            animation: gentleFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* ============================================================
+           META
+           ============================================================ */
+        .meta {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            padding: 1.5rem 0 0;
+            font-size: 0.7rem;
+            color: var(--secondary-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.3;
+        }
+
+        .meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .hero-icons {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .hero-icon-item .icon {
+                font-size: 2.5rem;
+            }
+            
+            .quotes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .book-list li {
+                font-size: 1rem;
+                padding: 0.6rem 1rem;
+            }
+            
+            .icon-gallery .mini-icon {
+                min-width: 50px;
+                padding: 0.4rem 0.6rem;
+            }
+            
+            .icon-gallery .mini-icon .emoji {
+                font-size: 1.2rem;
+            }
+            
+            .discworld-quote {
+                font-size: 1.1rem;
+            }
+            
+            .hero-ornament {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-icons {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.6rem;
+            }
+            
+            .hero-icon-item {
+                padding: 1rem 0.3rem;
+            }
+            
+            .hero-icon-item .icon {
+                font-size: 2rem;
+            }
+            
+            .hero-icon-item .label {
+                font-size: 0.55rem;
+            }
+            
+            .hero-icon-item .description {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<a href="rag-triz.html" style="position:fixed;top:16px;left:16px;z-index:999;color:var(--accent-color);font-family:var(--font-family, sans-serif);font-size:0.8rem;text-decoration:none;opacity:0.6;letter-spacing:1px;">← TRIZ + RAG</a>
+
+    <!-- ============================================================
+    PARCHMENT TEXTURE
+    ============================================================ -->
+    <div id="parchment"></div>
+    <div id="border-decoration"></div>
+
+    <!-- ============================================================
+    HERO SECTION
+    ============================================================ -->
+    <section class="hero">
+        <div class="hero-ornament">✦ ✦ ✦</div>
+        
+        <h1 class="hero-title">Terry Pratchett</h1>
+        <p class="hero-subtitle">
+            Discworld
+            <small>A flat world on the back of four elephants on a giant turtle</small>
+        </p>
+
+        <!-- Discworld quote -->
+        <div class="discworld-quote">
+            "It's not worth doing something unless you were doing something that someone, somewhere, would much rather you weren't doing."
+        </div>
+
+        <!-- BIG HERO ICONS -->
+        <div class="hero-icons">
+            <div class="hero-icon-item">
+                <span class="icon">🐢</span>
+                <span class="label">Great A'Tuin</span>
+                <span class="description">"The star turtle"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🧙</span>
+                <span class="label">Rincewind</span>
+                <span class="description">"The wizard who can't do magic"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">⚔️</span>
+                <span class="label">Vimes</span>
+                <span class="description">"Commander of the Watch"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">📦</span>
+                <span class="label">The Luggage</span>
+                <span class="description">"Sapient pearwood"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🧀</span>
+                <span class="label">Nanny Ogg</span>
+                <span class="description">"Witch and matriarch"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">👻</span>
+                <span class="label">Death</span>
+                <span class="description">"WHAT CAN THE HARVEST HOPE FOR?"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🎭</span>
+                <span class="label">Moist von Lipwig</span>
+                <span class="description">"The postmaster"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">📚</span>
+                <span class="label">Unseen University</span>
+                <span class="description">"Knowledge is power"</span>
+            </div>
+        </div>
+
+        <div class="scroll-indicator">↓ The turtle moves ↓</div>
+    </section>
+
+    <!-- ============================================================
+    MAIN CONTENT
+    ============================================================ -->
+    <div class="main-content">
+        <h2 class="section-title">The Books</h2>
+
+        <!-- BOOK LIST -->
+        <ul class="book-list">
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">The Colour of Magic <span class="series">(Discworld #1)</span></span>
+                <span class="year">1983</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">Mort <span class="series">(Discworld #4)</span></span>
+                <span class="year">1987</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">Guards! Guards! <span class="series">(Discworld #8)</span></span>
+                <span class="year">1989</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">Wyrd Sisters <span class="series">(Discworld #6)</span></span>
+                <span class="year">1988</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">Small Gods <span class="series">(Discworld #13)</span></span>
+                <span class="year">1992</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">Going Postal <span class="series">(Discworld #33)</span></span>
+                <span class="year">2004</span>
+            </li>
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">The Shepherd's Crown <span class="series">(Discworld #41)</span></span>
+                <span class="year">2015</span>
+            </li>
+        </ul>
+
+        <!-- ICON GALLERY - Small repeated icons -->
+        <div class="icon-gallery">
+            <div class="mini-icon">
+                <span class="emoji">🐢</span>
+                <span class="tag">A'Tuin</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🧙</span>
+                <span class="tag">Rincewind</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">⚔️</span>
+                <span class="tag">Vimes</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">📦</span>
+                <span class="tag">Luggage</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🧀</span>
+                <span class="tag">Nanny Ogg</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">👻</span>
+                <span class="tag">Death</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🎭</span>
+                <span class="tag">Moist</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">📚</span>
+                <span class="tag">Unseen U</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🧹</span>
+                <span class="tag">Granny</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🐉</span>
+                <span class="tag">Dragons</span>
+            </div>
+        </div>
+
+        <h2 class="section-title">Words of Wisdom</h2>
+
+        <!-- QUOTES -->
+        <div class="quotes-grid">
+            <div class="quote-card">
+                <div class="quote-icon">🧙</div>
+                <blockquote>
+                    "It's not worth doing something unless you were doing something that someone, somewhere, would much rather you weren't doing."
+                </blockquote>
+                <span class="source">— The Colour of Magic</span>
+            </div>
+            <div class="quote-card">
+                <div class="quote-icon">👻</div>
+                <blockquote>
+                    "WHAT CAN THE HARVEST HOPE FOR, IF NOT FOR THE CARE OF THE REAPER MAN?"
+                </blockquote>
+                <span class="source">— Reaper Man</span>
+            </div>
+            <div class="quote-card">
+                <div class="quote-icon">⚔️</div>
+                <blockquote>
+                    "If you trust in yourself... and believe in your dreams... and follow your star... you'll still get beaten by people who spent their time working hard and learning things and weren't so lazy."
+                </blockquote>
+                <span class="source">— The Wee Free Men</span>
+            </div>
+            <div class="quote-card">
+                <div class="quote-icon">🧀</div>
+                <blockquote>
+                    "I am not a generous man. I am not a good man. But I am a man. And I am a man of my word."
+                </blockquote>
+                <span class="source">— Vimes, Guards! Guards!</span>
+            </div>
+            <div class="quote-card" style="grid-column: 1 / -1;">
+                <div class="quote-icon">🐢</div>
+                <blockquote>
+                    "The trouble with having an open mind, of course, is that people will insist on coming along and trying to put things in it."
+                </blockquote>
+                <span class="source">— Diggers</span>
+            </div>
+        </div>
+
+        <!-- CLOSING -->
+        <div class="closing">
+            <div class="closing-text">
+                <span class="closing-emoji">🐢</span>
+                The turtle moves.
+                <span class="closing-emoji" style="animation-delay: 1s;">🌍</span>
+            </div>
+        </div>
+
+        <!-- META -->
+        <div class="meta">
+            <span>🖋️ Born: 1948</span>
+            <span>🕊️ Died: 2015</span>
+            <span>🇬🇧 British</span>
+            <span>🐢 Fantasy / Comedy</span>
+            <span>📚 Discworld</span>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script>
+        // Click on any hero icon to show a Discworld-ism
+        document.querySelectorAll('.hero-icon-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const label = this.querySelector('.label').textContent;
+                const messages = [
+                    '🐢 The turtle moves.',
+                    '🧙 Rincewind ran. He ran because he knew that sometimes you have to run.',
+                    '⚔️ "The streets are safe in Ankh-Morpork. It\'s the people who aren\'t."',
+                    '📦 The Luggage followed, with a sound like a contented hippo.',
+                    '🧀 "The good thing about being a witch is that you don\'t have to be a good person."',
+                    '👻 "THERE IS NO JUSTICE. THERE IS JUST US."',
+                    '🎭 "I believe in stories. I believe that stories are important."',
+                    '📚 "Knowledge is power. Power is money. Money is power."'
+                ];
+                const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                alert(randomMsg);
+            });
+        });
+
+        // Console Easter Egg
+        console.log('%c🐢 The turtle moves. 🐢', 'font-size: 24px; color: #c99a3b;');
+        console.log('%c📚 Terry Pratchett — Discworld', 'font-size: 16px; color: #efe4c6;');
+        console.log('%c🧙 "It\'s not worth doing unless you were doing something that someone, somewhere, would much rather you weren\'t doing."', 'font-size: 14px; color: #c99a3b;');
+
+        // Random ornament generator for fun
+        setInterval(() => {
+            const ornaments = ['✦', '✧', '❋', '❁', '✦', '✧'];
+            const el = document.querySelector('.hero-ornament');
+            if (el) {
+                const randomOrnament = ornaments[Math.floor(Math.random() * ornaments.length)];
+                el.textContent = `${randomOrnament} ${randomOrnament} ${randomOrnament}`;
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
+</html>

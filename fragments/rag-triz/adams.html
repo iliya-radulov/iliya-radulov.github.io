@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Douglas Adams - The Hitchhiker's Guide to the Galaxy</title>
+    <style>
+        /* ============================================================
+           THEME VARIABLES
+           ============================================================ */
+        :root {
+            --bg-color: #0a0f1a;
+            --text-color: #e0e6f0;
+            --accent-color: #f7c948;
+            --secondary-accent: #4a9eff;
+            --font-family: 'Courier New', monospace;
+            --border-style: 2px solid var(--accent-color);
+        }
+
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ============================================================
+           STARS BACKGROUND
+           ============================================================ */
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* ============================================================
+           HERO SECTION - All the big icons
+           ============================================================ */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(10, 15, 26, 0.6) 0%, rgba(10, 15, 26, 0.9) 100%);
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-shadow: 0 0 60px rgba(247, 201, 72, 0.2);
+            margin-bottom: 0.5rem;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.8rem;
+            color: var(--secondary-accent);
+            font-weight: 300;
+            letter-spacing: 4px;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        /* Hero Icons Grid - BIG */
+        .hero-icons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2.5rem;
+            max-width: 800px;
+            width: 100%;
+            margin: 2rem auto;
+        }
+
+        .hero-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.5rem 1rem;
+            border: 1px solid rgba(247, 201, 72, 0.15);
+            border-radius: 12px;
+            background: rgba(10, 15, 26, 0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .hero-icon-item:hover {
+            transform: translateY(-10px) scale(1.05);
+            border-color: var(--accent-color);
+            box-shadow: 0 10px 40px rgba(247, 201, 72, 0.15);
+            background: rgba(247, 201, 72, 0.05);
+        }
+
+        .hero-icon-item .icon {
+            font-size: 4rem;
+            line-height: 1;
+        }
+
+        .hero-icon-item .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .hero-icon-item .description {
+            font-size: 0.7rem;
+            color: var(--secondary-accent);
+            opacity: 0.5;
+            font-style: italic;
+        }
+
+        /* DON'T PANIC Big Button in Hero */
+        .panic-hero {
+            margin: 2.5rem auto 0;
+        }
+
+        .panic-button {
+            display: inline-block;
+            padding: 1.2rem 4rem;
+            background: var(--accent-color);
+            color: #0a0f1a;
+            font-family: var(--font-family);
+            font-size: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 60px rgba(247, 201, 72, 0.2);
+            position: relative;
+        }
+
+        .panic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 80px rgba(247, 201, 72, 0.4);
+        }
+
+        .panic-button:active {
+            transform: scale(0.95);
+        }
+
+        .panic-button .small-text {
+            display: block;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            opacity: 0.6;
+            font-weight: 300;
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            margin-top: 4rem;
+            color: var(--secondary-accent);
+            opacity: 0.3;
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            animation: bounceDown 2s ease-in-out infinite;
+        }
+
+        @keyframes bounceDown {
+            0%, 100% { transform: translateY(0); opacity: 0.3; }
+            50% { transform: translateY(10px); opacity: 0.8; }
+        }
+
+        /* ============================================================
+           MAIN CONTENT - With small icons
+           ============================================================ */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            text-align: center;
+            margin-bottom: 3rem;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 2px;
+            background: var(--accent-color);
+            margin: 0.5rem auto;
+            opacity: 0.3;
+        }
+
+        /* ============================================================
+           BOOK LIST WITH SMALL ICONS
+           ============================================================ */
+        .book-list {
+            list-style: none;
+            margin: 2rem 0 3rem;
+        }
+
+        .book-list li {
+            font-size: 1.3rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .book-list li:hover {
+            border-color: var(--accent-color);
+            background: rgba(247, 201, 72, 0.03);
+            transform: translateX(5px);
+        }
+
+        .book-list .book-icon {
+            font-size: 1.8rem;
+            opacity: 0.6;
+        }
+
+        .book-list .title {
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .book-list .year {
+            font-size: 0.8rem;
+            color: var(--secondary-accent);
+            opacity: 0.6;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================================
+           QUOTES WITH ICONS
+           ============================================================ */
+        .quotes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0 3rem;
+        }
+
+        .quote-card {
+            padding: 1.5rem;
+            border-left: 3px solid var(--accent-color);
+            background: rgba(255,255,255,0.02);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .quote-card:hover {
+            background: rgba(247, 201, 72, 0.03);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .quote-card .quote-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+
+        .quote-card blockquote {
+            font-style: italic;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            opacity: 0.85;
+        }
+
+        .quote-card .source {
+            display: block;
+            margin-top: 0.5rem;
+            font-style: normal;
+            font-weight: 600;
+            color: var(--accent-color);
+            opacity: 0.6;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================================
+           ICON GALLERY - Small repeated icons
+           ============================================================ */
+        .icon-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin: 2rem 0;
+        }
+
+        .icon-gallery .mini-icon {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.8rem 1.2rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.02);
+            transition: all 0.3s ease;
+            cursor: default;
+            min-width: 80px;
+        }
+
+        .icon-gallery .mini-icon:hover {
+            border-color: var(--accent-color);
+            background: rgba(247, 201, 72, 0.05);
+            transform: scale(1.1);
+        }
+
+        .icon-gallery .mini-icon .emoji {
+            font-size: 1.8rem;
+        }
+
+        .icon-gallery .mini-icon .tag {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.4;
+        }
+
+        /* ============================================================
+           FISH CLOSING
+           ============================================================ */
+        .fish-closing {
+            text-align: center;
+            padding: 3rem 0 1rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 2rem;
+        }
+
+        .fish-closing .fish-text {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--secondary-accent);
+            opacity: 0.6;
+            letter-spacing: 3px;
+            animation: fishPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes fishPulse {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+
+        .fish-closing .fish-emoji {
+            display: inline-block;
+            animation: fishSwim 4s ease-in-out infinite;
+            font-size: 2.5rem;
+        }
+
+        @keyframes fishSwim {
+            0%, 100% { transform: translateX(-30px) rotate(-5deg); }
+            50% { transform: translateX(30px) rotate(5deg); }
+        }
+
+        /* ============================================================
+           META INFO
+           ============================================================ */
+        .meta {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            padding: 1.5rem 0 0;
+            font-size: 0.8rem;
+            color: var(--secondary-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+        }
+
+        .meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ============================================================
+           MARVIN - Small corner version
+           ============================================================ */
+        #marvin-corner {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            opacity: 0.08;
+            pointer-events: none;
+            font-size: 3rem;
+            animation: floatMarvin 20s ease-in-out infinite;
+        }
+
+        @keyframes floatMarvin {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .hero-icons {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .hero-icon-item .icon {
+                font-size: 2.5rem;
+            }
+            
+            .quotes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .panic-button {
+                font-size: 1.3rem;
+                padding: 0.8rem 2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .book-list li {
+                font-size: 1rem;
+                padding: 0.8rem 1rem;
+            }
+            
+            .icon-gallery .mini-icon {
+                min-width: 60px;
+                padding: 0.5rem 0.8rem;
+            }
+            
+            .icon-gallery .mini-icon .emoji {
+                font-size: 1.3rem;
+            }
+            
+            #marvin-corner {
+                font-size: 2rem;
+                bottom: 10px;
+                right: 10px;
+                opacity: 0.05;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-icons {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.8rem;
+            }
+            
+            .hero-icon-item {
+                padding: 1rem 0.5rem;
+            }
+            
+            .hero-icon-item .icon {
+                font-size: 2rem;
+            }
+            
+            .hero-icon-item .label {
+                font-size: 0.6rem;
+            }
+            
+            .hero-icon-item .description {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<a href="rag-triz.html" style="position:fixed;top:16px;left:16px;z-index:999;color:var(--accent-color);font-family:var(--font-family, sans-serif);font-size:0.8rem;text-decoration:none;opacity:0.6;letter-spacing:1px;">← TRIZ + RAG</a>
+
+    <!-- ============================================================
+    STARS BACKGROUND
+    ============================================================ -->
+    <div id="stars"></div>
+
+    <!-- ============================================================
+    MARVIN - Corner cameo
+    ============================================================ -->
+    <div id="marvin-corner">🤖</div>
+
+    <!-- ============================================================
+    HERO SECTION - Big icons
+    ============================================================ -->
+    <section class="hero">
+        <h1 class="hero-title">Douglas Adams</h1>
+        <p class="hero-subtitle">The Hitchhiker's Guide to the Galaxy</p>
+
+        <!-- BIG HERO ICONS -->
+        <div class="hero-icons">
+            <div class="hero-icon-item">
+                <span class="icon">🧣</span>
+                <span class="label">Towel</span>
+                <span class="description">"A towel is the most useful thing"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🌍</span>
+                <span class="label">Earth</span>
+                <span class="description">"Mostly harmless"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🚜</span>
+                <span class="label">Bulldozer</span>
+                <span class="description">"Bypass planning permission"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">📅</span>
+                <span class="label">Thursday</span>
+                <span class="description">"I never could get the hang of"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🐬</span>
+                <span class="label">Dolphins</span>
+                <span class="description">"So long, and thanks"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🌌</span>
+                <span class="label">42</span>
+                <span class="description">"The answer to everything"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">🤖</span>
+                <span class="label">Marvin</span>
+                <span class="description">"The Paranoid Android"</span>
+            </div>
+            <div class="hero-icon-item">
+                <span class="icon">📖</span>
+                <span class="label">The Guide</span>
+                <span class="description">"DON'T PANIC"</span>
+            </div>
+        </div>
+
+        <!-- DON'T PANIC BUTTON -->
+        <div class="panic-hero">
+            <button class="panic-button" onclick="togglePanic(this)">
+                DON'T PANIC
+                <span class="small-text">(in large, friendly letters)</span>
+            </button>
+        </div>
+
+        <div class="scroll-indicator">↓ Scroll for more ↓</div>
+    </section>
+
+    <!-- ============================================================
+    MAIN CONTENT - Small icons repeated
+    ============================================================ -->
+    <div class="main-content">
+        <h2 class="section-title">The Books</h2>
+
+        <!-- BOOK LIST with small icons -->
+        <ul class="book-list">
+            <li>
+                <span class="book-icon">📚</span>
+                <span class="title">The Hitchhiker's Guide to the Galaxy</span>
+                <span class="year">1979</span>
+            </li>
+            <li>
+                <span class="book-icon">🌌</span>
+                <span class="title">The Restaurant at the End of the Universe</span>
+                <span class="year">1980</span>
+            </li>
+            <li>
+                <span class="book-icon">🌍</span>
+                <span class="title">Life, the Universe and Everything</span>
+                <span class="year">1982</span>
+            </li>
+            <li>
+                <span class="book-icon">🐬</span>
+                <span class="title">So Long, and Thanks for All the Fish</span>
+                <span class="year">1984</span>
+            </li>
+            <li>
+                <span class="book-icon">📖</span>
+                <span class="title">Mostly Harmless</span>
+                <span class="year">1992</span>
+            </li>
+        </ul>
+
+        <!-- ICON GALLERY - Small repeated icons -->
+        <div class="icon-gallery">
+            <div class="mini-icon">
+                <span class="emoji">🧣</span>
+                <span class="tag">Towel</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🌍</span>
+                <span class="tag">Earth</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🚜</span>
+                <span class="tag">Bulldozer</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">📅</span>
+                <span class="tag">Thursday</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🐬</span>
+                <span class="tag">Dolphins</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🌌</span>
+                <span class="tag">42</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🤖</span>
+                <span class="tag">Marvin</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">📖</span>
+                <span class="tag">Guide</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">☕</span>
+                <span class="tag">Tea</span>
+            </div>
+            <div class="mini-icon">
+                <span class="emoji">🪐</span>
+                <span class="tag">Magrathea</span>
+            </div>
+        </div>
+
+        <h2 class="section-title">Words of Wisdom</h2>
+
+        <!-- QUOTES with small icons -->
+        <div class="quotes-grid">
+            <div class="quote-card">
+                <div class="quote-icon">💭</div>
+                <blockquote>
+                    "The answer to the ultimate question of life, the universe, and everything is..."
+                </blockquote>
+                <span class="source">— Deep Thought</span>
+            </div>
+            <div class="quote-card">
+                <div class="quote-icon">⏰</div>
+                <blockquote>
+                    "I love deadlines. I love the whooshing sound they make as they fly by."
+                </blockquote>
+                <span class="source">— Douglas Adams</span>
+            </div>
+            <div class="quote-card">
+                <div class="quote-icon">🚀</div>
+                <blockquote>
+                    "The ships hung in the sky in much the same way that bricks don't."
+                </blockquote>
+                <span class="source">— The Hitchhiker's Guide</span>
+            </div>
+            <div class="quote-card">
+                <div class="quote-icon">🌍</div>
+                <blockquote>
+                    "Mostly harmless."
+                </blockquote>
+                <span class="source">— The Hitchhiker's Guide entry for Earth</span>
+            </div>
+            <div class="quote-card" style="grid-column: 1 / -1;">
+                <div class="quote-icon">😤</div>
+                <blockquote>
+                    "The story so far: In the beginning the Universe was created. This has made a lot of people very angry and been widely regarded as a bad move."
+                </blockquote>
+                <span class="source">— The Restaurant at the End of the Universe</span>
+            </div>
+        </div>
+
+        <!-- FISH CLOSING -->
+        <div class="fish-closing">
+            <div class="fish-text">
+                <span class="fish-emoji">🐬</span>
+                So long, and thanks for all the fish
+                <span class="fish-emoji" style="animation-delay: 0.5s;">🐟</span>
+            </div>
+        </div>
+
+        <!-- META -->
+        <div class="meta">
+            <span>🖋️ Born: 1952</span>
+            <span>🕊️ Died: 2001</span>
+            <span>🇬🇧 British</span>
+            <span>🚀 Sci-Fi / Comedy</span>
+            <span>🔢 42</span>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script>
+        // Generate stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 3 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+            star.style.animationDelay = (Math.random() * 5) + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // Toggle Panic button
+        function togglePanic(btn) {
+            if (btn.innerHTML.includes('DON\'T PANIC')) {
+                btn.innerHTML = `
+                    👍 OKAY, RELAX
+                    <span class="small-text">(you\'re probably fine)</span>
+                `;
+            } else {
+                btn.innerHTML = `
+                    DON'T PANIC
+                    <span class="small-text">(in large, friendly letters)</span>
+                `;
+            }
+        }
+
+        // Console Easter Egg
+        console.log('%c🌌 DON\'T PANIC! 🌌', 'font-size: 24px; color: #f7c948;');
+        console.log('%c📖 The Hitchhiker\'s Guide to the Galaxy', 'font-size: 16px; color: #4a9eff;');
+        console.log('%c🐬 So long, and thanks for all the fish!', 'font-size: 14px; color: #88dd88;');
+
+        // Click on any hero icon to show a toast message
+        document.querySelectorAll('.hero-icon-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const label = this.querySelector('.label').textContent;
+                const emoji = this.querySelector('.icon').textContent;
+                alert(`${emoji} ${label}!`);
+            });
+        });
+    </script>
+</body>
+</html>

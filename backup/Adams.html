@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Douglas Adams - The Hitchhiker's Guide to the Galaxy</title>
+    <style>
+        /* ============================================================
+           THEME VARIABLES - HITCHHIKER'S GUIDE
+           ============================================================ */
+        :root {
+            --bg-color: #0a0f1a;
+            --text-color: #e0e6f0;
+            --accent-color: #f7c948;
+            --secondary-accent: #4a9eff;
+            --font-family: 'Courier New', monospace;
+            --border-style: 2px solid var(--accent-color);
+            --glow-effect: 0 0 20px rgba(247, 201, 72, 0.2);
+        }
+
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ============================================================
+           ANIMATED STARS BACKGROUND
+           ============================================================ */
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* ============================================================
+           MARVIN - CSS ART CHARACTER (Background)
+           ============================================================ */
+        #marvin-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 120px;
+            height: 200px;
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
+            animation: floatMarvin 20s ease-in-out infinite;
+        }
+
+        @keyframes floatMarvin {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+
+        .marvin-body {
+            position: relative;
+            width: 80px;
+            height: 140px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, #3a3a3a, #1a1a1a);
+            border-radius: 40px 40px 20px 20px;
+            border: 2px solid #555;
+            box-shadow: inset -10px 0 20px rgba(0,0,0,0.5);
+        }
+
+        .marvin-head {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle at 30% 30%, #4a4a4a, #2a2a2a);
+            border-radius: 50%;
+            margin: -30px auto 0;
+            border: 2px solid #555;
+            position: relative;
+            box-shadow: inset -8px -8px 15px rgba(0,0,0,0.6);
+        }
+
+        .marvin-eye {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle at 40% 40%, #ff6b6b, #cc0000);
+            border-radius: 50%;
+            top: 20px;
+            border: 2px solid #333;
+            animation: sadEye 4s ease-in-out infinite;
+        }
+
+        .marvin-eye.left { left: 10px; }
+        .marvin-eye.right { right: 10px; }
+
+        .marvin-eye::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            opacity: 0.6;
+        }
+
+        @keyframes sadEye {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.8) rotate(-5deg); }
+        }
+
+        .marvin-mouth {
+            width: 20px;
+            height: 4px;
+            background: #555;
+            border-radius: 2px;
+            margin: 8px auto 0;
+            position: relative;
+        }
+
+        .marvin-mouth::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #333;
+            border-radius: 50%;
+            top: -2px;
+            left: 7px;
+        }
+
+        .marvin-arm {
+            position: absolute;
+            width: 12px;
+            height: 50px;
+            background: linear-gradient(180deg, #3a3a3a, #222);
+            border-radius: 6px;
+            top: 40px;
+            border: 1px solid #444;
+        }
+
+        .marvin-arm.left {
+            left: -10px;
+            transform: rotate(15deg);
+            animation: armSwing 6s ease-in-out infinite;
+        }
+
+        .marvin-arm.right {
+            right: -10px;
+            transform: rotate(-25deg);
+            animation: armSwing 6s ease-in-out infinite reverse;
+        }
+
+        @keyframes armSwing {
+            0%, 100% { transform: rotate(15deg); }
+            50% { transform: rotate(-5deg); }
+        }
+
+        .marvin-leg {
+            position: absolute;
+            width: 14px;
+            height: 30px;
+            background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+            border-radius: 0 0 7px 7px;
+            bottom: -30px;
+            border: 1px solid #444;
+        }
+
+        .marvin-leg.left { left: 18px; }
+        .marvin-leg.right { right: 18px; }
+
+        /* ============================================================
+           FLOATING EASTER EGG ELEMENTS
+           ============================================================ */
+        .floating-item {
+            position: fixed;
+            z-index: 1;
+            pointer-events: none;
+            font-size: 2.5rem;
+            opacity: 0.12;
+            animation: floatAround 30s linear infinite;
+        }
+
+        @keyframes floatAround {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            25% { transform: translate(100px, -50px) rotate(90deg) scale(1.2); }
+            50% { transform: translate(50px, -100px) rotate(180deg) scale(0.8); }
+            75% { transform: translate(-50px, -30px) rotate(270deg) scale(1.1); }
+            100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+        }
+
+        /* Specific items with different speeds */
+        .item-towel { 
+            top: 15%; 
+            left: 5%; 
+            animation-duration: 35s; 
+            font-size: 3rem;
+            opacity: 0.1;
+        }
+        .item-planet { 
+            top: 60%; 
+            right: 8%; 
+            animation-duration: 40s; 
+            font-size: 3.5rem;
+            opacity: 0.08;
+        }
+        .item-bulldozer { 
+            bottom: 30%; 
+            left: 3%; 
+            animation-duration: 45s; 
+            font-size: 2.8rem;
+            opacity: 0.09;
+        }
+        .item-thursday { 
+            top: 40%; 
+            right: 3%; 
+            animation-duration: 25s; 
+            font-size: 2rem;
+            opacity: 0.15;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        /* ============================================================
+           MAIN CONTENT CONTAINER
+           ============================================================ */
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 2.5rem;
+            border: var(--border-style);
+            box-shadow: var(--glow-effect);
+            position: relative;
+            z-index: 2;
+            background: rgba(10, 15, 26, 0.85);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        /* ============================================================
+           TYPOGRAPHY
+           ============================================================ */
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            letter-spacing: -1px;
+            margin-bottom: 0.25rem;
+            line-height: 1.1;
+            text-shadow: 0 0 30px rgba(247, 201, 72, 0.15);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            color: var(--secondary-accent);
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            border-bottom: 1px dashed var(--secondary-accent);
+            padding-bottom: 0.75rem;
+        }
+
+        /* ============================================================
+           DON'T PANIC BUTTON
+           ============================================================ */
+        .panic-container {
+            text-align: center;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .panic-button {
+            display: inline-block;
+            padding: 0.8rem 2.5rem;
+            background: var(--accent-color);
+            color: #0a0f1a;
+            font-family: var(--font-family);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 0 30px rgba(247, 201, 72, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(247, 201, 72, 0.4);
+        }
+
+        .panic-button:active {
+            transform: scale(0.95);
+        }
+
+        .panic-button .small-text {
+            display: block;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            font-weight: 300;
+        }
+
+        /* ============================================================
+           BOOK LIST WITH ICONS
+           ============================================================ */
+        .book-list {
+            list-style: none;
+            margin: 2rem 0;
+        }
+
+        .book-list li {
+            font-size: 1.4rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .book-list li:hover {
+            padding-left: 0.5rem;
+            border-bottom-color: var(--accent-color);
+        }
+
+        .book-list li::before {
+            content: "✦";
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        .book-list .title {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .book-list .year {
+            font-size: 0.8rem;
+            color: var(--secondary-accent);
+            opacity: 0.7;
+            margin-left: auto;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================================
+           QUOTES SECTION
+           ============================================================ */
+        .quotes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .quote-card {
+            padding: 1rem 1.2rem;
+            border-left: 3px solid var(--accent-color);
+            background: rgba(255,255,255,0.03);
+            font-style: italic;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            opacity: 0.85;
+            transition: all 0.3s ease;
+        }
+
+        .quote-card:hover {
+            opacity: 1;
+            background: rgba(247, 201, 72, 0.05);
+            transform: translateX(5px);
+        }
+
+        .quote-card .source {
+            display: block;
+            margin-top: 0.3rem;
+            font-style: normal;
+            font-weight: 600;
+            color: var(--accent-color);
+            opacity: 0.7;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .quote-full {
+            margin: 2rem 0 1.5rem;
+            padding: 1.5rem 2rem;
+            border-left: 4px solid var(--accent-color);
+            background: rgba(255,255,255,0.03);
+            font-style: italic;
+            font-size: 1.2rem;
+            color: var(--text-color);
+            opacity: 0.9;
+            text-align: center;
+        }
+
+        .quote-full .quote-author {
+            display: block;
+            margin-top: 0.5rem;
+            font-style: normal;
+            font-weight: 600;
+            color: var(--accent-color);
+            opacity: 0.8;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================================
+           FISH ANIMATION (Closing)
+           ============================================================ */
+        .fish-container {
+            text-align: center;
+            margin: 2.5rem 0 1rem;
+            padding: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .fish-text {
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: var(--secondary-accent);
+            opacity: 0.7;
+            letter-spacing: 3px;
+            animation: fishPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes fishPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .fish-emoji {
+            display: inline-block;
+            animation: fishSwim 4s ease-in-out infinite;
+            font-size: 2rem;
+            margin: 0 0.5rem;
+        }
+
+        @keyframes fishSwim {
+            0%, 100% { transform: translateX(-20px) rotate(-5deg); }
+            50% { transform: translateX(20px) rotate(5deg); }
+        }
+
+        /* ============================================================
+           META INFO
+           ============================================================ */
+        .meta {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 0.85rem;
+            color: var(--secondary-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .meta span::before {
+            content: "◆";
+            color: var(--accent-color);
+            font-size: 0.6rem;
+            opacity: 0.5;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .quotes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1.5rem 1rem;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .book-list li {
+                font-size: 1.1rem;
+                flex-wrap: wrap;
+            }
+            
+            .book-list .year {
+                margin-left: 0;
+                width: 100%;
+                padding-left: 2rem;
+            }
+            
+            #marvin-container {
+                width: 80px;
+                height: 140px;
+                bottom: 10px;
+                right: 10px;
+                opacity: 0.1;
+            }
+            
+            .marvin-body {
+                width: 60px;
+                height: 100px;
+            }
+            
+            .marvin-head {
+                width: 45px;
+                height: 45px;
+                margin-top: -22px;
+            }
+            
+            .marvin-eye {
+                width: 12px;
+                height: 12px;
+                top: 15px;
+            }
+            
+            .marvin-eye.left { left: 7px; }
+            .marvin-eye.right { right: 7px; }
+            
+            .floating-item {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panic-button {
+                font-size: 1.2rem;
+                padding: 0.6rem 1.5rem;
+            }
+            
+            .quote-full {
+                font-size: 1rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ============================================================
+    STARS BACKGROUND (Generated by JS)
+    ============================================================ -->
+    <div id="stars"></div>
+
+    <!-- ============================================================
+    MARVIN THE PARANOID ANDROID (CSS Art)
+    ============================================================ -->
+    <div id="marvin-container">
+        <div class="marvin-head">
+            <div class="marvin-eye left"></div>
+            <div class="marvin-eye right"></div>
+            <div class="marvin-mouth"></div>
+        </div>
+        <div class="marvin-body">
+            <div class="marvin-arm left"></div>
+            <div class="marvin-arm right"></div>
+            <div class="marvin-leg left"></div>
+            <div class="marvin-leg right"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    FLOATING EASTER EGGS
+    ============================================================ -->
+    <div class="floating-item item-towel">🧣</div>
+    <div class="floating-item item-planet">🌍</div>
+    <div class="floating-item item-bulldozer">🚜</div>
+    <div class="floating-item item-thursday">📅 IT'S THURSDAY</div>
+
+    <!-- ============================================================
+    MAIN CONTENT
+    ============================================================ -->
+    <div class="container">
+        <h1>Douglas Adams</h1>
+        <div class="subtitle">The Hitchhiker's Guide to the Galaxy</div>
+
+        <!-- DON'T PANIC BUTTON -->
+        <div class="panic-container">
+            <button class="panic-button" onclick="this.innerHTML = this.innerHTML === 'DON\'T PANIC' ? '👍 OKAY, RELAX' : 'DON\'T PANIC'">
+                DON'T PANIC
+                <span class="small-text">(in large, friendly letters)</span>
+            </button>
+        </div>
+
+        <!-- BOOK LIST -->
+        <ul class="book-list">
+            <li>
+                <span class="title">The Hitchhiker's Guide to the Galaxy</span>
+                <span class="year">1979</span>
+            </li>
+            <li>
+                <span class="title">The Restaurant at the End of the Universe</span>
+                <span class="year">1980</span>
+            </li>
+            <li>
+                <span class="title">Life, the Universe and Everything</span>
+                <span class="year">1982</span>
+            </li>
+            <li>
+                <span class="title">So Long, and Thanks for All the Fish</span>
+                <span class="year">1984</span>
+            </li>
+            <li>
+                <span class="title">Mostly Harmless</span>
+                <span class="year">1992</span>
+            </li>
+        </ul>
+
+        <!-- QUOTES GRID -->
+        <div class="quotes-grid">
+            <div class="quote-card">
+                "The answer to the ultimate question of life, the universe, and everything is..."
+                <span class="source">— Deep Thought</span>
+            </div>
+            <div class="quote-card">
+                "I love deadlines. I love the whooshing sound they make as they fly by."
+                <span class="source">— Douglas Adams</span>
+            </div>
+            <div class="quote-card">
+                "The ships hung in the sky in much the same way that bricks don't."
+                <span class="source">— The Hitchhiker's Guide</span>
+            </div>
+            <div class="quote-card">
+                "Mostly harmless."
+                <span class="source">— The Hitchhiker's Guide entry for Earth</span>
+            </div>
+        </div>
+
+        <!-- FULL QUOTE -->
+        <div class="quote-full">
+            “The story so far: In the beginning the Universe was created. This has made a lot of people very angry and been widely regarded as a bad move.”
+            <span class="quote-author">— The Restaurant at the End of the Universe</span>
+        </div>
+
+        <!-- FISH CLOSING -->
+        <div class="fish-container">
+            <div class="fish-text">
+                <span class="fish-emoji">🐬</span>
+                So long, and thanks for all the fish
+                <span class="fish-emoji" style="animation-delay: 0.5s;">🐟</span>
+            </div>
+        </div>
+
+        <!-- META INFO -->
+        <div class="meta">
+            <span>Born: 1952</span>
+            <span>Died: 2001</span>
+            <span>Nationality: British</span>
+            <span>Genre: Science Fiction / Comedy</span>
+            <span>🌌 42</span>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT - Generate Stars
+    ============================================================ -->
+    <script>
+        // Generate twinkling stars
+        const starsContainer = document.getElementById('stars');
+        const starCount = 150;
+
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 3 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+            star.style.animationDelay = (Math.random() * 5) + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // Console Easter Egg
+        console.log('%c🌌 DON\'T PANIC! 🌌', 'font-size: 24px; color: #f7c948;');
+        console.log('%cThe answer to life, the universe, and everything is 42', 'font-size: 16px; color: #4a9eff;');
+        console.log('%c🐬 So long, and thanks for all the fish!', 'font-size: 14px; color: #88dd88;');
+    </script>
+</body>
+</html>
