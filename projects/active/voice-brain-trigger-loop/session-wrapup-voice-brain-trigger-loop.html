@@ -1,0 +1,159 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Wrap-Up — Phase 4/5: Voice→Brain Local Trigger Loop — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">← Back to the roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project</div>
+    <h1>Session Wrap-Up — Phase 4/5: Voice→Brain Local Trigger Loop</h1>
+    <p class="subtitle">Two sessions: first, proving <code>voice</code> and <code>brain</code> could talk to each other at all; second, wiring in local speech recognition and text-to-speech to close the loop. First real integration work on Phase 4 (Vision) / Phase 5 (Voice) since the roadmap flagged them as overdue.</p>
+
+    <div class="abstract-box">
+      <strong>Result:</strong> a complete, closed-loop, fully local/offline pipeline is now proven working — spoken trigger phrase (Vosk) → HTTP request (<code>voice</code> → <code>brain</code>) → response (Flask) → spoken reply (Piper). No cloud dependency anywhere in the chain.
+    </div>
+
+    <h2>Session 1 — Proving the Network Link (brain ↔ voice)</h2>
+    <p><strong>Goal:</strong> nothing about the arm or camera yet — just confirm the two Pis can send a request and get a response, as the minimum missing plumbing.</p>
+
+    <h3>On brain</h3>
+    <pre><code>pip install flask --break-system-packages</code></pre>
+    <p>Created <code>~/test_server.py</code>:</p>
+    <pre><code>from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/ping')
+def ping():
+    print("Got a request!")
+    return {"status": "ok", "message": "brain received it"}
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)</code></pre>
+    <p>Left running as the server — confirmed listening on <code>brain</code>'s IP (noted as <code>192.168.2.94</code> at the time; worth re-checking each session, since Pi IPs can change on reboot/reconnect).</p>
+
+    <h3>On voice</h3>
+    <pre><code>curl http://192.168.2.94:5000/ping</code></pre>
+    <p><strong>Result:</strong> <code>{"message":"brain received it","status":"ok"}</code> — confirmed on <code>voice</code>'s side, and <code>brain</code>'s terminal simultaneously printed:</p>
+    <pre><code>Got a request!
+192.168.2.44 - - [25/Aug/2026 12:09:33] "GET /ping HTTP/1.1" 200 -</code></pre>
+    <div class="abstract-box"><strong>Outcome:</strong> first-ever successful communication between the two Pis. This was the actual missing piece — arm control and camera capture had both already been proven independently; the network link between them had never been built until this session.</div>
+
+    <h2>Session 2 — Local Speech Recognition + Trigger + Spoken Reply</h2>
+    <p><strong>Goal:</strong> replace the manual <code>curl</code> with <code>voice</code> actually <em>hearing</em> a trigger phrase and sending the request automatically, then speaking the response back — all offline, no cloud.</p>
+
+    <h3>Discovering there was no existing STT on this board</h3>
+    <pre><code>find ~ -name "*.py" | grep -i -E "speech|cloud|stt"</code></pre>
+    <p>Returned nothing relevant — confirmed the original Google Cloud STT setup lives only on the <em>old</em> archived AIY Voice Kit board, not this <code>voice</code>/<code>head</code> Pi (set up fresh, separately, for Piper TTS testing). Decided to go <strong>local/offline (Vosk)</strong> rather than reconnect Google Cloud here, matching the project's broader "move away from cloud dependency" direction.</p>
+
+    <h3>Installing Vosk</h3>
+    <pre><code>pip install vosk sounddevice --break-system-packages</code></pre>
+    <pre><code>cd ~
+wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+unzip vosk-model-small-en-us-0.15.zip</code></pre>
+
+    <h3>Bug 1 — PortAudio missing</h3>
+    <pre><code>OSError: PortAudio library not found</code></pre>
+    <p><code>sounddevice</code> is a Python wrapper around a system library that needs installing separately:</p>
+    <pre><code>sudo apt-get install -y libportaudio2</code></pre>
+
+    <h3>Bug 2 — Wrong sample rate</h3>
+    <pre><code>sounddevice.PortAudioError: Error opening RawInputStream: Invalid sample rate [PaErrorCode -9997]</code></pre>
+    <p>The initial test script assumed 16000Hz (Vosk's typical example rate), but the Voice HAT's sound card doesn't support that directly. Checked available devices:</p>
+    <pre><code>python3 -c "import sounddevice as sd; print(sd.query_devices())"</code></pre>
+    <p>Found the Voice HAT at <strong>device index 1</strong>, and confirmed it needed its native <strong>48000Hz</strong> (same rate established back during the original TTS speaker testing) — Vosk resamples internally regardless of input rate, so this was just a matter of telling it the correct rate to expect.</p>
+
+    <h3>Working basic STT test (<code>test_vosk.py</code>)</h3>
+    <pre><code>import sounddevice as sd
+import vosk
+import json
+
+model = vosk.Model("vosk-model-small-en-us-0.15")
+recognizer = vosk.KaldiRecognizer(model, 48000)
+
+def callback(indata, frames, time, status):
+    if recognizer.AcceptWaveform(bytes(indata)):
+        result = json.loads(recognizer.Result())
+        if result.get("text"):
+            print("You said:", result["text"])
+
+with sd.RawInputStream(device=1, samplerate=48000, blocksize=24000, dtype='int16', channels=1, callback=callback):
+    print("Listening... (Ctrl+C to stop)")
+    while True:
+        sd.sleep(1000)</code></pre>
+    <p>Confirmed working — correctly transcribed most phrases locally, no internet involved. The small model trades some accuracy for its tiny (~50MB) size (e.g. one instance of "you hear me" mis-heard as "the hear me") — acceptable for a fixed trigger-phrase use case.</p>
+
+    <h3>Full loop — trigger detection + network call + spoken reply (<code>test_voice_trigger.py</code>)</h3>
+    <pre><code>pip install requests --break-system-packages</code></pre>
+    <pre><code>import sounddevice as sd
+import vosk
+import json
+import requests
+import subprocess
+
+model = vosk.Model("vosk-model-small-en-us-0.15")
+recognizer = vosk.KaldiRecognizer(model, 48000)
+
+TRIGGER_PHRASE = "hey brain"
+
+def speak(text):
+    subprocess.run(
+        f'echo "{text}" | piper --model ~/piper-voices/bg/bg_BG-dimitar-medium.onnx --output_file /tmp/response.wav && aplay -D plughw:1,0 /tmp/response.wav',
+        shell=True
+    )
+
+def callback(indata, frames, time, status):
+    if recognizer.AcceptWaveform(bytes(indata)):
+        result = json.loads(recognizer.Result())
+        text = result.get("text", "")
+        if text:
+            print("You said:", text)
+            if TRIGGER_PHRASE in text:
+                print("Trigger heard! Sending request to brain...")
+                response = requests.get("http://192.168.2.94:5000/ping")
+                print("Brain says:", response.json())
+                speak("Готово.")  # "Done." in Bulgarian
+
+with sd.RawInputStream(device=1, samplerate=48000, blocksize=24000, dtype='int16', channels=1, callback=callback):
+    print(f"Listening for '{TRIGGER_PHRASE}'... (Ctrl+C to stop)")
+    while True:
+        sd.sleep(1000)</code></pre>
+
+    <p><strong>Confirmed working end to end:</strong></p>
+    <pre><code>You said: hey brain
+Trigger heard! Sending request to brain...
+Brain says: {'message': 'brain received it', 'status': 'ok'}
+Playing WAVE '/tmp/response.wav' : Signed 16 bit Little Endian, Rate 22050 Hz, Mono</code></pre>
+    <p>(The <code>onnxruntime</code> GPU-detection warnings that print alongside this are harmless — no GPU present, falls back to CPU automatically, same as seen during all earlier Piper testing.)</p>
+
+    <h2>Camera Note (informational, not acted on)</h2>
+    <p>Found an old <strong>OV5647</strong> camera module. Confirmed it works natively on <code>brain</code>'s CSI port (original Pi camera sensor, built-in <code>libcamera</code> support). <strong>Not</strong> a drop-in replacement for the SO-101 arm's USB webcam — different camera category (CSI vs. USB), would need real integration work to bridge. Filed as a possible future second-camera-angle option, not urgent.</p>
+
+    <h2>Explicitly Deprioritized</h2>
+    <ul>
+      <li><strong>Dimitar voice polishing (round 3)</strong> — lower priority than closing the Phase 4/5 gap. <code>voice</code> currently still uses the original unmodified Dimitar <code>.onnx</code>; swapping to a polished round-2 version later is zero-friction (the pipeline doesn't care which model file it points at).</li>
+      <li><strong>Camera/vision integration into this loop</strong> — acknowledged as not yet a real win, parked rather than force-fit.</li>
+    </ul>
+
+    <h2>Next Step (agreed direction)</h2>
+    <p><strong>Connect this trigger to actually running the arm</strong> — rather than <code>brain</code> just replying "ok" to a ping, the trigger should kick off a real ACT rollout on the SO-101. This is the actual payoff the roadmap has been pointing toward since Phase 5 was first sketched.</p>
+    <div class="abstract-box"><strong>Dependency flagged before that work begins:</strong> a newly-arrived 3D printer is about to be used to modify the arm's camera mount. Camera repositioning risks silently degrading the trained ACT policy's accuracy (vision-based imitation learning is sensitive to exact camera framing — unlike the arm's own motor calibration, which is unaffected). Recommended: take a reference photo of the current mount/framing before changing it, and run a quick validation pass (a handful of pick-and-place attempts) after the new mount is in place, before assuming the policy still performs as well as before.</div>
+  </div>
+
+</body>
+</html>

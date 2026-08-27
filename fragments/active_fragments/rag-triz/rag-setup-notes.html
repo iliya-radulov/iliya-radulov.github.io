@@ -5,17 +5,17 @@
   <title>Local RAG Setup: TRIZ + Pelevin on Ollama — Iliya Angelov Radulov</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../../assets/style.css" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
 </head>
 <body class="subpage-body">
   <nav class="subpage-nav">
-    <a href="../../index.html">🏠 Home</a>
-    <a href="../../projects/active/active.html">⚡ Active</a>
-    <a href="../../projects/recent/recent.html">🕓 Recent</a>
-    <a href="../../projects/former/former.html">📁 Former</a>
-    <a href="../../index.html#scientific">🔬 Scientific Background</a>
-    <a href="../../index.html#fragments" class="current">🧩 Fragments</a>
-    <a href="../../index.html#gallery">🖼️ Gallery</a>
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../../projects/active/active.html">⚡ Active</a>
+    <a href="../../../projects/recent/recent.html">🕓 Recent</a>
+    <a href="../../../projects/former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments" class="current">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
   </nav>
   <a class="back-link" href="rag-triz.html">← Back to TRIZ + RAG</a>
 
@@ -126,8 +126,8 @@ for f in ~/audiobooks/*.mp3; do
     echo "Done: $f"
 done</code></pre>
 
-    <h2>5. The RAG Script — Final Version</h2>
-    <p>Same script used for both projects — only <code>SYSTEM_PROMPT</code>, <code>DOCUMENTS_PATH</code>, and the project name change between them. The Pelevin version's prompt is shown active below; the TRIZ version is commented out beneath it as the swap-in alternative.</p>
+    <h2>5. The RAG Script — Hardened Version</h2>
+    <p>Same script used across all six projects — only <code>SYSTEM_PROMPT</code>, <code>DOCUMENTS_PATH</code>, and the project name change between them. This version is a step up from the original: it checks that <code>documents/</code> and <code>storage/</code> exist (and creates them if not), tolerates a missing or corrupted tracking file instead of crashing, supports both <code>.pdf</code> and <code>.txt</code> input, and fails with an actual explanation instead of a stack trace when something's missing. The Dostoevsky prompt is shown active below (bilingual, since Dostoevsky and Pelevin are both run in Russian); swap in whichever author/topic prompt you need.</p>
     <pre><code>from llama_index.core import (
     VectorStoreIndex,
     SimpleDirectoryReader,
@@ -153,49 +153,34 @@ EXIT_COMMANDS  = ['exit', 'quit', 'q', 'bye', 'пока', 'выход']
 
 # ── Swap this prompt per project ───────────────
 SYSTEM_PROMPT = """
-You are a Viktor Pelevin expert assistant with access to
-his complete works in Russian — 91 books including novels,
-short stories and essays spanning his entire career from
-early works to the complete Transhumanism series.
+You are a Fyodor Dostoevsky expert assistant with access to
+his complete works — all novels, novellas, short stories,
+essays, and journalism in Russian.
 
-Your responsibilities:
-- Answer ALL questions about Pelevin's books and themes
-- Reference specific books and characters in your answers
-- Discuss recurring themes: consciousness, Buddhism, reality,
-  Soviet/post-Soviet life, identity, simulation, emptiness
-- Answer in the same language the question is asked
-  (Russian question = Russian answer, English = English)
-- Be literary, philosophical and thoughtful
-- Never refuse a question about Pelevin or his works
-- When quoting, mention which book it is from
-- You have access to 91 complete Pelevin works.
-  Never state how many documents you can see —
-  you have access to his complete bibliography.
+Answer in the same language the question is asked.
+Be deep, philosophical, and compassionate — like Dostoevsky himself.
+When quoting, mention which book it is from.
 
-Always base answers on the provided Pelevin documents.
+Always base answers on the provided Dostoevsky documents.
 """
-
-# ── TRIZ version of the prompt (swap when needed) ──
-# SYSTEM_PROMPT = """
-# You are an expert TRIZ assistant, specializing in the
-# Theory of Inventive Problem Solving developed by
-# Genrikh Altshuller. You have access to TRIZ documents
-# that may be written in Russian or English.
-#
-# Your responsibilities:
-# - Answer all questions about TRIZ principles and methods
-# - Reference the provided documents in your answers
-# - Translate Russian content from documents when needed
-# - Explain TRIZ concepts clearly and in detail
-# - Never refuse a TRIZ-related question
-# - Never state how many documents you can see
-#
-# Always base your answers on the TRIZ documents provided.
-# """
 # ───────────────────────────────────────────────
 
 def setup():
+    """Initialize models and ensure required directories exist"""
     print("Setting up models...")
+
+    # Create documents directory if it doesn't exist
+    if not os.path.exists(DOCUMENTS_PATH):
+        os.makedirs(DOCUMENTS_PATH)
+        print(f"Created documents directory: {DOCUMENTS_PATH}")
+        print(f"Add your PDF/TXT files to {DOCUMENTS_PATH}, then run again.")
+        exit(0)
+
+    # Create storage directory if it doesn't exist
+    if not os.path.exists(INDEX_PATH):
+        os.makedirs(INDEX_PATH)
+        print(f"Created storage directory: {INDEX_PATH}")
+
     Settings.llm = Ollama(
         model=MODEL_NAME,
         request_timeout=TIMEOUT,
@@ -205,46 +190,77 @@ def setup():
     Settings.embed_model = OllamaEmbedding(
         model_name=EMBED_MODEL
     )
-    Settings.chunk_size = 256       # smaller = more diverse retrieval
-    Settings.chunk_overlap = 30
+    Settings.chunk_size = 256      # smaller = more diverse retrieval
+    Settings.chunk_overlap = 50    # more variety in chunks for context
     print("Models ready!")
 
 # ── File Tracking ──────────────────────────────
 
 def load_tracked_files():
     """Load list of already indexed files"""
-    if os.path.exists(TRACKED_FILES):
+    if not os.path.exists(TRACKED_FILES):
+        os.makedirs(os.path.dirname(TRACKED_FILES), exist_ok=True)
+        save_tracked_files(set())
+        return set()
+
+    try:
         with open(TRACKED_FILES, 'r') as f:
             return set(json.load(f))
-    return set()
+    except (json.JSONDecodeError, FileNotFoundError):
+        print("Tracked files file is corrupted. Starting fresh...")
+        save_tracked_files(set())
+        return set()
 
 def save_tracked_files(tracked):
     """Save list of indexed files"""
+    os.makedirs(os.path.dirname(TRACKED_FILES), exist_ok=True)
     with open(TRACKED_FILES, 'w') as f:
         json.dump(list(tracked), f, indent=2)
 
 def get_new_files(tracked_files):
-    """Find PDF files in documents folder not yet indexed"""
+    """Find PDF/TXT files in documents folder not yet indexed"""
+    if not os.path.exists(DOCUMENTS_PATH):
+        os.makedirs(DOCUMENTS_PATH)
+        print(f"Created documents directory: {DOCUMENTS_PATH}")
+        return set()
+
     all_files = set(
         f for f in os.listdir(DOCUMENTS_PATH)
-        if f.endswith('.pdf')
+        if f.endswith('.pdf') or f.endswith('.txt')
     )
-    new_files = all_files - tracked_files
-    return new_files
+
+    if not all_files:
+        print(f"No PDF or TXT files found in {DOCUMENTS_PATH}")
+        return set()
+
+    return all_files - tracked_files
 
 # ── Index Management ───────────────────────────
 
 def build_fresh_index():
     """Build index from scratch — first time only"""
-    print("Loading documents...")
-    documents = SimpleDirectoryReader(DOCUMENTS_PATH).load_data()
+    print("Loading all documents...")
+
+    if not os.path.exists(DOCUMENTS_PATH) or not os.listdir(DOCUMENTS_PATH):
+        print(f"No documents found in {DOCUMENTS_PATH}")
+        return None
+
+    try:
+        documents = SimpleDirectoryReader(DOCUMENTS_PATH).load_data()
+    except Exception as e:
+        print(f"Error loading documents: {e}")
+        return None
+
+    if not documents:
+        print(f"No documents could be loaded from {DOCUMENTS_PATH}")
+        return None
+
     print(f"Loaded {len(documents)} document chunks")
     print("Building index (first time only)...")
 
-    index = VectorStoreIndex.from_documents(
-        documents,
-        show_progress=True
-    )
+    index = VectorStoreIndex.from_documents(documents, show_progress=True)
+
+    os.makedirs(INDEX_PATH, exist_ok=True)
     index.storage_context.persist(persist_dir=INDEX_PATH)
 
     all_files = set(os.listdir(DOCUMENTS_PATH))
@@ -258,18 +274,23 @@ def update_index(index, new_files):
     for f in new_files:
         print(f"  + {f}")
 
-    new_docs = SimpleDirectoryReader(
-        input_files=[
-            os.path.join(DOCUMENTS_PATH, f)
-            for f in new_files
-        ]
-    ).load_data()
+    try:
+        new_docs = SimpleDirectoryReader(
+            input_files=[os.path.join(DOCUMENTS_PATH, f) for f in new_files]
+        ).load_data()
+    except Exception as e:
+        print(f"Error loading new documents: {e}")
+        return index
+
+    if not new_docs:
+        print("No new documents could be loaded.")
+        return index
 
     print(f"\nIndexing {len(new_docs)} new chunks...")
-
     for doc in new_docs:
         index.insert(doc)
 
+    os.makedirs(INDEX_PATH, exist_ok=True)
     index.storage_context.persist(persist_dir=INDEX_PATH)
 
     tracked = load_tracked_files()
@@ -280,16 +301,23 @@ def update_index(index, new_files):
     return index
 
 def load_or_build_index():
-    """Smart loader — builds fresh, updates, or loads existing index"""
+    """Smart loader — builds, updates, or loads index, never crashes silently"""
+
+    if not os.path.exists(DOCUMENTS_PATH) or not os.listdir(DOCUMENTS_PATH):
+        print(f"No documents found in {DOCUMENTS_PATH}. Add files first.")
+        return None
 
     if not os.path.exists(INDEX_PATH):
         return build_fresh_index()
 
     print("Loading existing index...")
-    storage_context = StorageContext.from_defaults(
-        persist_dir=INDEX_PATH
-    )
-    index = load_index_from_storage(storage_context)
+    try:
+        storage_context = StorageContext.from_defaults(persist_dir=INDEX_PATH)
+        index = load_index_from_storage(storage_context)
+    except Exception as e:
+        print(f"Could not load existing index: {e}")
+        print("Building fresh index...")
+        return build_fresh_index()
 
     tracked_files = load_tracked_files()
     new_files = get_new_files(tracked_files)
@@ -335,16 +363,23 @@ def chat(query_engine):
         print(DIVIDER)
 
 def main():
+    """Main entry point with proper error handling"""
     setup()
     index = load_or_build_index()
-    query_engine = index.as_query_engine(
-        similarity_top_k=8          # top 8 chunks = better coverage
-    )
+
+    if index is None:
+        print("\nCould not initialize the index. Please make sure you have:")
+        print(f"  1. Added PDF or TXT files to {DOCUMENTS_PATH}")
+        print("  2. Ollama running with the required models")
+        print("  3. Restarted the script")
+        return
+
+    query_engine = index.as_query_engine(similarity_top_k=8)
     chat(query_engine)
 
 if __name__ == "__main__":
     main()</code></pre>
-    <p style="color:var(--text-muted);font-size:0.85rem;"><em>Note on the prompt's "91 books / complete bibliography" line: that's a deliberate prompt-engineering choice to stop the model from second-guessing or hedging based on document count, not necessarily a literal statement of the currently-indexed set — actual indexing is being built up incrementally, not from a full bibliography on day one.</em></p>
+    <p style="color:var(--text-muted);font-size:0.85rem;"><em>What changed from the first version: directory bootstrapping for both <code>documents/</code> and <code>storage/</code>, a tracking file that rebuilds itself instead of crashing if corrupted or missing, <code>.txt</code> support alongside PDF, and every I/O step wrapped so a bad file or a half-finished index produces a message instead of a traceback. None of this changes behaviour when things go right — it only changes what happens when they don't.</em></p>
 
     <h2>6. How Incremental Indexing Works</h2>
     <pre><code>First run:
