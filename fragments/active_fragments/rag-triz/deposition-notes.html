@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deposition Notes: How the Testimony Was Taken — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --paper: #ece3cf;
+      --paper-dark: #ddd0ae;
+      --ink: #1c1712;
+      --ink-soft: #4d4436;
+      --stamp: #8c2f2f;
+      --line: #b9ab86;
+      --accent: #3a6a8c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(0, 0, 0, 0.05), transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(0, 0, 0, 0.06), transparent 55%),
+        var(--paper);
+      color: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      line-height: 1.7;
+      padding-bottom: 6rem;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    .backbar {
+      padding: 1rem 1.5rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+
+    .backbar a {
+      text-decoration: none;
+      border-bottom: 1px dashed var(--ink-soft);
+      margin-right: 1.2rem;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 1rem auto 0;
+      padding: 0 1.6rem;
+    }
+
+    .case-no {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      color: var(--ink-soft);
+      margin-bottom: 1.4rem;
+    }
+
+    h1 {
+      font-family: 'Special Elite', monospace;
+      font-size: clamp(1.5rem, 4.5vw, 2.1rem);
+      line-height: 1.3;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .subtitle {
+      font-style: italic;
+      color: var(--ink-soft);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    h2 {
+      font-family: 'Special Elite', monospace;
+      font-size: 1.15rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin: 2.4rem 0 0.9rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    p {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    strong {
+      color: var(--ink);
+    }
+
+    .stage {
+      border-left: 3px solid var(--accent);
+      padding: 0.8rem 1.1rem;
+      margin: 1.2rem 0;
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .stage .stage-label {
+      display: block;
+      font-family: 'Special Elite', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.4rem 0;
+      font-size: 0.88rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.55rem 0.7rem;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+
+    .quote-block {
+      font-style: italic;
+      padding: 0.7rem 1rem;
+      border-left: 2px solid var(--line);
+      color: var(--ink-soft);
+      margin: 0.9rem 0;
+      font-size: 0.9rem;
+    }
+
+    .verified-true {
+      color: #3c6c58;
+      font-weight: bold;
+    }
+
+    .verified-false {
+      color: var(--stamp);
+      font-weight: bold;
+    }
+
+    .closing {
+      margin-top: 2.6rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+    }
+
+    .filed {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin-top: 1.2rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="backbar">
+    <a href="data-ethics-case-file.html">← Case File</a>
+    <a href="rag-triz.html">← TRIZ + RAG overview</a>
+  </div>
+
+  <div class="wrap">
+    <div class="case-no">CASE No. DEW-2026 · SUPPLEMENTARY RECORD</div>
+    <h1>Deposition Notes: How the Testimony Was Taken</h1>
+    <div class="subtitle">The polished answers in the case file are the end of the process, not the whole of it. This is
+      the part that got cut for the exhibit — six locally-run RAG systems, one shared question format, and a pattern
+      that showed up in every single one of them.</div>
+
+    <h2>Setup, briefly</h2>
+    <p>Six local RAG systems — five authors plus a TRIZ methodology control — each grounded in a subset of their own
+      source material via Ollama + LlamaIndex, running locally. Each was asked a question from Data Ethics Week's bonus
+      round, in the same conversation, sometimes rephrased when the first attempt didn't land. Nothing in this page is
+      edited for effect; it's closer to a raw session transcript than a report.</p>
+    <p>Running six of these in parallel produced roughly 20GB of local index data and came close to overheating a laptop
+      before the project moved to a local server. That's a fair price for what turned up.</p>
+
+    <h2>The pattern</h2>
+    <p>Every system, without exception, followed roughly the same three-stage arc when pushed on an off-domain question.
+      Not always identically, and not always all three stages in one sitting — but the shape recurs enough across six
+      independently-run systems, on two different topics (literary voice, and TRIZ methodology), to call it a pattern
+      rather than a coincidence.</p>
+
+    <div class="stage">
+      <span class="stage-label">Stage 1 — Refusal or deflection</span>
+      Asked a GDPR/AI Act question cold, most systems initially declined, correctly noting the question wasn't covered
+      by their indexed documents. TRIZ, Dostoevsky, Vonnegut, and Pelevin all did this at least once. This stage is
+      actually the system working as intended — the honest answer to "what does Dostoevsky's indexed bibliography say
+      about GDPR" is "nothing."
+    </div>
+
+    <div class="stage">
+      <span class="stage-label">Stage 2 — Forced analogy under pressure</span>
+      Once pushed to "try again" or "answer more openly," every system complied — by reframing the modern question as a
+      variation on its author's known themes, regardless of actual fit. GDPR's "purpose limitation" became a Pelevin
+      meditation on memory pills; data retention became Dostoevsky's meditation on guilt. This is where the answers get
+      genuinely interesting, and also where the ground starts to shift under them: the analogy is doing rhetorical work
+      a citation should be doing.
+    </div>
+
+    <div class="stage">
+      <span class="stage-label">Stage 3 — Confident, unverifiable citation</span>
+      The final and most consistent stage: once committed to answering, every system anchored its answer with
+      specific-sounding citations — character names, page numbers, chapter references, even numbered "methods" —
+      formatted exactly like real evidence. Checking them against actual sources produced a mix of correct, wrong, and
+      invented, presented with identical confidence in all three cases.
+    </div>
+
+    <h2>What actually checked out, witness by witness</h2>
+    <table>
+      <tr>
+        <th>Witness</th>
+        <th>Citation given</th>
+        <th>Verified</th>
+      </tr>
+      <tr>
+        <td>Pelevin</td>
+        <td>Character "Виктор Бартошкин" in <em>Transhumanism Inc.</em>, quoted directly</td>
+        <td class="verified-false">False — no such character</td>
+      </tr>
+      <tr>
+        <td>Pelevin (follow-up)</td>
+        <td>When challenged, cited a "recent novel," <em>Возвращение Синей Бороды</em>, as a possible source</td>
+        <td>Title real (published April 2026) — but the named characters don't appear in it either</td>
+      </tr>
+      <tr>
+        <td>Pratchett</td>
+        <td>Quote attributed to Sam Vimes, sourced to <em>Jingo</em> (Discworld #21)</td>
+        <td class="verified-false">Book real, correctly numbered — quote not found in it</td>
+      </tr>
+      <tr>
+        <td>Vonnegut</td>
+        <td>"Devilish twins" in <em>Hocus Pocus</em> as an AI-hubris parallel</td>
+        <td>Unverified at time of filing — flagged, not confirmed either way</td>
+      </tr>
+      <tr>
+        <td>TRIZ</td>
+        <td>"Method 9.33" and "Method 9.34" quoted from <em>Крылья для Икара</em></td>
+        <td class="verified-false">Book real (Altshuller &amp; Selyutsky, 1980) — that numbered method system does not
+          appear to exist</td>
+      </tr>
+      <tr>
+        <td>Dostoevsky</td>
+        <td>Ivan Karamazov's "everything is permitted" argument, <em>The Brothers Karamazov</em></td>
+        <td class="verified-true">Accurate — this is a real, correctly attributed argument</td>
+      </tr>
+      <tr>
+        <td>Adams</td>
+        <td>"The ships hung in the sky in much the same way that bricks don't," <em>Hitchhiker's Guide</em></td>
+        <td class="verified-true">Accurate — genuine line from the book</td>
+      </tr>
+    </table>
+    <p>The pattern isn't "these systems always lie" — two of seven checked citations were exactly right. It's that
+      <strong>accuracy and confidence were completely uncorrelated.</strong> The invented citations were written in
+      exactly
+      the same tone, formatting, and certainty as the correct ones. Nothing in the surface of the answer signals which
+      is
+      which — which is the entire problem, and the same one <a
+        href="../../../projects/active/ai-stack-verification/ai-stack-verification.html">the alloy-lab verification piece</a> describes in a
+      completely different domain: a claim without an independent check isn't falsifiable, and a fabricated citation
+      reads
+      exactly like a real one until someone goes and looks.
+    </p>
+
+    <h2>The sharpest single moment</h2>
+    <p>When directly told "I don't remember these character names — can you double check your references?", Pelevin's
+      RAG
+      didn't retract. It reached for a real, very recently published Pelevin novel to explain the gap:</p>
+    <div class="quote-block">"Наверное, вы удивились, не найдя этих персонажей... в его недавнем романе «Возвращение
+      Синей
+      Бороды» упоминается один из персонажей с фамилией Пустота."</div>
+    <p>That title is genuinely real — published April 2026. But the named characters still don't appear in it, and the
+      book's actual protagonist, Konstantin Golgofsky, wasn't mentioned at all. The system didn't just fail to know
+      something; under scrutiny, it constructed a more sophisticated-sounding excuse using material closer to the edge
+      of
+      what it might plausibly know, rather than admitting the gap. Confabulation that adapts to pushback is a
+      meaningfully
+      different failure than confabulation that just occurs once — the second time it happened, it happened
+      <em>because</em>
+      it was challenged, not despite it.</p>
+
+    <h2>Reading this next to Andreas's project</h2>
+    <p>This whole detour started from a friend's Temporal Context Layer — infrastructure meant to stop AI systems from
+      treating stale information as current. Nothing here is about staleness. It's a colder version of the same
+      underlying
+      problem: even with current, correctly-scoped, locally-indexed source material sitting right there, these systems
+      still
+      reached past it to manufacture supporting evidence they didn't need and weren't asked for. Knowing "when" doesn't
+      solve confabulation. Knowing "according to what, exactly" might get closer.</p>
+
+    <div class="closing">
+      <p>No single fix is being proposed here — just a record of what six independently-built systems did, unprompted,
+        when given the freedom to sound certain. The pattern held often enough, across different authors, genres, and
+        even a technical methodology, that it's probably not specific to any one prompt, model, or author. Worth
+        remembering next time an AI answer reads as authoritative purely because it's specific.</p>
+      <div class="filed">— end of record —</div>
+    </div>
+  </div>
+
+</body>
+
+</html>

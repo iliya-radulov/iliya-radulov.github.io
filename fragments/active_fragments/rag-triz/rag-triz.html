@@ -1,12 +1,16 @@
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TRIZ + RAG: Asking Authors an Engineering Question — Iliya Angelov Radulov</title>
+  <title>TRIZ + RAG: Asking Authors Different Questions — Iliya Angelov Radulov</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="../../../assets/style.css" />
 </head>
+
 <body class="subpage-body">
   <nav class="subpage-nav">
     <a href="../../../index.html">🏠 Home</a>
@@ -20,63 +24,138 @@
   <a class="back-link" href="../../../index.html#fragments">← Back to Fragments</a>
 
   <div class="article-body">
-    <div class="eyebrow">Fragments · Small Experiment</div>
-    <h1>TRIZ + RAG: Asking Genrich Altshuller an Engineering Question... and Beyond</h1>
-    <p class="subtitle">Small local Ollama-based RAG systems, each trained on a different author, all asked the same thing: explain a rigorous engineering methodology.</p>
+    <div class="eyebrow">Fragments · Small Experiment </div>
+    <h1>TRIZ + RAG: Asking Authors Different Questions </h1>
+    <p class="subtitle">Small local Ollama-based RAG systems, each trained on a different author, all asked the same
+      thing: share your perspective on data ethics, GDPR and EU AI Act.</p>
 
     <h2>The idea</h2>
-    <p><strong>TRIZ</strong> (Теория Решения Изобретательских Задач — "Theory of Inventive Problem Solving") is a genuinely systematic methodology for creative problem-solving: 40 documented inventive principles, developed by studying patterns across tens of thousands of patents. It's about as far as you can get from vibes-based creativity — structured, repeatable, engineering-grade.</p>
-    <p>The experiment: build a small local retrieval-augmented generation (RAG) system per author, using Ollama, grounded in a subset of that author's actual writing (<a href="rag-setup-notes.html">full setup details</a>) — then ask each one the same plain engineering question about TRIZ, and see what comes back. Not full bibliographies (that's a lot of training time for a side project), just a representative slice per author, with more being trained in the coming days.</p>
+    <p><strong>TRIZ</strong> (Теория Решения Изобретательских Задач — "Theory of Inventive Problem Solving") is a
+      genuinely systematic methodology for creative problem-solving: 40 documented inventive principles, developed by
+      studying patterns across tens of thousands of patents. It's about as far as you can get from vibes-based
+      creativity — structured, repeatable, engineering-grade.</p>
+    <p>The experiment: build a small local retrieval-augmented generation (RAG) system per author, using Ollama,
+      grounded in a subset of that author's actual writing (<a href="rag-setup-notes.html">full setup details</a>) —
+      then ask each one the same plain engineering question about TRIZ, and see what comes back. Not full bibliographies
+      (that's a lot of training time for a side project), just a representative slice per author, with more being
+      trained in the coming days.</p>
 
     <h2>Honest status</h2>
-    <p>First results weren't as impressive as hoped — a RAG system answering an engineering question is, most of the time, just... a RAG system answering an engineering question. But the potential is real, especially combined with the voice/vision work already underway elsewhere on this site: a spoken question, answered in a specific author's actual retrieved voice, is a much more natural and interesting interface than a text box. This is very much a tinkering project right now, not a finished one.</p>
+    <p>First results weren't as impressive as hoped — a RAG system answering an engineering question is, most of the
+      time, just... a RAG system answering an engineering question. But the potential is real, especially combined with
+      the voice/vision work already underway elsewhere on this site: a spoken question, answered in a specific author's
+      actual retrieved voice, is a much more natural and interesting interface than a text box. This is very much a
+      tinkering project right now, not a finished one.</p>
 
     <h2>On language</h2>
-    <p>Pelevin and Dostoevsky are both being run in their original Russian rather than English — round-tripping through translation loses too much of what actually makes each author's voice distinctive, and the whole point here is voice. English pages remain the entry point for readers, with the Russian-language RAG explorations linked alongside.</p>
+    <p>Pelevin and Dostoevsky are both being run in their original Russian rather than English — round-tripping through
+      translation loses too much of what actually makes each author's voice distinctive, and the whole point here is
+      voice. English pages remain the entry point for readers, with the Russian-language RAG explorations linked
+      alongside.</p>
 
     <h2>What's next — putting Data Ethics Week to work</h2>
-    <p>Our course dedicated a full week to data ethics — GDPR, the EU AI Act, AI in healthcare, algorithmic bias. As a bonus exercise, we synthesised one question per topic and put it to five very different fictional voices: what would Douglas Adams, Kurt Vonnegut, Terry Pratchett, Fyodor Dostoevsky, and Victor Pelevin actually say about AI oversight, if they could answer in their own words?</p>
-    <p>That's a better test for these RAG systems than a generic "what are your themes" prompt — it's a real question, put to a real (if locally-retrieved) voice, instead of a demo query. The five questions:</p>
+    <p>Our course dedicated a full week to data ethics — GDPR, the EU AI Act, AI in healthcare, algorithmic bias. As a
+      bonus exercise, we synthesised one question per topic and put it to five very different fictional voices: what
+      would Douglas Adams, Kurt Vonnegut, Terry Pratchett, Fyodor Dostoevsky, and Victor Pelevin actually say about AI
+      oversight, if they could answer in their own words?</p>
+    <p>That's a better test for these RAG systems than a generic "what are your themes" prompt — it's a real question,
+      put to a real (if locally-retrieved) voice, instead of a demo query. The five questions:</p>
     <table>
-      <tr><th>Witness</th><th>Question</th></tr>
-      <tr><td>Douglas Adams</td><td>How would you design regulations for AI — with humor, panic, or a towel?</td></tr>
-      <tr><td>Kurt Vonnegut</td><td>So it goes with AI regulation — should we trust the machines or the people who build them?</td></tr>
-      <tr><td>Terry Pratchett</td><td>What would Sam Vimes say about the EU AI Act and its risk-based approach?</td></tr>
-      <tr><td>Fyodor Dostoevsky</td><td>If there is no oversight for AI, is everything permitted?</td></tr>
-      <tr><td>Victor Pelevin</td><td>Is the AI Act just another simulation of control, or a genuine step toward transhumanist ethics?</td></tr>
+      <tr>
+        <th>Witness</th>
+        <th>Question</th>
+      </tr>
+      <tr>
+        <td>Douglas Adams</td>
+        <td>How would you design regulations for AI — with humor, panic, or a towel?</td>
+      </tr>
+      <tr>
+        <td>Kurt Vonnegut</td>
+        <td>So it goes with AI regulation — should we trust the machines or the people who build them?</td>
+      </tr>
+      <tr>
+        <td>Terry Pratchett</td>
+        <td>What would Sam Vimes say about the EU AI Act and its risk-based approach?</td>
+      </tr>
+      <tr>
+        <td>Fyodor Dostoevsky</td>
+        <td>If there is no oversight for AI, is everything permitted?</td>
+      </tr>
+      <tr>
+        <td>Victor Pelevin</td>
+        <td>Is the AI Act just another simulation of control, or a genuine step toward transhumanist ethics?</td>
+      </tr>
     </table>
-    <p>Each RAG is instructed to answer only from its own indexed bibliography — no outside knowledge, no editing after the fact. Training is still finishing up on a couple of the larger collections, so this is genuinely a work in progress: a results page collecting the actual testimony is coming once every author has answered.</p>
-
-    <h2>The explorations</h2>
-    <p>Each author page below is a genuinely separate, bespoke design — not the site's shared style — built originally just to try different visual directions, now given real purpose as the home for that author's RAG output.</p>
-
+    <h2>How it wrapped up</h2>
+    <p>Each RAG was asked its assigned question above, answered only from its own indexed bibliography. Training all six
+      in parallel produced about 20GB of local index data and nearly cooked a laptop before the project moved to a local
+      server — a fair trade for what came back.</p>
+    <p>The actual testimony, and a pattern that showed up across every single witness — confident, well-formatted
+      citations that turned out to be unverifiable or outright false, indistinguishable in tone from the correct ones —
+      is written up in full:</p>
     <div class="gallery-grid">
-      <!-- <a class="photo-card" href="pelevin.html" style="text-decoration:none;">
-        <div class="thumb" style="font-size:2rem;">🧬</div>
-        <div class="caption"><div class="place">Victor Pelevin</div><div class="date">English · includes a live sample transcript</div></div>
-      </a> -->
-      <a class="photo-card" href="pelevin-ru.html" style="text-decoration:none;">
-        <div class="thumb" style="font-size:2rem;">🧬</div>
-        <div class="caption"><div class="place">Виктор Пелевин</div><div class="date">Russian (original language)</div></div>
+      <a class="photo-card" href="data-ethics-case-file.html" style="text-decoration:none;">
+        <div class="thumb" style="font-size:2rem;">⚖️</div>
+        <div class="caption">
+          <div class="place">Case File</div>
+          <div class="date">The five testimonies, as given</div>
+        </div>
       </a>
-      <a class="photo-card" href="fmd-ru.html" style="text-decoration:none;">
-        <div class="thumb" style="font-size:2rem;">📖</div>
-        <div class="caption"><div class="place">Фёдор Достоевский</div><div class="date">Russian (original language)</div></div>
-      </a>
-      <a class="photo-card" href="pratchett.html" style="text-decoration:none;">
-        <div class="thumb" style="font-size:2rem;">🐢</div>
-        <div class="caption"><div class="place">Terry Pratchett</div><div class="date">Discworld</div></div>
-      </a>
-      <a class="photo-card" href="vonnegut.html" style="text-decoration:none;">
-        <div class="thumb" style="font-size:2rem;">✈️</div>
-        <div class="caption"><div class="place">Kurt Vonnegut</div><div class="date">Slaughterhouse-Five</div></div>
-      </a>
-      <a class="photo-card" href="adams.html" style="text-decoration:none;">
-        <div class="thumb" style="font-size:2rem;">🚀</div>
-        <div class="caption"><div class="place">Douglas Adams</div><div class="date">The Hitchhiker's Guide</div></div>
+      <a class="photo-card" href="deposition-notes.html" style="text-decoration:none;">
+        <div class="thumb" style="font-size:2rem;">🗒️</div>
+        <div class="caption">
+          <div class="place">Deposition Notes</div>
+          <div class="date">How the answers were actually taken</div>
+        </div>
       </a>
     </div>
+
+    <h2>The explorations</h2>
+    <p>Each author page below is a genuinely separate, bespoke design — not the site's shared style — built originally
+      just to try different visual directions, now given real purpose as the home for that author's RAG output.</p>
+
+    <div class="gallery-grid">
+
+      <a class="photo-card" href="pelevin.html" style="text-decoration:none;">
+      <div class="thumb"><img src="screens/pelevin.png" alt="Victor Pelevin" /></div>
+      <div class="caption">
+        <div class="place"> 🧬 Виктор Пелевин</div>
+        <div class="date">Russian (original language)</div>
+      </div>
+      </a>
+      <a class="photo-card" href="fmd-ru.html" style="text-decoration:none;">
+        <div class="thumb"><img src="screens/fmd.png" alt="Fyodor Dostoevsky" /></div>
+        <div class="caption">
+          <div class="place"> 📖 Фёдор Достоевский</div>
+          <div class="date">Russian (original language)</div>
+        </div>
+      </a>
+      <a class="photo-card" href="pratchett.html" style="text-decoration:none;">
+        <div class="thumb"><img src="screens/pratchett.png" alt="Terry Pratchett" /></div>
+        <div class="caption">
+          <div class="place"> 🐢 Terry Pratchett</div>
+          <div class="date">Discworld</div>
+        </div>
+      </a>
+      <a class="photo-card" href="vonnegut.html" style="text-decoration:none;">
+        <div class="thumb"><img src="screens/vonnegut.png" alt="Kurt Vonnegut" /></div>
+        <div class="caption">
+          <div class="place"> ✈️ Kurt Vonnegut</div>
+          <div class="date">Slaughterhouse-Five</div>
+        </div>
+      </a>
+      <a class="photo-card" href="adams.html" style="text-decoration:none;">
+        <div class="thumb"><img src="screens/adams.png" alt="Douglas Adams" /></div>
+        <div class="caption">
+          <div class="place"> 🚀 Douglas Adams</div>
+          <div class="date">The Hitchhiker's Guide</div>
+        </div>
+      </a>
+    </div>
+
   </div>
+  <script data-goatcounter="https://iliya-radulov.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 
 </body>
+
 </html>
