@@ -188,10 +188,13 @@
         <li>✅ <strong>Both arms fully functional on the Mac</strong> (MPS) — tested in teleoperation as follower arm with the SO101 leader arm</li>
         <li>✅ Calibration complete for both arms, checkpoint transfer for original SO101 training tested, results unsatisfying</li>
         <li>🖨️ <strong>Creality Ender 3 V3 Plus 3D printer purchased</strong> — reduces dependency on external printing for future LeKiwi/XLeRobot parts, and opens up custom part iteration (e.g. camera/pan-tilt mounts) without waiting on outside help</li>
+        <li>✅ <strong>Printer now in real use, not just purchased:</strong> printed first functional parts — new mounts for both the wrist camera and the main camera — plus learned mid-print filament changes, Fusion 360 basics, and slicer workflow. <strong>Not yet installed</strong> — the working rig still runs on its original mounts/positions, so no camera-repositioning risk has actually occurred yet.</li>
+        <li>⏳ <strong>New cameras also ordered</strong> for the upgraded setup — a bigger change than a same-camera remount, since resolution/FOV may differ from the cameras the current ACT policy was trained on.</li>
         <li>⏳ Mobile base kit not yet delivered (expected mid-September per original order) — wheel servo IDs (7–9) and full combined arm+base config to follow once it arrives</li>
         <li>☐ <strong>ACT validation pass on LeKiwi arm, planned ahead of base arrival.</strong> Purpose is hardware/pipeline validation (new servos, adapters, camera position/calibration) on the Mac via MPS — not a SmolVLA data-collection run. Dataset from this pass is single-task and won't carry forward to the later multi-task SmolVLA collection.</li>
         <li>☐ Decide: dedicate current follower arm to LeKiwi, or keep the stationary poisoning-experiment rig fully intact <em>(still open)</em></li>
         <li>☐ Resolve Pi power question — buck converter (12V→5V) for the Pi 5, not included in the base kit <em>(still open)</em></li>
+        <li>☐ <strong>Before installing the new mounts/cameras:</strong> take a reference photo of the current mount/framing, then run a quick validation pass (a handful of pick-and-place attempts) after the swap — vision-based ACT policies are sensitive to exact camera framing in a way the arm's own motor calibration isn't. Flagged in the <a href="../voice-brain-trigger-loop/session-wrapup-voice-brain-trigger-loop.html">voice-brain trigger loop report</a>, still open.</li>
       </ul>
       <div class="abstract-box" style="margin-top:0.5rem;"><strong>Milestone note:</strong> Phases 2–3 (arm teleoperation + recording) are a complete, showable project on their own — no need to wait for Voice/Vision integration to call that a finished build.</div>
     </div>
@@ -200,7 +203,7 @@
 
     <!-- HARDWARE NOTES -->
     <h2>Hardware notes</h2>
-    <p>Compute and platform decisions — Pi 4 capacity testing, the M.2 SSD-vs-AI-accelerator research, and the new training PC's full spec and reasoning — now live on their own page: <a href="hardware-notes.html">Hardware Notes</a>.</p>
+    <p>Compute and platform decisions — Pi 4 capacity testing, the M.2 SSD-vs-AI-accelerator research, the training PC's full spec and reasoning, and now the completed <a href="new-desktop-setup.html">new ML desktop setup</a> and the <a href="home-server-setup.html">home server's expanded, dedicated role</a> — all live on their own pages: <a href="hardware-notes.html">Hardware Notes</a>.</p>
 
     <!-- PARTS LIST -->
     <h2>Parts list</h2>
@@ -230,17 +233,17 @@
         ">⏳ Pulse</span>
         <span style="font-weight: 400;">
           Currently balancing: <strong>LeKiwi assembly</strong> <a href="../lekiwi/lekiwi-tech-details.html" target="_blank">(Phase 7)</a> + 
-          <strong>Phase 5 <a href="../voice-brain-trigger-loop/session-wrapup-voice-brain-trigger-loop.html" target="_blank">voice trigger loop</a></strong> (proven, local/offline)
-          Background-diversity experiment complete — <a href="../robot-arm-pickplace/so101-bgdiv-v1-report.html" target="_blank">results now on the page</a>.
-          SmolVLA still on hold pending new PC.
+          <strong>Phase 5 <a href="../voice-brain-trigger-loop/session-wrapup-voice-brain-trigger-loop.html" target="_blank">voice trigger loop</a></strong> (proven, local/offline).
+          New <a href="new-desktop-setup.html" target="_blank">ML desktop</a> and <a href="home-server-setup.html" target="_blank">home server</a> both set up. 3D printer now producing real parts (new mounts, not yet installed).
           Next milestone: <strong>wire the voice trigger to a real ACT rollout</strong>.
         </span>
       </div>
       <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.6; display: flex; gap: 20px; flex-wrap: wrap;">
         <span>📦 LeKiwi base: expected mid-September</span>
-        <span>🖥️ New PC: ordered, awaiting delivery</span>
+        <span>🖥️ New PC: set up, GPU/CUDA confirmed</span>
         <span>✅ Background-diversity results: published</span>
         <span>✅ Voice→Brain trigger loop: proven</span>
+        <span>🖨️ 3D printer: producing real parts</span>
       </div>
     </div>
 

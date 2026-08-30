@@ -1,0 +1,130 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New ML Desktop — Setup Summary — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="hardware-notes.html">← Back to Hardware Notes</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Interdisciplinary · Reference</div>
+    <h1>New ML Desktop — Setup Summary</h1>
+    <p class="subtitle">Built 30 August 2026 — the machine ordered to unblock SmolVLA training and general heavier local compute</p>
+
+    <h2>1. Hardware</h2>
+    <table>
+      <tr><th>Component</th><th>Details</th></tr>
+      <tr><td>Case</td><td>CSL Sprint 5753 (Ventrix, aRGB)</td></tr>
+      <tr><td>CPU</td><td>AMD Ryzen 9 9900X, 12-core @ 4.4GHz (integrated Radeon "Granite Ridge" graphics also present)</td></tr>
+      <tr><td>Cooler</td><td>be quiet! Pure Rock 3 Black</td></tr>
+      <tr><td>GPU</td><td>GeForce RTX 5060 Ti, 16GB GDDR7 (MSI Shadow 2X OC)</td></tr>
+      <tr><td>RAM</td><td>32GB DDR5-6000 (2×16GB, Patriot Viper Venom)</td></tr>
+      <tr><td>Motherboard</td><td>ASUS Prime B840M-A WIFI (socket AM5)</td></tr>
+      <tr><td>Boot drive</td><td>1TB Western Digital Black SN7100 NVMe</td></tr>
+      <tr><td>PSU</td><td>BoostBoxx 700W, 80+ Gold</td></tr>
+      <tr><td>Extra storage</td><td>2× 1TB Seagate Barracuda ST1000DM003 (from spare stock, previously an Intel RAID pair — metadata wiped, reformatted individually)</td></tr>
+    </table>
+
+    <h2>2. Software</h2>
+    <ul>
+      <li><strong>OS:</strong> Ubuntu 26.04 LTS Desktop</li>
+      <li><strong>GPU driver:</strong> Nvidia proprietary driver 595.84 (auto-installed by the Ubuntu installer), CUDA 13.2 confirmed working via <code>nvidia-smi</code></li>
+      <li><strong>Network:</strong> WiFi working (built-in, antenna already seated), ethernet also available as backup. Reaches the home server at <code>192.168.2.42</code> (ping ~6–16ms)</li>
+      <li><strong>Dev tools installed:</strong> Python 3.14.4, pip, venv, git, VS Code (via snap), build-essential</li>
+      <li><strong>Environment strategy:</strong> plain <code>venv</code> per project (no conda) — deliberate choice given past mix-up issues with nested venvs</li>
+      <li><strong>GitHub access:</strong> SSH key generated and added, <code>ssh -T git@github.com</code> confirmed working</li>
+    </ul>
+
+    <h2>3. Storage</h2>
+    <table>
+      <tr><th>Mount point</th><th>Drive</th><th>Size</th><th>Filesystem</th></tr>
+      <tr><td><code>/</code> (system)</td><td>NVMe</td><td>~916GB usable</td><td>ext4</td></tr>
+      <tr><td><code>/mnt/storage1</code></td><td>Seagate HDD #1</td><td>916GB (870GB free)</td><td>ext4</td></tr>
+      <tr><td><code>/mnt/storage2</code></td><td>Seagate HDD #2</td><td>916GB (870GB free)</td><td>ext4</td></tr>
+    </table>
+    <p>Both HDDs SMART-checked: <strong>PASSED</strong>, 0 reallocated sectors, 0 pending sectors, clean error logs. ~12,095 power-on hours each (~500 days). Extended SMART self-test completed without error.</p>
+
+    <h2>4. Wake-on-LAN client</h2>
+    <p><em>Configured: 30 August 2026</em></p>
+    <p>This machine can wake the <a href="home-server-setup.html">home server</a> (<code>192.168.2.42</code>) from cold poweroff via a magic packet.</p>
+    <pre><code># Package installed
+sudo apt install wakeonlan
+
+# Alias added to ~/.bashrc
+alias wakeserver='wakeonlan 2c:56:dc:74:c4:ff'</code></pre>
+    <p>Usage:</p>
+    <pre><code>wakeserver
+# Server is reachable via SSH ~60-90 seconds later
+ssh r@192.168.2.42</code></pre>
+    <p><strong>Tested and confirmed:</strong> cold poweroff → magic packet → SSH connected ✅</p>
+
+    <h2>5. Role in the overall system</h2>
+    <pre><code>Pi4 (Brain) + Pi5           Robot arm — lerobot, SmolVLA (Phase 4/5)
+      ↕ network
+M4 Mac                      Simple tasks, intermediate node
+      ↕ network
+Home Server (192.168.2.42)  Always-on storage + PostgreSQL (planned)
+      ↕ network
+This machine (ML Desktop)   Heavy compute:
+                              - SmolVLA training (robot arm Phase 6 ext.)
+                              - my_db_project Stage 3 ML
+                              - XTTS / Piper fine-tuning experiments</code></pre>
+    <p><strong>Docker:</strong> not installed, not needed. This machine points at the server's PostgreSQL directly. One canonical DB, no local copy diverging.</p>
+
+    <h2>6. GitHub Repository Inventory (as of this session)</h2>
+    <p><strong>Full account: 13 repos (7 public, 6 private)</strong></p>
+
+    <h3>Active — cloned to <code>~/Documents/github/active/</code></h3>
+    <table>
+      <tr><th>Repo</th><th>Visibility</th><th>Notes</th></tr>
+      <tr><td><code>iliya-radulov.github.io</code></td><td>Public</td><td>Portfolio site</td></tr>
+      <tr><td><code>arm</code></td><td>Private</td><td>Full documentation</td></tr>
+      <tr><td><code>UselessTools</code></td><td>Public</td><td>Small utility projects</td></tr>
+      <tr><td><code>my_db_project</code></td><td>Public</td><td>Materials science DB — Stage 2 near complete</td></tr>
+      <tr><td><code>so101-pickplace-project</code></td><td>Private</td><td>Robot arm — waiting on new camera for SmolVLA</td></tr>
+      <tr><td><code>iliya-radulov</code></td><td>Public</td><td>Profile repo</td></tr>
+    </table>
+
+    <h3>To archive/remove later (not cloned here)</h3>
+    <table>
+      <tr><th>Repo</th><th>Visibility</th><th>Notes</th></tr>
+      <tr><td><code>odenwald-monitor</code></td><td>Private</td><td><strong>Live on home server — do not touch</strong> (~1 month remaining)</td></tr>
+      <tr><td><code>LinkedInLearning</code></td><td>Private</td><td>—</td></tr>
+      <tr><td><code>library_sql_python_demo</code></td><td>Public</td><td>—</td></tr>
+      <tr><td><code>lianes_lib_project</code></td><td>Public</td><td>—</td></tr>
+      <tr><td><code>azure_podcast</code></td><td>Public</td><td>—</td></tr>
+      <tr><td><code>Manipulating_data_with_SQL-and_Tableau</code></td><td>—</td><td>—</td></tr>
+      <tr><td><code>FCC</code></td><td>Private</td><td>—</td></tr>
+    </table>
+
+    <h3>External (not your repo)</h3>
+    <ul>
+      <li><code>lerobot</code> (huggingface/lerobot) — clone when SmolVLA training starts (waiting on new camera)</li>
+    </ul>
+
+    <h2>7. Open Items / Follow-ups</h2>
+    <ul>
+      <li>☐ Clone <code>lerobot</code> once ready to start SmolVLA training (need new camera first)</li>
+      <li>☐ <code>git gc --aggressive</code> on <code>my_db_project</code> to shrink <code>.git</code> history (~783 MB)</li>
+      <li>☐ Decide fate of the 7 archive/remove repos</li>
+      <li>☐ <code>odenwald-monitor</code>: revisit train-station/DB matching logic once data collection wraps up (~1 month)</li>
+      <li>☐ Set up SSH key auth to home server (currently password auth)</li>
+      <li>☐ XTTS fine-tuning experiment on the Dimitar voice dataset — planned curiosity experiment once environment is ready</li>
+    </ul>
+  </div>
+
+</body>
+</html>
