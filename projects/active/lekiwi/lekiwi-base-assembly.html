@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeKiwi Base: Delivery, Defects &amp; Wheel Motor Setup — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">← Back to project roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project · Phase 7</div>
+    <h1>LeKiwi Base: Delivery, Defects &amp; Wheel Motor Setup</h1>
+    <p class="subtitle">Unboxing and parts inventory, the Pi 5 power-board decision, three defects found and a formal complaint filed, and the combined arm+base motor ID assignment</p>
+
+    <h2>Delivery</h2>
+    <p>Base kit (Order #13152, ordered Aug 10, 2026) arrived Aug 31, 2026 — three weeks earlier than the original mid-September estimate.</p>
+
+    <h2>Parts Inventory</h2>
+    <ul>
+      <li>Base structure with 3× 85mm omni wheels and shafts, clear acrylic plate</li>
+      <li>3× 3215-C018 12V drive servos</li>
+      <li>Servo driver board (pre-wired to the 3 drive servos)</li>
+      <li>PLA robotic-arm base mounting structure ×1</li>
+      <li>2MP/30fps camera with 3m cable ×1</li>
+      <li>12V/5600mAh battery + charger ×1, 0.5m USB-C cable ×1, 3m USB-C cable ×1</li>
+      <li>Assorted mounting screws/washers/standoffs</li>
+      <li>Onboard buck converter, GYEC-DC0503 (12V→5V, 3A) — see power board decision below</li>
+    </ul>
+
+    <h2>Pi 5 Power Board — decision</h2>
+    <p>The kit's included GYEC-DC0503 buck converter is rated 3A, below the Pi 5's recommended 5V/5A. Usable as a stopgap for light loads, but a proper replacement was sourced and ordered same-day. Full comparison of three candidate boards, and the reasoning behind the final pick, now lives in <a href="../voice-vision-arm-roadmap/hardware-notes.html">Hardware Notes</a> — short version: a generic AliExpress PD module was rejected (7–12V input ceiling, too close to the battery's 12.6V full-charge voltage), a Treedix UPS HAT was rejected (rated for Pi Zero/2B/3B/3B+/4B only, not Pi 5), and the <strong>Yahboom Raspberry Pi 5 Power Expansion Board</strong> (6–24V input, 5V/5A PD output, DC5.5×2.1 input matching the battery's existing cable) was ordered from the Yahboom Official Store on AliExpress — €18 vs. €32 on Amazon.de for the identical board, same delivery window (8–15 Sept). Physically, the board's mounting posts won't co-stack with the existing metal Pi 5 case, so it'll be wired in loose rather than stacked for now — see Hardware Notes for the options considered there too.</p>
+
+    <h2>Defects Found &amp; Complaint Filed</h2>
+    <p>Three issues surfaced during initial inspection, beyond the power board:</p>
+    <ol>
+      <li><strong>Wrong buck converter</strong> — as above, 3A shipped where 5A is recommended for the Pi 5.</li>
+      <li><strong>Arm mounting structure doesn't fit the base plate.</strong> None of the mount's own screw holes align with the plate's standoff holes — the bracket sits on top with nothing underneath to secure it. The original SO-101 arm base (narrower profile) fits and aligns correctly by comparison; the new mount supplied with this kit is wider and simply doesn't match this plate's hole pattern.</li>
+      <li><strong>Mounting screws undersized</strong> — too small for the mounting holes on either the arm base or the plate, regardless of the alignment issue above.</li>
+    </ol>
+    <p>A complaint was filed with Seeed Studio the same day (Order #13152), with photos documenting all three issues — including a close-up showing the mount's holes with no corresponding plate holes beneath them. Awaiting response; resolution (replacement parts vs. refund) to be added here once confirmed.</p>
+    <p><strong>Practical consequence:</strong> physical daisy-chain assembly of the arm onto the base (see below) is blocked until the mount issue is resolved — the arm can't be securely attached to the plate yet, even though everything else is ready to go.</p>
+
+    <h2>Wheel Motor ID Assignment</h2>
+    <p>Rather than a separate ID-setting pass for the wheels alone, the combined <code>lekiwi</code> robot type was used, which addresses arm and base motors together in one command and one physical connection sequence — swapping the same Waveshare adapter previously used for <code>my_kiwi_arm_1</code> across all 9 motors, one at a time:</p>
+    <pre><code>lerobot-setup-motors \
+    --robot.type=lekiwi \
+    --robot.port=/dev/tty.usbmodem5B140288161</code></pre>
+    <pre><code>Connect the controller board to the 'arm_gripper' motor only and press enter.
+'arm_gripper' motor id set to 6
+Connect the controller board to the 'arm_wrist_roll' motor only and press enter.
+'arm_wrist_roll' motor id set to 5
+Connect the controller board to the 'arm_wrist_flex' motor only and press enter.
+'arm_wrist_flex' motor id set to 4
+Connect the controller board to the 'arm_elbow_flex' motor only and press enter.
+'arm_elbow_flex' motor id set to 3
+Connect the controller board to the 'arm_shoulder_lift' motor only and press enter.
+'arm_shoulder_lift' motor id set to 2
+Connect the controller board to the 'arm_shoulder_pan' motor only and press enter.
+'arm_shoulder_pan' motor id set to 1
+Connect the controller board to the 'base_right_wheel' motor only and press enter.
+'base_right_wheel' motor id set to 9
+Connect the controller board to the 'base_back_wheel' motor only and press enter.
+'base_back_wheel' motor id set to 8
+Connect the controller board to the 'base_left_wheel' motor only and press enter.
+'base_left_wheel' motor id set to 7</code></pre>
+    <p>Clean run, no errors. <strong><code>my_kiwi_arm_1</code> confirmed as the arm joining the base</strong> — <code>my_kiwi_arm_2</code> stays reserved, untouched, for the future XLeRobot second-arm upgrade, per the original plan. Note the <code>lekiwi</code> robot type's motor naming differs from the standalone <code>so101_follower</code> naming used earlier (<code>arm_shoulder_pan</code> vs. plain <code>shoulder_pan</code>) — same physical motors, same IDs, different schema now that arm and base are addressed as one combined robot.</p>
+    <p><strong>Scope note:</strong> this pass only wrote motor IDs via the standalone Waveshare adapter, motor-by-motor — same low-stakes, laptop-only process as the original arm setup, requiring no battery or Pi involvement. It does <em>not</em> constitute the physical daisy-chain wiring into the base's own onboard driver board; that step is still ahead, and currently blocked by the arm-mount defect above.</p>
+
+    <h2>Current State &amp; Next Steps</h2>
+    <ul>
+      <li>✅ All 9 motor IDs set (arm 1–6, wheels 7–9), <code>my_kiwi_arm_1</code> confirmed as the LeKiwi arm</li>
+      <li>✅ Pi 5 power board sourced, compared, and ordered</li>
+      <li>⏳ Complaint filed with Seeed, awaiting resolution</li>
+      <li>☐ Physical daisy-chain assembly (driver board → wheels → arm) — blocked on replacement arm mount/screws</li>
+      <li>☐ Power board arrival (ETA 8–15 Sept) before full electrical assembly and power-up</li>
+      <li>☐ ACT validation pass on the LeKiwi arm remains the next real-data milestone once physically assembled</li>
+    </ul>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

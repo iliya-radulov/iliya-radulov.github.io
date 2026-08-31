@@ -18,7 +18,7 @@
     <a href="../../../index.html#fragments">🧩 Fragments</a>
     <a href="../../../index.html#gallery">🖼️ Gallery</a>
   </nav>
-  <a class="back-link" href="../voice-vision-arm-roadmap.html">← Back to project roadmap</a>
+  <a class="back-link" href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">← Back to project roadmap</a>
 
   <div class="article-body">
     <div class="eyebrow">Maker · Active Project · Phase 7</div>
@@ -46,12 +46,12 @@
     <p>A separate project directory, virtual environment, and <code>lerobot</code> clone, kept independent from the SO101 install so version or dependency changes on one side can't affect the other:</p>
     <pre><code>mkdir LeKiwi
 cd LeKiwi
-python3 -m venv kiwi_env
-source kiwi_env/bin/activate
+python3 -m venv kiwi
+source kiwi/bin/activate
 git clone https://github.com/huggingface/lerobot.git
 cd lerobot
 pip install -e ".[feetech]"</code></pre>
-    <p><strong>Note:</strong> the working notes this section is based on activate the environment via <code>source kiwi/bin/activate</code> rather than <code>kiwi_env/bin/activate</code> — likely a naming slip during the session rather than an actual second environment. Worth confirming the real folder name before reusing this as a repeatable setup script. Similarly, a later dependency-install step in the notes references <code>cd projects/lekiwi/lerobot</code> and <code>pip install -r docs-requirements.txt</code>, which doesn't match the clone path above and isn't a standard LeRobot requirements file — flagged here rather than reproduced as fact, pending a check of what was actually run.</p>
+    <p><strong>Note:</strong> venv folder is named <code>kiwi</code>, not <code>kiwi_env</code> — confirmed. A separate dependency-install step in the notes references <code>cd projects/lekiwi/lerobot</code> and <code>pip install -r docs-requirements.txt</code>, which doesn't match the clone path above and isn't a standard LeRobot requirements file — still flagged as needing a check, pending confirmation of what was actually run there.</p>
 
     <h2>Port Discovery &amp; Motor ID Assignment</h2>
     <table>

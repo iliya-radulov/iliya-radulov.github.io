@@ -70,6 +70,16 @@
       <li>☐ Validate actual training throughput on this GPU/RAM combo before resuming the SmolVLA plan in earnest</li>
     </ul>
 
+    <h2>Pi 5 Power Board — buck converter comparison and decision</h2>
+    <p>The LeKiwi base kit's onboard buck converter turned out to be a GYEC-DC0503 (12V→5V, 3A) — usable for light loads, but under the Pi 5's recommended 5V/5A supply. Rather than accept the shortfall, three replacement options were compared:</p>
+    <ul>
+      <li><strong>Generic AliExpress 5V/5A PD module — rejected.</strong> Its DC barrel-jack input path is rated only 7–12V. The LeKiwi battery is nominally 12V but its actual charge-limit voltage is 12.6V (confirmed from the battery's own label: 3S Li-ion, 11.1V nominal / 12.6V charge limit) — meaning a freshly-charged battery would exceed this module's input ceiling right when it's used most. The module is really designed around USB-PD wall-charger input, not a raw battery feed.</li>
+      <li><strong>Treedix UPS HAT — rejected.</strong> Explicitly listed for Raspberry Pi Zero/2B/3B/3B+/4B only, not Pi 5 — a different power-negotiation architecture, not just an older/cheaper option.</li>
+      <li><strong>Yahboom Raspberry Pi 5 Power Expansion Board — selected.</strong> 6–24V input (comfortable margin over the battery's 12.6V full-charge voltage), 5V/5A output via the Pi 5's actual PD protocol (not a generic step-down pretending to be compatible), input options including a DC5.5×2.1 barrel jack matching the battery's existing cable exactly (no adapter needed). Purpose-built for Pi 5 mobile-robot use cases specifically.</li>
+    </ul>
+    <p>Ordered from the <strong>Yahboom Official Store on AliExpress</strong> for €18 (vs. €32 for the identical board on Amazon.de), same 8–15 Sept delivery estimate either vendor. Two other listings were checked and passed over along the way: the same Yahboom board sold direct via a second AliExpress listing (redundant once the Official Store price was known), and a T-plug/Deans-connector cable variant (rejected once the battery's actual connector was confirmed to be a standard DC barrel jack, not a T-plug — no adapter needed either way).</p>
+    <p><strong>Physical fit note:</strong> the Yahboom board's mounting posts are designed to stack directly onto the Pi 5, but the Pi 5 in this build already lives in a metal case — the two won't stack together as shipped. Planned workaround for now: wire the board in with a short USB-C cable rather than physically stacking it, keeping the metal case intact. A custom laser-cut or 3D-printed mounting plate remains a possible later upgrade once there's bandwidth for it, but isn't blocking assembly.</p>
+
     <h2>On the 10" touchscreen (currently idle on the Pi 3)</h2>
     <p>Worth keeping in reserve — good candidate uses once further along:</p>
     <ul>
