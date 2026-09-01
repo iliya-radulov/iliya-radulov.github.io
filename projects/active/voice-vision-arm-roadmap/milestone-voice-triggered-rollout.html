@@ -28,6 +28,14 @@
       <strong>Result:</strong> ✅ Said "hey brain" out loud on one Raspberry Pi, and a physically separate Raspberry Pi ran the SO-101 arm through a full autonomous pick-and-place rollout, then spoke the result back — the exact loop Phase 5 was written around, now genuinely closed.
     </div>
 
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px;background:var(--surface);">
+      <video controls muted playsinline style="width:100%;display:block;">
+        <source src="voice_trigger.m4v" type="video/mp4">
+        Your browser doesn't support embedded video — the recording shows both terminals (Voice Pi catching the trigger, Brain Pi running the rollout) alongside the arm's actual pick-and-place, screen-recorded start to finish.
+      </video>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-top:-16px;margin-bottom:32px;"><em>Screen recording, no audio — the two terminal windows show the trigger being caught and the rollout executing in real time, in place of the spoken trigger/reply.</em></p>
+
     <h2>Two sessions, one goal</h2>
     <p><strong>Session 1</strong> proved <code>lerobot-rollout</code> could run a trained ACT checkpoint on the Brain Pi at all — the hard part, involving a real ARM-architecture crash. <strong>Session 2</strong> wired that proven command into the actual Flask endpoint and the actual spoken voice trigger, closing the loop end to end.</p>
 
