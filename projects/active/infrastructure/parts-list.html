@@ -1,0 +1,73 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parts List — Voice + Vision + Arm — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../voice-vision-arm-roadmap2/roadmap-stage2.html">← Back to the roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Interdisciplinary · Reference</div>
+    <h1>Parts List</h1>
+    <p class="subtitle">Full inventory for the Voice + Vision + Robot Arm project — already have, still needed, and reserved for later</p>
+
+    <h2>Already have</h2>
+    <ul>
+      <li>AIY Voice Kit (V1)</li>
+      <li>AIY Vision Kit (V1)</li>
+      <li>2× Raspberry Pi 4 (1GB)</li>
+      <li>SO-ARM101 leader/follower arm pair (WitMotion, Pro DIY kit, 3D-printed parts)</li>
+      <li>10" touchscreen (currently on Pi 3, unused)</li>
+      <li>Assorted Arduino components (not needed for the arm, but useful for future sensor/actuator side-projects)</li>
+    </ul>
+
+    <h2>Needed / to double-check</h2>
+    <ul>
+      <li>☐ Second proper Pi 4 power supply (USB-C, 5V/3A) — confirm two, not just one reused</li>
+      <li>☐ microHDMI adapter/cable, only if a display is wanted directly on the Vision Pi during setup</li>
+      <li>☐ SD card for the second Pi (16GB+, same 2021-04-02 AIY image)</li>
+      <li>☐ USB cable(s) for the arm's controller board → Pi connection</li>
+      <li>☐ Confirm SO-ARM101 servo power supply voltage/amperage matches the specific kit received (5V or 12V variant — check the spec sheet)</li>
+      <li>☐ A flat, well-lit workspace/mount point for the arm + camera during demonstration recording (Phase 3–4) — not hardware exactly, but worth planning early since dataset quality depends on consistent camera positioning</li>
+    </ul>
+
+    <h2>For LeKiwi (Phase 7)</h2>
+    <ul>
+      <li>✅ <strong>LeKiwi base kit delivered</strong> (OpenELAB, 12V, without Pi, Order #13152, Aug 31 — three weeks ahead of the mid-September estimate) — 3D-printed frame, 3× omni wheels, 3× C018 wheel-drive servos, servo driver board, 12V/5600mAh battery + charger, 1× 2MP camera. <strong>Three defects found, complaint filed with OpenELAB</strong> (wrong buck converter, arm mount doesn't fit the base plate, undersized mounting screws) — full details: <a href="../lekiwi/lekiwi-base-assembly.html">LeKiwi Base: Delivery, Defects &amp; Wheel Motor Setup</a>. Replacement PLA arm mount + correctly-sized screws needed before physical assembly can proceed.</li>
+      <li>✅ 8× STS3215 (C018) servos, WitMotion — completes servo count for 2 follower arms</li>
+      <li>✅ 2× Waveshare Bus Servo Adapter (A) — USB-serial bus controllers for the arm(s)</li>
+      <li>✅ <strong>Pi 5 power board resolved</strong> — Yahboom Raspberry Pi 5 Power Expansion Board ordered (AliExpress, €18, ETA 8–15 Sept), replacing the kit's underspec'd 3A onboard converter. Full comparison and reasoning: <a href="hardware-notes.html">Hardware Notes</a>.</li>
+      <li>✅ Confirm which existing Raspberry Pi 5 (4GB) gets dedicated to this build — resolved, same Pi 5 the power board is sized for</li>
+    </ul>
+
+    <h2>Reserved for the future XLeRobot upgrade — not needed yet</h2>
+    <ul>
+      <li>One additional SO-101-class follower arm's worth of mounting hardware (servos already covered by the 8-pack above)</li>
+      <li>~$250 in base/structural upgrade parts — exact BOM to confirm closer to the time; note XLeRobot 0.4.0's base structure has diverged from LeKiwi's original design, so some structural prints may need replacing rather than just adding to</li>
+      <li>IKEA RÅSKOG cart — confirm current XLeRobot design still specifies this</li>
+    </ul>
+
+    <h2>Optional / later</h2>
+    <ul>
+      <li>Laptop or cloud GPU access for Phase 6 training</li>
+      <li>MQTT broker or simple HTTP server setup, for Phase 5 inter-Pi communication (can run on either Pi — no extra hardware needed)</li>
+    </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>The M.2 slot / AI accelerator decision (Pi 5 PCIe HAT → NVMe SSD, not an accelerator) lives in <a href="hardware-notes.html">Hardware Notes</a>, alongside the reasoning.</em></p>
+  </div>
+
+</body>
+</html>

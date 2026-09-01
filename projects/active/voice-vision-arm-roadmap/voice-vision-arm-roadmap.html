@@ -58,7 +58,7 @@
     </div>
 
     <!-- PHASE 1 — COMPLETE -->
-    <div class="phase-card complete">
+    <div class="phase-card complete" id="phase1">
       <h2>Phase 1 — Foundations <span class="badge-complete">● Complete</span></h2>
       <ul>
         <li>✅ Voice Kit assembled, WiFi fixed, Google Cloud speech recognition working — see the <a href="../../recent/aiy-voice-kit/aiy-voice-kit-final-report.html">final report</a> and <a href="../../recent/aiy-voice-kit/aiy-voice-kit-v1-setup-guide.html">setup guide</a></li>
@@ -69,7 +69,7 @@
     <div class="dep-arrow">⸻ ⬇ ⸻</div>
 
     <!-- PHASE 2 — COMPLETE -->
-    <div class="phase-card complete">
+    <div class="phase-card complete" id="phase2">
       <h2>Phase 2 — Arm Basics <span class="badge-complete">● Complete</span> <span style="color:var(--phoenix-light);font-weight:400;font-size:0.8rem;">(validated on target hardware)</span></h2>
       <ul>
         <li>✅ Assemble both arms (leader + follower)</li>
@@ -82,7 +82,7 @@
     <div class="dep-arrow">⸻ ⬇ ⸻</div>
 
     <!-- PHASE 3 — COMPLETE -->
-    <div class="phase-card complete">
+    <div class="phase-card complete" id="phase3">
       <h2>Phase 3 — Record Demonstrations <span class="badge-complete">● Complete</span></h2>
       <ul>
         <li>✅ Use LeRobot's recording tools to capture leader→follower sessions for a simple task — see the <a href="../robot-arm-pickplace/pi4-recording-attempt.html">first Pi 4 attempt</a> and the <a href="../robot-arm-pickplace/mac-recording-training-log.html">Mac migration &amp; 30-episode dataset</a></li>
@@ -96,44 +96,39 @@
 
     <div class="dep-arrow">⸻ ⬇ ⸻</div>
 
-    <!-- PHASE 4 — IN PROGRESS -->
-    <div class="phase-card progress">
-      <h2>Phase 4 — Add Vision <span class="badge-progress">● IN PROGRESS</span></h2>
+    <!-- PHASE 4 — folded into Phase 5's achievement -->
+    <div class="phase-card complete" id="phase4">
+      <h2>Phase 4 — Add Vision <span class="badge-complete">● Complete</span> <span style="color:var(--text-muted);font-weight:400;font-size:0.8rem;">(folded into the arm, not built standalone)</span></h2>
       <ul>
-        <li>☐ Vision Pi watches the workspace during demonstrations</li>
-        <li>☐ Dataset now includes visual context alongside motor trajectories</li>
+        <li>✅ Vision ended up serving the arm directly rather than existing as a separate "watch and describe" capability — the two cameras feeding the ACT policy (and now the voice-triggered rollout) <em>are</em> this project's vision integration. Worth stating plainly rather than leaving a separate "Vision Pi watches and logs" item open indefinitely.</li>
+        <li>✅ A standalone "what does the camera see" capability, independent of arm control, was never built and isn't currently planned — the AIY Vision Kit build (Phase 1) already covers that use case on its own hardware.</li>
       </ul>
     </div>
 
     <div class="dep-arrow">⸻ ⬇ ⸻</div>
 
-    <!-- PHASE 5 — IN PROGRESS -->
-    <div class="phase-card progress">
-      <h2>Phase 5 — Add Voice as Trigger <span class="badge-progress">● IN PROGRESS</span></h2>
+    <!-- PHASE 5 — COMPLETE -->
+    <div class="phase-card complete" id="phase5"> 
+      <h2>Phase 5 — Add Voice as Trigger <span class="badge-complete">● Complete</span></h2>
       <ul>
-        <li>✅ <strong>Voice→Brain network trigger loop proven, fully local/offline</strong>: spoken trigger phrase (Vosk STT) → HTTP request (Flask) → spoken reply (Piper TTS), no cloud anywhere in the chain. Full write-up: <a href="../voice-brain-trigger-loop/session-wrapup-voice-brain-trigger-loop.html">session wrap-up</a>.</li>
-        <li>☐ <strong>Next:</strong> connect the trigger to an actual ACT rollout on the SO-101, rather than a test "ping" — the real payoff this phase has been building toward</li>
-        <li>☐ Reference: reSpeaker + SO-ARM101 voice control demo (prior art exists for this)</li>
+        <li>✅ Voice→Brain network trigger loop proven, fully local/offline: spoken trigger phrase (Vosk STT) → HTTP request (Flask) → spoken reply (Piper TTS), no cloud anywhere in the chain. Full write-up: <a href="../voice-brain-trigger-loop/session-wrapup-voice-brain-trigger-loop.html">session wrap-up</a>.</li>
+        <li>✅ <strong>Connected the trigger to a real ACT rollout on the SO-101</strong> — the actual payoff this phase was built around. Diagnosed and fixed a genuine ARM/OpenBLAS crash during inference, then wired the working rollout into both the Flask endpoint and the spoken trigger. Full write-up: <a href="milestone-voice-triggered-rollout.html">Milestone: First Voice-Triggered Autonomous Rollout</a>.</li>
+        <li>✅ Reference used: reSpeaker + SO-ARM101 voice control demo (prior art)</li>
       </ul>
+      <div class="abstract-box" style="margin-top:0.5rem;"><strong>Note:</strong> the endpoint currently reports success based on the script completing without crashing, not on independently verified task success — see the milestone page for the honest caveat and a near-miss that made this concrete.</div>
     </div>
 
-    <!-- SIDE THREAD: Dimitar Voice Polishing (marginalia) -->
-    <div class="side-thread">
+    <!-- SIDE THREAD: Dimitar Voice Polishing (CLOSED HERE, CONTINUES IN STAGE 2) -->
+    <div class="side-thread" id="phase5e">
       <h2>Voice Polishing Side Thread — Dimitar (Piper Bulgarian TTS) Fine-Tuning</h2>
-      <p>Two completed fine-tuning rounds on the <code>bg/dimitar</code> Piper voice, aimed at fixing pronunciation/stress issues found during Voice Kit testing. Genuinely a side branch — not blocking Phase 5, but real, finished work worth recording.</p>
-      <ul>
-        <li>✅ <strong>Round 1</strong>: 94 self-recorded clips (isolated sentences), fine-tuned on RunPod. Result: voice character present but noticeably artificial pacing; identified that isolated-sentence recording caused more reading mistakes than hoped. Full write-up: <a href="../dimitar-voice-finetune/dimitar-finetune-round1-report.html">round 1 report</a>.</li>
-        <li>✅ <strong>Round 2</strong>: 138 clips, recorded as continuous passages (real excerpted text) and split afterward in Audacity. Resumed training from round 1's checkpoint. Result: closer match to the user's actual voice, real improvement over round 1; some pronunciation/stress issues remain. Full write-up: <a href="../dimitar-voice-finetune/dimitar-finetune-round2-report.html">round 2 report</a>.</li>
-        <li>Full runbook for both rounds documented for a fast round 3 whenever pursued.</li>
-        <li><strong>Side experiments</strong>: zero-shot XTTS voice cloning (Bulgarian reference → Russian output) tried purely for fun; XTTS fine-tuning on the same dataset also planned as a curiosity experiment once the new PC is set up — not part of core assistant work.</li>
-        <li><strong>Status</strong>: not currently being iterated on — parked at "good enough for now," to be revisited once the new PC is available for faster local iteration.</li>
-      </ul>
+      <p>Two completed fine-tuning rounds on the <code>bg/dimitar</code> Piper voice, fixing pronunciation/stress issues found during Voice Kit testing. A genuine side branch throughout Stage 1 — never blocked the core roadmap, and doesn't block Stage 2 either.</p>
+      <div class="abstract-box"><strong>→ Continues in <a href="../voice-vision-arm-roadmap2/roadmap-stage2.html">Roadmap Stage 2</a></strong> — round 3 is ready to resume anytime, now genuinely easier with local GPU training available.</div>
     </div>
 
     <div class="dep-arrow">⸻ ⬇ ⸻</div>
 
     <!-- PHASE 6 — COMPLETE (achieved ahead of sequence) -->
-    <div class="phase-card complete">
+    <div class="phase-card complete" id="phase6">
       <h2>Phase 6 — Learned Autonomy <span class="badge-complete">● Complete</span> <span style="color:var(--phoenix-light);font-weight:400;font-size:0.8rem;">(achieved ahead of sequence)</span></h2>
       <ul>
         <li>✅ Trained an imitation-learning policy (ACT) from recorded demonstrations</li>
@@ -146,69 +141,32 @@
 
     <div class="dep-arrow">⸻ ⬇ ⸻</div>
 
-    <!-- PHASE 6 EXTENSION — SmolVLA (ON HOLD) -->
-    <div class="phase-card hold">
-      <h2>Phase 6 Extension — Voice-Conditioned Control via SmolVLA <span class="badge-hold">◉ On Hold</span></h2>
-      <div class="abstract-box" style="margin-bottom:0.5rem;"><strong>Status: on hold — blocked on compute, unblocking soon.</strong> New PC ordered specifically to enable this (see Hardware notes) — work resumes once it arrives and environment setup is complete. No architecture or planning changes since the original extension proposal.</div>
-      <p>A natural convergence point for Phases 4, 5, and 6: rather than voice commands only
-      <em>selecting</em> between pre-trained ACT checkpoints (ACT has no language input —
-      confirmed via source-code inspection during the poisoning investigation), swap the policy
-      architecture to <strong>SmolVLA</strong>, a true Vision-Language-Action model with an
-      actual language encoder. This would allow genuine free-form voice-conditioned behavior, not
-      just fixed trigger phrases.</p>
-      <h3>Planned architecture</h3>
-      <ul>
-        <li><strong>Brain Pi (currently testing on Pi 4, will consolidate to a single Pi 5 once Phase 4/5 are validated):</strong> Pi AI Cam attached, running vision + arm control</li>
-        <li><strong>Voice2 Pi (second Pi 4, reusing Phase 1's working AIY Voice Kit software):</strong> listens for commands, sends them over the network to the Brain Pi</li>
-        <li><strong>Training/inference compute:</strong> given SmolVLA's heavier backbone, initial training stays on the Mac (MPS); the Pi 5 (4GB) likely cannot run SmolVLA inference at usable speed unaccelerated — to be validated empirically before assuming otherwise</li>
-      </ul>
-      <div class="abstract-box"><strong>Bonus:</strong> this also finally enables properly re-testing the original text-triggered backdoor attack from the poisoning investigation, on the architecture it was actually designed for (SmolVLA), rather than the mismatched ACT test that produced this project's earlier corrected/negative result.</div>
-      <h3>Open items</h3>
-      <ul>
-        <li>☐ Validate whether Pi 5 (4GB) can run SmolVLA inference at usable speed at all, before assuming a Mac-tethered setup is required long-term</li>
-        <li>☐ Will need genuinely multi-task demonstration data (multiple distinct task prompts) to make language conditioning meaningful — current dataset uses a single fixed task string throughout</li>
-        <li>✅ <s>Design the simple network trigger/command protocol between Voice2 Pi and Brain Pi</s> — proven working (Flask + Vosk + Piper), see Phase 5 above. SmolVLA-specific integration still to come, but the base protocol exists now.</li>
-      </ul>
+    <!-- PHASE 6 EXTENSION — SmolVLA (CLOSED HERE, CONTINUES IN STAGE 2) -->
+    <div class="phase-card progress" id="phase6e">
+      <h2>Phase 6 Extension — Voice-Conditioned Control via SmolVLA <span class="badge-progress">◉ Continues in Stage 2</span></h2>
+      <p>Proposed as a natural convergence point for Phases 4, 5, and 6: swap the ACT policy for SmolVLA, a true Vision-Language-Action model, enabling genuine free-form voice-conditioned behavior instead of fixed trigger phrases. The compute blocker that stalled this at Stage 1's close has since been resolved (new ML Desktop, CUDA confirmed).</p>
+      <div class="abstract-box"><strong>→ Continues in <a href="../voice-vision-arm-roadmap2/roadmap-stage2.html">Roadmap Stage 2</a></strong>, alongside LeKiwi mobility and the voice polishing side thread.</div>
     </div>
 
     <div class="dep-arrow">⸻ ⬇ ⸻</div>
 
-    <!-- PHASE 7 — Mobility Expansion (IN PROGRESS) -->
-    <div class="phase-card progress">
-      <h2>Phase 7 — Mobility Expansion <span class="badge-progress">◉ In Progress</span> <span style="color:var(--text-muted);font-weight:400;font-size:0.8rem;">(new branch, not originally planned)</span></h2>
-      <p>Genuinely new — a wheeled base hardware direction — rather than an extension of the stationary arm setup, inspired by ALOHA-2 video.
-      Runs as a parallel track; does not block Phase 4/5 on the existing stationary rig.</p>
-      <ul>
-        <li>✅ ALOHA-2 is too costly — settled on <strong>LeKiwi</strong> as the entry point, with a confirmed, documented upgrade path to <strong>XLeRobot</strong> later.</li>
-        <li>✅ LeKiwi base kit ordered (WitMotion SO-BASE101) — expected mid-September per original order</li>
-        <li>✅ Servos, controller (Waveshare Bus Servo Adapter A), and 3D-printed parts for the <strong>LeKiwi/XLeRobot</strong> arm(s) in hand</li>
-        <li>✅ Confirmed the base's arm-vs-wheel motor ID sequencing doesn't block early start: the LeKiwi setup script configures arm motors (IDs 6→1) and wheel motors (IDs 9, 8, 7) as two separate passes, each written permanently to the motor's own memory</li>
-        <li>✅ <strong>Both LeKiwi/XLeRobot adapter ports confirmed working</strong> (<code>/dev/tty.usbmodem5B140288161</code>, <code>/dev/tty.usbmodem5B141134291</code>) after tracing an initial "port not found" issue to bad USB cables — 5 of 5 first-tested cables failed to carry data; a known-good cable (borrowed from the SO101 setup) resolved it. Worth treating that cable batch/supplier with suspicion going forward.</li>
-        <li>✅ <strong>All motors initialised, both arms fully assembled</strong></li>
-        <li>✅ <strong>Both arms fully functional on the Mac</strong> (MPS) — tested in teleoperation as follower arm with the SO101 leader arm</li>
-        <li>✅ Calibration complete for both arms, checkpoint transfer for original SO101 training tested, results unsatisfying</li>
-        <li>🖨️ <strong>Creality Ender 3 V3 Plus 3D printer purchased</strong> — reduces dependency on external printing for future LeKiwi/XLeRobot parts, and opens up custom part iteration (e.g. camera/pan-tilt mounts) without waiting on outside help</li>
-        <li>✅ <strong>Printer now in real use, not just purchased:</strong> printed first functional parts — new mounts for both the wrist camera and the main camera — plus learned mid-print filament changes, Fusion 360 basics, and slicer workflow. <strong>Not yet installed</strong> — the working rig still runs on its original mounts/positions, so no camera-repositioning risk has actually occurred yet.</li>
-        <li>⏳ <strong>New cameras also ordered</strong> for the upgraded setup — a bigger change than a same-camera remount, since resolution/FOV may differ from the cameras the current ACT policy was trained on.</li>
-        <li>✅ <strong>Mobile base kit delivered</strong> (Aug 31, three weeks ahead of the mid-September estimate). <strong>Three defects found and a formal complaint filed with Seeed</strong> same day (Order #13152): wrong buck converter, arm mounting structure doesn't fit the base plate's holes, and undersized mounting screws. Full inventory, defect photos, and complaint details: <a href="../lekiwi/lekiwi-base-assembly.html">LeKiwi Base: Delivery, Defects &amp; Wheel Motor Setup</a>.</li>
-        <li>✅ <strong>Pi 5 power question resolved.</strong> Compared three power-board options; ordered the Yahboom Raspberry Pi 5 Power Expansion Board (6–24V in, 5V/5A PD out) via AliExpress, ETA 8–15 Sept. Full reasoning: <a href="hardware-notes.html">Hardware Notes</a>.</li>
-        <li>✅ <strong>All 9 motor IDs set</strong> (arm 1–6, wheels 7–9) via the combined <code>lekiwi</code> robot type — <code>my_kiwi_arm_1</code> confirmed as the arm joining the base; <code>my_kiwi_arm_2</code> stays reserved for the future XLeRobot second arm. Full log: <a href="../lekiwi/lekiwi-base-assembly.html">LeKiwi Base: Delivery, Defects &amp; Wheel Motor Setup</a>.</li>
-        <li>☐ <strong>Physical daisy-chain assembly (driver board → wheels → arm) currently blocked</strong> on the arm-mount defect above — motor IDs are set, but the arm can't be securely attached to the base plate until replacement parts arrive.</li>
-        <li>☐ <strong>ACT validation pass on LeKiwi arm</strong>, once physically assembled. Purpose is hardware/pipeline validation (new servos, adapters, camera position/calibration) on the Mac via MPS — not a SmolVLA data-collection run. Dataset from this pass is single-task and won't carry forward to the later multi-task SmolVLA collection.</li>
-        <li>☐ <strong>Before installing the new mounts/cameras:</strong> take a reference photo of the current mount/framing, then run a quick validation pass (a handful of pick-and-place attempts) after the swap — vision-based ACT policies are sensitive to exact camera framing in a way the arm's own motor calibration isn't. Flagged in the <a href="../voice-brain-trigger-loop/session-wrapup-voice-brain-trigger-loop.html">voice-brain trigger loop report</a>, still open.</li>
-      </ul>
-      <div class="abstract-box" style="margin-top:0.5rem;"><strong>Milestone note:</strong> Phases 2–3 (arm teleoperation + recording) are a complete, showable project on their own — no need to wait for Voice/Vision integration to call that a finished build.</div>
+
+    <!-- PHASE 7 — Mobility Expansion (CLOSED HERE, CONTINUES IN STAGE 2) -->
+    <div class="phase-card progress" id="phase7">
+      <h2>Phase 7 — Mobility Expansion <span class="badge-progress">◉ Continues in Stage 2</span> <span style="color:var(--text-muted);font-weight:400;font-size:0.8rem;">(new branch, not originally planned)</span></h2>
+      <p>A wheeled base (LeKiwi, with a path to XLeRobot) — genuinely new hardware direction inspired by ALOHA-2, rather than an extension of the stationary arm this roadmap was originally scoped around. By Stage 1's close: base kit delivered, both arms assembled and validated, all motor IDs set — but blocked on defective parts from the supplier.</p>
+      <div class="abstract-box"><strong>→ Continues in <a href="../voice-vision-arm-roadmap2/roadmap-stage2.html">Roadmap Stage 2</a></strong>, alongside SmolVLA and the voice polishing side thread.</div>
     </div>
 
     <div class="dep-arrow" style="opacity:0.08;">⸻ ⸻ ⸻</div>
 
     <!-- HARDWARE NOTES -->
     <h2>Hardware notes</h2>
-    <p>Compute and platform decisions — Pi 4 capacity testing, the M.2 SSD-vs-AI-accelerator research, the training PC's full spec and reasoning, and now the completed <a href="new-desktop-setup.html">new ML desktop setup</a> and the <a href="home-server-setup.html">home server's expanded, dedicated role</a> — all live on their own pages: <a href="hardware-notes.html">Hardware Notes</a>.</p>
+    <p>Compute and platform decisions — Pi 4 capacity testing, the M.2 SSD-vs-AI-accelerator research, the training PC's full spec and reasoning, and now the completed <a href="../infrastructure/new-desktop-setup.html">new ML desktop setup</a> and the <a href="../infrastructure/home-server-setup.html">home server's expanded, dedicated role</a> — all live on their own pages: <a href="../infrastructure/hardware-notes.html">Hardware Notes</a>.</p>
 
     <!-- PARTS LIST -->
     <h2>Parts list</h2>
-    <p>Full inventory — already have, still needed, LeKiwi order status, and what's reserved for the future XLeRobot upgrade: <a href="parts-list.html">Parts List</a>.</p>
+    <p>Full inventory — already have, still needed, LeKiwi order status, and what's reserved for the future XLeRobot upgrade: <a href="../infrastructure/parts-list.html">Parts List</a>.</p>
 
     <!-- PROJECT PULSE — living status -->
     <div class="pulse" style="
@@ -233,25 +191,23 @@
           text-transform: uppercase;
         ">⏳ Pulse</span>
         <span style="font-weight: 400;">
-          Currently balancing: <strong>LeKiwi base assembly</strong> <a href="../lekiwi/lekiwi-base-assembly.html" target="_blank">(Phase 7 — base delivered, complaint filed)</a> + 
-          <strong>Phase 5 <a href="../voice-brain-trigger-loop/session-wrapup-voice-brain-trigger-loop.html" target="_blank">voice trigger loop</a></strong> (proven, local/offline).
-          New <a href="new-desktop-setup.html" target="_blank">ML desktop</a> and <a href="home-server-setup.html" target="_blank">home server</a> both set up. 3D printer now producing real parts (new mounts, not yet installed).
-          Next milestone: <strong>wire the voice trigger to a real ACT rollout</strong> (Phase 5) — running in parallel with <strong>resolving the Seeed complaint</strong> to unblock LeKiwi's physical assembly.
+          <strong>Phase 5 complete</strong> — <a href="milestone-voice-triggered-rollout.html" target="_blank">first voice-triggered autonomous rollout</a> proven, fully local/offline. Original roadmap goal (Voice + Vision + Arm, integrated) substantially achieved. Currently balancing: <strong>LeKiwi base assembly</strong> <a href="../lekiwi/lekiwi-base-assembly.html" target="_blank">(Phase 7 — blocked on Seeed replacement parts)</a> and planning the new wide-angle camera upgrade + multi-task dataset for SmolVLA.
+          Next milestone: <strong>add real task-success verification</strong> to the voice-triggered rollout, in parallel with <strong>resolving the Seeed complaint</strong> to unblock LeKiwi's physical assembly.
         </span>
       </div>
       <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.6; display: flex; gap: 20px; flex-wrap: wrap;">
+        <span>✅ Phase 5: complete — voice→arm loop proven</span>
         <span>📦 LeKiwi base: delivered, complaint filed</span>
         <span>🔌 Pi 5 power board: ordered, ETA 8–15 Sept</span>
         <span>🖥️ New PC: set up, GPU/CUDA confirmed</span>
-        <span>✅ Background-diversity results: published</span>
-        <span>✅ Voice→Brain trigger loop: proven</span>
+        <span>💾 Home server: set up, storage confirmed</span>
         <span>🖨️ 3D printer: producing real parts</span>
       </div>
     </div>
 
     <!-- LAST UPDATED -->
     <div class="last-updated">
-      Last updated: August 2026
+      Stage 1 closed: 1 September 2026 — original goal achieved. Ongoing work continues in <a href="../voice-vision-arm-roadmap2/roadmap-stage2.html">Roadmap Stage 2</a>.
     </div>
 
   </div>

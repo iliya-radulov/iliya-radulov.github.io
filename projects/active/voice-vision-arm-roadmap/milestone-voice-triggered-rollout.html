@@ -1,0 +1,156 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Milestone: First Voice-Triggered Autonomous Rollout — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="voice-vision-arm-roadmap.html">← Back to the roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Interdisciplinary · Active · Milestone</div>
+    <h1>First Voice-Triggered Autonomous Rollout</h1>
+    <p class="subtitle">Spoken trigger → network → real robot action → spoken result — fully local, no cloud anywhere in the chain</p>
+
+    <div class="abstract-box">
+      <strong>Result:</strong> ✅ Said "hey brain" out loud on one Raspberry Pi, and a physically separate Raspberry Pi ran the SO-101 arm through a full autonomous pick-and-place rollout, then spoke the result back — the exact loop Phase 5 was written around, now genuinely closed.
+    </div>
+
+    <h2>Two sessions, one goal</h2>
+    <p><strong>Session 1</strong> proved <code>lerobot-rollout</code> could run a trained ACT checkpoint on the Brain Pi at all — the hard part, involving a real ARM-architecture crash. <strong>Session 2</strong> wired that proven command into the actual Flask endpoint and the actual spoken voice trigger, closing the loop end to end.</p>
+
+    <h2>Session 1: Getting a real rollout to run on the Pi at all</h2>
+    <p>This installed LeRobot version turned out to be a recent dev build with a very different CLI than most documentation assumes — <code>lerobot-record</code> no longer supports policy inference at all in this version; the correct tool is a separate <code>lerobot-rollout</code> command. Finding the right flags took several wrong turns, each one informative:</p>
+    <ul>
+      <li><code>--policy.type=act</code> + <code>--policy.pretrained_path=...</code> together → built an empty config that fought with the checkpoint's real one</li>
+      <li>Correct approach, found directly in the tool's own <code>--help</code> text: <strong><code>--policy.path</code> alone</strong> — loads type, architecture, and features automatically from the checkpoint's <code>config.json</code></li>
+      <li>Camera warmup timing needed to live on each camera's own config dict (<code>"warmup_s": 5</code>), not a generic Python <code>time.sleep()</code> before the subprocess call — the camera object doesn't exist until inside the subprocess</li>
+    </ul>
+
+    <h3>The real bug: an ARM/OpenBLAS crash during actual inference</h3>
+    <p>Once arguments were correct, hit <code>Illegal instruction</code> — a low-level CPU crash, not a Python exception, occurring exactly when real policy inference began.</p>
+    <p><strong>Diagnosis, step by step:</strong></p>
+    <ol>
+      <li>Ruled out general PyTorch/CPU incompatibility (plain <code>torch.matmul</code>: fine)</li>
+      <li>Ruled out convolution specifically (<code>nn.Conv2d</code> forward pass: fine)</li>
+      <li>Isolated it to the full inference path — ResNet18 backbone under real concurrent load (camera capture + motor control + inference running together)</li>
+    </ol>
+    <p><strong>Root cause:</strong> OpenBLAS (PyTorch's underlying math library) auto-detecting the wrong CPU instruction set on this ARM board — a known category of issue on Raspberry Pi, compounded by a concurrency issue on top of the instruction-set mismatch.</p>
+    <pre><code># Fix — both variables needed together:
+OPENBLAS_CORETYPE=ARMV8 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 lerobot-rollout ...</code></pre>
+    <p>First manual test with this fix: the arm moved, in visible chunk-by-chunk steps (ACT predicts action chunks, then needs a fresh CPU forward pass for the next chunk — each "thinking" pause is real, on hardware with no GPU acceleration). <code>--duration</code> had to be raised from an initial 15s to <strong>95s</strong> to give a full rollout room to complete.</p>
+
+    <h2>Session 2: Wiring it into Flask and the actual voice trigger</h2>
+    <p>Two small, quick-to-fix bugs stood between "works from the terminal" and "works from a spoken command":</p>
+    <table>
+      <tr><th>Bug</th><th>Cause</th><th>Fix</th></tr>
+      <tr><td><code>FileNotFoundError: lerobot-rollout</code></td><td>Flask server's terminal session hadn't activated the LeRobot venv, so <code>subprocess</code> couldn't find the binary via PATH</td><td>Use the full absolute path to the binary instead of relying on PATH</td></tr>
+      <tr><td>Trigger phrase never fired</td><td><code>TRIGGER_PHRASE = "Start"</code> (capital S) vs. Vosk's always-lowercase output — <code>"Start" in "start"</code> silently evaluated <code>False</code></td><td><code>TRIGGER_PHRASE.lower() in text.lower()</code></td></tr>
+    </table>
+
+    <h2>Final working recipe</h2>
+    <p><strong>Brain's <code>rollout_server.py</code>:</strong></p>
+    <pre><code>from flask import Flask
+import subprocess
+import json
+import os
+
+app = Flask(__name__)
+
+CHECKPOINT_PATH = "/home/brain/lerobot/checkpoints/bgdiv_80000"
+FOLLOWER_PORT = "/dev/ttyUSB1"
+
+CAMERAS = {
+    "main": {"type": "opencv", "index_or_path": "/dev/video1", "width": 640, "height": 480, "fps": 30, "warmup_s": 5},
+    "gripper": {"type": "opencv", "index_or_path": "/dev/video3", "width": 320, "height": 240, "fps": 30, "warmup_s": 5},
+}
+
+@app.route('/pickplace')
+def pickplace():
+    env = os.environ.copy()
+    env["OPENBLAS_CORETYPE"] = "ARMV8"
+    env["OPENBLAS_NUM_THREADS"] = "1"
+    env["OMP_NUM_THREADS"] = "1"
+
+    result = subprocess.run([
+        "/home/brain/lerobot/robot/bin/lerobot-rollout",
+        "--robot.type=so101_follower",
+        f"--robot.port={FOLLOWER_PORT}",
+        "--robot.id=my_follower_arm",
+        f"--robot.cameras={json.dumps(CAMERAS)}",
+        f"--policy.path={CHECKPOINT_PATH}",
+        "--policy.device=cpu",
+        "--strategy.type=base",
+        "--fps=30",
+        "--duration=95",
+        "--task=pick and place",
+        "--display_data=false",
+        "--play_sounds=false",
+    ], capture_output=True, text=True, timeout=180, env=env)
+
+    if result.returncode != 0:
+        return {"status": "error", "message": "rollout failed"}, 500
+    return {"status": "ok", "message": "rollout complete"}</code></pre>
+
+    <p><strong>Voice's trigger callback</strong> — now speaks immediately on hearing the trigger (a rollout takes 95+ seconds; staying silent that whole time was bad UX):</p>
+    <pre><code>if TRIGGER_PHRASE.lower() in text.lower():
+    speak("Добре, започвам.")  # "Okay, starting."
+    try:
+        response = requests.get("http://192.168.2.94:5000/pickplace", timeout=180)
+        result = response.json()
+        speak("Готово." if result.get("status") == "ok" else "Нещо се обърка.")
+    except requests.exceptions.RequestException:
+        speak("Не мога да се свържа.")</code></pre>
+
+    <h2>Testing results</h2>
+    <ul>
+      <li><strong>Direct curl testing</strong> (from both Brain locally and Voice over the network): 4 successes, 1 failure (transient, didn't recur, not investigated)</li>
+      <li><strong>First full spoken-trigger attempt:</strong> completed and reported success despite the sample not actually being in position — caught in time and corrected before the arm reached for it</li>
+      <li><strong>Second full spoken-trigger attempt, sample correctly placed:</strong> genuine full success, entirely voice-triggered</li>
+      <li><strong>Newspaper background:</strong> success (expected — one of the five original bgdiv training backgrounds)</li>
+      <li><strong>"Hard position" P5:</strong> failed to grasp — consistent with earlier reports already flagging some positions as more difficult than others; confirms the known difficulty pattern holds through this new voice-triggered path too, not a new regression</li>
+    </ul>
+
+    <div class="abstract-box"><strong>Bonus finding:</strong> one test run happened to be on a cutting mat — a background never included in the bgdiv training set. Per the earlier <a href="../robot-arm-pickplace/so101-bgdiv-v1-report.html">generalization findings report</a>, untrained backgrounds were the project's most significant known failure mode. This run succeeded anyway. Not yet confirmed whether this reflects genuine extra generalization or a one-off — worth deliberately repeating on this same surface next time.</div>
+
+    <h2>Important caveat</h2>
+    <p>The <code>/pickplace</code> endpoint currently reports success based on the script completing without crashing — <strong>not</strong> on independently verifying the task was actually completed. The near-miss above (sample not in position, still reported as running normally until manually caught) makes this concrete: "Готово" confirms the rollout <em>ran</em>, not that it <em>succeeded</em>. A future improvement could add a final-state camera check.</p>
+
+    <h2>Full journey summary</h2>
+    <ol>
+      <li>Discovered this LeRobot install is a recent dev build — <code>lerobot-record</code> no longer supports policy inference; found the real tool, <code>lerobot-rollout</code></li>
+      <li>Worked through several wrong flag combinations before finding the correct single flag (<code>--policy.path</code>) that loads everything from the checkpoint automatically</li>
+      <li>Fixed camera warmup timing — needed on the camera config itself, not a generic outer sleep</li>
+      <li>Hit and diagnosed a genuine ARM/OpenBLAS crash during real inference — isolated via a careful process of elimination rather than guesswork</li>
+      <li>Found the fix (<code>OPENBLAS_CORETYPE</code> + single-threaded BLAS), confirmed a real rollout completing physically for the first time</li>
+      <li>Moved the proven command into the Flask endpoint — hit and fixed a PATH issue</li>
+      <li>Moved the endpoint call into the actual voice trigger script — hit and fixed a case-sensitivity bug silently swallowing every trigger attempt</li>
+      <li>First genuine, fully spoken-triggered, fully successful autonomous pick-and-place</li>
+    </ol>
+
+    <h2>What's next</h2>
+    <ul>
+      <li>Add real task-success verification, rather than trusting "the script didn't crash"</li>
+      <li>Swap in the polished Dimitar voice (round 2) for spoken responses — zero technical risk, queued</li>
+      <li>Deliberately repeat the cutting-mat test to confirm whether that generalization result holds</li>
+      <li>Camera/mount upgrade (new wide-angle cameras) and a proper multi-task dataset — the real next step toward SmolVLA, tracked in <a href="voice-vision-arm-roadmap.html">the roadmap</a></li>
+    </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Full session details: <a href="../voice-brain-trigger-loop/session-wrapup-voice-brain-trigger-loop.html">the original voice→brain trigger loop report</a>. Part of the <a href="voice-vision-arm-roadmap.html">Voice + Vision + Arm roadmap</a>, Phase 5.</em></p>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

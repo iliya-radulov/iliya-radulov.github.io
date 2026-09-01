@@ -1,0 +1,85 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hardware Notes — Voice + Vision + Arm — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../active.html">← Back to Active Projects</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Interdisciplinary · Reference</div>
+    <h1>Hardware Notes</h1>
+    <p class="subtitle">Compute and platform decisions, with the reasoning kept alongside each one — shared infrastructure, not scoped to one project</p>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:24px;">Referenced by the robot arm work (<a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">Stage 1, closed</a> / <a href="../voice-vision-arm-roadmap2/roadmap-stage2.html">Stage 2, active</a>) and by other projects using the same home server and ML desktop.</p>
+
+    <h2>On the Pi 4 (1GB) — is it enough?</h2>
+    <p>For teleoperation and inference, yes. For <em>recording</em>, no — this was tested and corrected mid-project. Don't worry about not getting the 2GB model — even 2GB wouldn't be enough to train imitation-learning/VLA policies at reasonable speed; that kind of training really wants a machine with a GPU. The practical split, confirmed by actual testing rather than assumed upfront:</p>
+    <ul>
+      <li><strong>Pi 4 (1GB) is fine for:</strong> running the Voice/Vision Kit software, driving the arm via LeRobot's control/teleoperation scripts, and running already-trained lightweight policies for inference.</li>
+      <li><strong>Recording demonstration datasets should <em>not</em> happen on the Pi 4 (1GB):</strong> testing showed <code>lerobot-record</code> hit a real ~4-6Hz ceiling against a 30Hz target when running arm control, camera capture, and real-time video encoding together — a genuine hardware limit, not a tuning problem. See the <a href="../robot-arm-pickplace/mac-recording-training-log.html">Mac migration log</a> for the full diagnosis.</li>
+      <li><strong>Training (Phase 6) should happen elsewhere:</strong> a laptop with a decent GPU, or a rented cloud GPU session. Record data off the Pi (a Mac with MPS acceleration proved effective), transfer the dataset if needed, train off-device, then deploy the resulting model back to the Pi for inference.</li>
+    </ul>
+    <p>This is standard practice in the LeRobot ecosystem — the low-power board is the "body" running the final model, not the machine collecting data or doing the heavy training. The 1GB Pi 4 remains a fine choice for its actual role; recording and training were always going to need more capable hardware.</p>
+
+    <h2>On the PCIe M.2 HAT (Pi 5) — SSD vs. AI accelerator, researched and decided</h2>
+    <p>Investigated whether an M.2 AI accelerator (e.g. Hailo-8L) could enable on-device SmolVLA inference on the Pi 5, as an alternative to the Mac-tethered setup in the SmolVLA extension plan.</p>
+    <p><strong>Finding:</strong> Hailo's toolchain (Dataflow Compiler, Model Zoo) is built and proven for <strong>CNN-based vision models</strong> (YOLO, classification, segmentation). Community reports (e.g. attempts to deploy DINOv2/v3, a Vision Transformer) describe the compiler lacking support for certain transformer-internal layers. No evidence found of a successful VLA model deployment on Hailo hardware. SmolVLA's transformer/attention-based architecture falls much closer to the "documented trouble" category (ViT-like) than to Hailo's proven CNN use case.</p>
+    <p><strong>Decision:</strong> skip the AI accelerator for this purpose — the engineering risk (undocumented, likely-unsupported operators) isn't worth it for this project's scale. <strong>Use the M.2 slot for an NVMe SSD instead</strong> — safe, immediately useful for dataset/model storage and swap headroom on the Pi 5's 4GB RAM, no research risk. Revisit the accelerator question only if Hailo's transformer support meaningfully matures, or for a separate, genuinely CNN-shaped task (e.g. real object detection for Phase 4).</p>
+
+    <h2>New PC ordered — CSL Sprint 5753 (custom config)</h2>
+    <p>Ordered to unblock SmolVLA training (and general heavier local compute going forward) — the Mac's GPU/memory setup wasn't viable for training a VLA-scale model at reasonable speed.</p>
+    <p><strong>Configuration ordered (CSL Sprint 5753, custom build), €1,818.50:</strong></p>
+    <table>
+      <tr><th>Component</th><th>Spec</th></tr>
+      <tr><td>Case</td><td>CSL Ventrix, black, aRGB, mesh side panel</td></tr>
+      <tr><td>CPU</td><td>AMD Ryzen 9 9900X, 12×4400 MHz</td></tr>
+      <tr><td>CPU cooler</td><td>be quiet! Pure Rock 3 Black, max. 190W TDP</td></tr>
+      <tr><td>GPU</td><td>MSI GeForce RTX 5060 Ti (Shadow 2X OC), 16 GB GDDR7</td></tr>
+      <tr><td>RAM</td><td>32 GB DDR5, dual channel (2×16 GB), 6000 MHz</td></tr>
+      <tr><td>Motherboard</td><td>ASUS PRIME B840M-A WIFI</td></tr>
+      <tr><td>Storage</td><td>1 TB WD Black SN7100 M.2 PCIe 4.0 SSD (~7250/6900 MB/s R/W)</td></tr>
+      <tr><td>PSU</td><td>700W BoostBoxx Power Boost, 80+ Gold</td></tr>
+      <tr><td>Networking</td><td>Onboard Wi-Fi 6E + Bluetooth 5.3 (Intel AX210), onboard LAN</td></tr>
+      <tr><td>OS</td><td>None included — to be installed</td></tr>
+    </table>
+    <p><strong>Reasoning behind the config:</strong></p>
+    <ul>
+      <li><strong>VRAM range established empirically first, not guessed:</strong> ran test workloads on RunPod against rented A4000 and RTX 3090 instances to find the actual working range for this task, before pricing any hardware. Settled on a 16–24 GB VRAM window as the requirement.</li>
+      <li><strong>GPU sourcing:</strong> first choice was a used RTX 3090 (sits in the target VRAM range) — but used units were running ~€2500, out of budget. Pivoted to a new system with a reasonable total price under €2000, landing on the RTX 5060 Ti 16GB as the in-budget option that still clears the empirically-set VRAM floor.</li>
+      <li><strong>Local box vs. cloud split, decided deliberately, not a fallback:</strong> this machine is for local testing/iteration; heavier training runs stay on rented cloud compute (RunPod) as needed.</li>
+      <li><strong>CPU and RAM sequencing:</strong> GPU was fixed first as the binding constraint, then CPU (Ryzen 9 9900X) and RAM (32GB/6000MHz) upgraded as reasonable-cost additions within remaining budget.</li>
+      <li><strong>Storage split, deliberate:</strong> the 1TB M.2 NVMe is for everyday/active-project use only. An old HDD will be added for local bulk storage, with archival data ultimately living on the home server.</li>
+      <li><strong>OS: Linux</strong>, matching the native OS already used for the robotics stack.</li>
+    </ul>
+    <p><strong>Open items:</strong></p>
+    <ul>
+      <li>✅ <s>Linux install + environment setup</s> — Ubuntu 26.04 LTS, Nvidia driver 595.84, CUDA 13.2 confirmed via <code>nvidia-smi</code>, Python 3.14.4, git, VS Code, GitHub SSH access all working. Full write-up: <a href="new-desktop-setup.html">New ML Desktop — Setup Summary</a>.</li>
+      <li>✅ <s>Add old HDD for local storage; confirm home-server archival path</s> — 2× 1TB Seagate HDDs added (repurposed from spare stock), plus the home server itself got a proper dedicated role and storage plan: <a href="home-server-setup.html">Home Server — Setup Summary &amp; Storage Plan</a>.</li>
+      <li>☐ Validate actual training throughput on this GPU/RAM combo before resuming the SmolVLA plan in earnest</li>
+    </ul>
+
+    <h2>On the 10" touchscreen (currently idle on the Pi 3)</h2>
+    <p>Worth keeping in reserve — good candidate uses once further along:</p>
+    <ul>
+      <li>A live dashboard Pi (showing Vision Kit's camera feed + detections during arm demos)</li>
+      <li>A simple GUI for triggering pre-recorded voice/arm actions without needing to actually speak, useful for debugging</li>
+      <li>Monitoring output for whichever Pi ends up as the "brain" coordinating the other two</li>
+    </ul>
+    <p>Not needed for Phases 1–3, but there's no reason to buy a second display when this one's sitting idle — repurpose it once Phase 4 or 5 is reached.</p>
+  </div>
+
+</body>
+</html>

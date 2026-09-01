@@ -1,0 +1,164 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roadmap Stage 2: Mobility, SmolVLA & Voice Polishing — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">← Back to the (closed) v1
+    roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Interdisciplinary · Active · Living Document</div>
+    <h1>Roadmap Stage 2: Mobility, SmolVLA &amp; Voice Polishing</h1>
+    <p class="subtitle">The three threads that outgrew the original Voice + Vision + Arm roadmap, now tracked on their
+      own — the original goal is <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html#phase1">closed and achieved</a>.</p>
+
+    <div class="abstract-box">
+      Stage 1 set out to combine a Voice Kit, Vision Kit, and one stationary arm into a single voice-triggered system —
+      done, as of the <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html#phase5">first voice-triggered autonomous rollout</a>.
+      Everything below grew out of that project but is a genuinely larger scope: a mobile robot, a language-conditioned
+      policy, and an unrelated voice-quality side project. Tracked here so the closed roadmap can stay a clean
+      historical record.
+    </div>
+
+    <!-- THREAD 1: LEKIWI MOBILITY -->
+    <div class="phase-card progress">
+      <h2>Thread 1 — LeKiwi Mobility <span class="badge-progress">◉ In Progress</span></h2>
+      <p>A wheeled base — genuinely new hardware direction, not an extension of the stationary arm. Inspired by ALOHA-2;
+        settled on LeKiwi as the affordable entry point, with a documented upgrade path to XLeRobot later.</p>
+      <h3>Where it stands</h3>
+      <ul>
+        <li>✅ Base kit delivered, both arms assembled and validated on the Mac (MPS), all 9 motor IDs set</li>
+        <li>✅ Pi 5 power question resolved — Yahboom Power Expansion Board ordered, ETA 8–15 Sept</li>
+        <li>⚠️ <strong>Three defects found on delivery, formal complaint filed with OpenELAB</strong> (Order #13152): wrong
+          buck converter, arm mount doesn't fit the base plate, undersized screws. Full details: <a
+            href="../lekiwi/lekiwi-base-assembly.html">LeKiwi Base: Delivery, Defects &amp; Wheel Motor Setup</a>.</li>
+        <li>☐ <strong>Physical daisy-chain assembly currently blocked</strong> on the arm-mount defect — waiting on
+          OpenELAB's replacement parts</li>
+        <li>☐ ACT validation pass on the LeKiwi arm once physically assembled (hardware/pipeline check, not a SmolVLA
+          data run)</li>
+        <li>☐ Camera/mount upgrade planned before the LeKiwi push — see Thread 2, since the two are linked (new cameras
+          needed for meaningful multi-task data either way)</li>
+      </ul>
+    </div>
+
+    <div class="dep-arrow">⸻ ⬇ ⸻</div>
+
+    <!-- THREAD 2: SMOLVLA -->
+    <div class="phase-card progress">
+      <h2>Thread 2 — Voice-Conditioned Control via SmolVLA <span class="badge-progress">◉ In Progress</span></h2>
+      <p>Swap the ACT policy for <strong>SmolVLA</strong>, a true Vision-Language-Action model with an actual language
+        encoder — genuine free-form voice-conditioned behavior, not just fixed trigger phrases.</p>
+      <h3>Where it stands</h3>
+      <ul>
+        <li>✅ <strong>Compute blocker resolved</strong> — new ML Desktop built and confirmed (Ubuntu 26.04, RTX 5060 Ti
+          16GB, CUDA 13.2 verified). Full spec and reasoning: <a href="../infrastructure/hardware-notes.html">Hardware Notes</a>.</li>
+        <li>✅ Base network trigger protocol (Flask + Vosk + Piper) already proven in Stage 1 — reusable as-is for
+          SmolVLA's command path</li>
+        <li>⏳ New wide-angle camera (110° vs. the current 75° FOV) ordered — needed both to fix a known camera-coverage
+          failure (position P7) and for a consistent setup going into multi-task recording</li>
+        <li>☐ <strong>The real next step: design and record a genuinely multi-task dataset.</strong> Current data is
+          single-task throughout (pick-and-place only) — language conditioning is meaningless without task variety to
+          actually condition on</li>
+        <li>☐ Validate whether the Pi 5 (4GB) can run SmolVLA inference at usable speed at all, or whether a
+          Mac/desktop-tethered setup is needed long-term</li>
+        <li>☐ Once trained: re-test the original text-triggered backdoor attack from the poisoning investigation —
+          SmolVLA is the architecture it was actually designed for, unlike the earlier mismatched ACT test</li>
+      </ul>
+    </div>
+
+    <div class="dep-arrow">⸻ ⬇ ⸻</div>
+
+    <!-- THREAD 3: VOICE POLISHING -->
+    <div class="phase-card progress">
+      <h2>Thread 3 — Voice Polishing: Dimitar (Piper) &amp; XTTS Experiments <span class="badge-progress">◉ Parked,
+          ready to resume</span></h2>
+      <p>Fixing pronunciation/stress issues in the <code>bg/dimitar</code> Piper voice used by the assistant. A genuine
+        side branch — never blocked Stage 1, and doesn't block Stage 2 either.</p>
+      <h3>Where it stands</h3>
+      <ul>
+        <li>✅ <strong>Round 1</strong> (94 clips, RunPod): voice character present, artificial pacing. Full write-up: <a
+            href="../dimitar-voice-finetune/dimitar-finetune-round1-report.html">round 1 report</a>.</li>
+        <li>✅ <strong>Round 2</strong> (138 clips, continuous-passage recording): closer match to the real voice, real
+          improvement. Full write-up: <a href="../dimitar-voice-finetune/dimitar-finetune-round2-report.html">round 2
+            report</a>.</li>
+        <li>✅ Full runbook documented for both rounds — round 3 can start quickly whenever picked back up</li>
+        <li>⏳ <strong>Round 3 now genuinely easier than before</strong> — the new ML Desktop means local training, no
+          more RunPod GPU-rental dance</li>
+        <li>☐ Swap the polished round-2 voice into the live assistant on <code>voice</code> — currently still running
+          the original unmodified Dimitar; zero technical risk, just hasn't been done yet</li>
+        <li>☐ XTTS fine-tuning experiment on the same dataset — planned purely as a curiosity project, not part of core
+          assistant work</li>
+        <li>✅ Zero-shot XTTS voice cloning (Bulgarian reference → Russian output) already tried, purely for fun</li>
+      </ul>
+    </div>
+
+    <div class="dep-arrow" style="opacity:0.08;">⸻ ⸻ ⸻</div>
+
+    <!-- HARDWARE / PARTS -->
+    <h2>Hardware &amp; parts</h2>
+    <p>Full compute/platform decisions and complete inventory still live on their own pages, shared across both stages:
+      <a href="../infrastructure/hardware-notes.html">Hardware Notes</a> and <a href="../infrastructure/parts-list.html">Parts List</a>.</p>
+
+    <!-- PULSE -->
+    <div class="pulse" style="
+      margin-top: 48px;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, rgba(230, 184, 126, 0.06), rgba(126, 200, 230, 0.06));
+      border-left: 3px solid var(--phoenix-light);
+      border-radius: 4px;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+    ">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="
+          background: var(--phoenix-light);
+          color: #0b0b0f;
+          font-weight: 600;
+          font-size: 0.7rem;
+          letter-spacing: 2px;
+          padding: 4px 12px;
+          border-radius: 20px;
+          text-transform: uppercase;
+        ">⏳ Pulse</span>
+        <span style="font-weight: 400;">
+          Three parallel threads, none blocking each other. <strong>LeKiwi</strong> waits on OpenELAB's replacement parts.
+          <strong>SmolVLA</strong> waits on the new camera + a real multi-task dataset design. <strong>Voice
+            polishing</strong> is ready to resume anytime, now genuinely easier with local GPU training available.
+        </span>
+      </div>
+      <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.6; display: flex; gap: 20px; flex-wrap: wrap;">
+        <span>📦 LeKiwi: blocked on OpenELAB replacement parts</span>
+        <span>📷 New cameras: ordered</span>
+        <span>🖥️ ML Desktop: ready for local training</span>
+        <span>🎙️ Dimitar round 3: ready to resume anytime</span>
+      </div>
+    </div>
+
+    <div class="last-updated">
+      Started: 1 September 2026
+    </div>
+
+  </div>
+  <script data-goatcounter="https://iliya-radulov.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+
+</html>
