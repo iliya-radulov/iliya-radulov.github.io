@@ -25,6 +25,11 @@
     <h1>Technical Deep Dive: LeKiwi Arm Assembly &amp; Checkpoint Transfer</h1>
     <p class="subtitle">Setup, port discovery, motor initialization, calibration, teleoperation testing, and an ACT checkpoint-transfer test — validating both LeKiwi-class follower arms ahead of the mobile base delivery</p>
 
+    <div class="abstract-box">
+      <strong>Goal:</strong> stand up two independent LeKiwi-class follower arms — set up ports, motor IDs, calibration, and teleoperation — then sanity-check whether an existing SO-101 policy transfers onto the new hardware, before the mobile base arrives.<br><br>
+      <strong>Result:</strong> ✅ Both arms fully calibrated and teleoperating cleanly at 60Hz with zero over-budget ticks. ⚠️ Checkpoint-transfer test (reusing the SO-101 policy, no retraining) gave an unsatisfying grasp — expected, since it's a hardware-validation test, not a shortcut to a trained LeKiwi policy.
+    </div>
+
     <h2>Hardware</h2>
     <ul>
       <li><strong>Arm platform:</strong> two SO-101-class follower arms built in this pass — <code>my_kiwi_arm_1</code> (near-term LeKiwi build) and <code>my_kiwi_arm_2</code> (held in reserve for the future XLeRobot second-arm upgrade)</li>
@@ -35,12 +40,8 @@
       <li><strong>Cameras:</strong> main (640×480) + gripper (320×240), MJPG, same configuration as the SO101 setup</li>
     </ul>
 
-    <div class="shot">
-      <span class="cam">
-        <img src="screens/Kiwi1.jpeg" alt=initial-setup style="max-width: 100%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
-      </span>
-      <p>Photo of the two new SO-101 follower arms prior to assembly</p>
-    </div>
+    <img src="screens/Kiwi1.jpeg" alt="The two new SO-101 follower arms prior to assembly" class="site-photo">
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-top:-16px;">Photo of the two new SO-101 follower arms prior to assembly</p>
 
     <h2>Environment Setup</h2>
     <p>A separate project directory, virtual environment, and <code>lerobot</code> clone, kept independent from the SO101 install so version or dependency changes on one side can't affect the other:</p>
@@ -100,12 +101,8 @@ pip install -e ".[feetech]"</code></pre>
     </table>
     <p>Both runs held a clean 60 Hz target with zero over-budget ticks and comfortable pacing headroom — the loop is nowhere near saturated. The teleop step itself dominates the per-tick cost (~75% of work), well ahead of observation (~24%) and sending (&lt;1%). No timing or hardware issues on either arm under teleoperation.</p>
     
-    <div class="shot">
-      <span class="cam">
-        <img src="screens/Kiwi2.jpeg" alt=initial-setup style="max-width: 100%; height: auto; border-radius: 6px; border: 1.5px dashed var(--line); background: var(--bg-elev); padding: 8px;">
-      </span>
-      <p>Photo of the two new SO-101 follower arms after successful testing.</p>
-    </div>
+    <img src="screens/Kiwi2.jpeg" alt="The two new SO-101 follower arms after successful testing" class="site-photo">
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-top:-16px;">Photo of the two new SO-101 follower arms after successful testing</p>
 
     <h2>ACT Checkpoint-Transfer Test</h2>
     <p>Rather than a fresh training run, this test reused the existing <code>so101_bgdiv_v1</code> checkpoint — the background-diversity-trained ACT policy from the SO101 line — directly on <code>my_kiwi_arm_2</code>, with no retraining, to see whether an already-trained policy transfers onto new physical hardware:</p>
@@ -136,6 +133,8 @@ pip install -e ".[feetech]"</code></pre>
       <li><strong>Environment/setup script inconsistencies</strong> (venv naming, dependency-install path) should be cleaned up and re-verified before treating this as a repeatable setup procedure for future arms</li>
       <li><strong>Mobile base still pending</strong> (expected mid-September) — wheel motor IDs (7–9) and the full combined arm+base configuration remain outstanding</li>
     </ul>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Continues from <a href="lekiwi-base-assembly.html">LeKiwi Base: Delivery, Defects &amp; Wheel Motor Setup</a>. Part of <a href="../voice-vision-arm-roadmap2/roadmap-stage2.html">Stage 2 of the roadmap</a>.</em></p>
   </div>
 <script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
 async src="//gc.zgo.at/count.js"></script>

@@ -1,0 +1,126 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XTTS: First Training Run, and an Accidental Bulgarian Dialect — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../index.html">🏠 Home</a>
+    <a href="../../projects/active/active.html">⚡ Active</a>
+    <a href="../../projects/recent/recent.html">🕓 Recent</a>
+    <a href="../../projects/former/former.html">📁 Former</a>
+    <a href="../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../index.html#fragments" class="current">🧩 Fragments</a>
+    <a href="../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../../index.html#fragments">← Back to Fragments</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Fragments · Curiosity Experiment</div>
+    <h1>XTTS: First Training Run, and an Accidental Bulgarian Dialect</h1>
+    <p class="subtitle">A pure side-quest — zero impact on the real Dimitar/Piper assistant voice, which remains untouched by any of this</p>
+
+    <div class="abstract-box">
+      Tried fine-tuning XTTS (which doesn't support Bulgarian) using Russian as a stand-in on the same Dimitar dataset. Training worked. Feeding Bulgarian text through the Russian-tagged model produced something that sounded like a real, specific Bulgarian dialect — entirely by accident.
+    </div>
+
+    <h2>Setting up on the new ML Desktop</h2>
+    <p>First real workload on the newly-built machine: <code>daswer123/xtts-finetune-webui</code>. Fresh Ubuntu shipped only with Python 3.14.4 — too new for the toolkit's pinned dependencies (<code>torch==2.1.2</code> has no build for 3.14 at all). Installed an older Python specifically for this project, same pattern as the earlier Piper/RunPod work:</p>
+    <pre><code>sudo apt update
+sudo apt install -y python3.11 python3.11-venv
+
+mkdir -p ~/xtts-project
+cd ~/xtts-project
+python3.11 -m venv xtts-env
+source xtts-env/bin/activate
+
+git clone https://github.com/daswer123/xtts-finetune-webui.git
+cd xtts-finetune-webui
+pip install --upgrade pip
+pip install -r requirements.txt</code></pre>
+    <p>Install completed cleanly — no dependency conflicts, just a genuinely heavy download (torch + full CUDA 12.1 toolkit + coqui-tts + spacy + faster-whisper, several GB total).</p>
+    <p>Hit a real GPU/PyTorch compatibility gap along the way — the RTX 5060 Ti's Blackwell architecture wasn't supported by the toolkit's pinned torch version. Full diagnosis lives with the machine's own documentation, since it's a property of the hardware, not this experiment: <a href="../../projects/active/infrastructure/ml-desktop-blackwell-fix.html">ML Desktop: Blackwell GPU Fix</a>.</p>
+
+    <h2>Getting the dataset there</h2>
+    <p>Located the round 2 Dimitar dataset on the home server (organized under <code>Dimitar_v2</code>, not the naming originally guessed):</p>
+    <pre><code>ssh r@192.168.2.42
+find /mnt/storage1 -iname "*dimitar*" -maxdepth 4
+# → /mnt/storage1/learn_bg/Dimitar_v2/wav
+# → /mnt/storage1/learn_bg/Dimitar_v2/metadata.csv</code></pre>
+    <p>Transferred directly server → ML Desktop over the local network, no internet upload bottleneck:</p>
+    <pre><code>mkdir -p ~/xtts-project/dimitar-data
+scp -r r@192.168.2.42:/mnt/storage1/learn_bg/Dimitar_v2/wav ~/xtts-project/dimitar-data/
+scp r@192.168.2.42:/mnt/storage1/learn_bg/Dimitar_v2/metadata.csv ~/xtts-project/dimitar-data/</code></pre>
+    <p><strong>Gotcha caught and fixed:</strong> the transfer pulled in a large number of <code>._block*.wav</code> files — macOS "AppleDouble" resource-fork metadata artifacts (each exactly 4096 bytes), not real audio. These would have silently broken any script that globs <code>*.wav</code> in that folder.</p>
+    <pre><code>cd ~/xtts-project/dimitar-data/wav
+rm -f ._*</code></pre>
+    <p>Verified clean: <strong>138 real audio files, 138 lines in <code>metadata.csv</code></strong> — exact match, dataset genuinely ready.</p>
+
+    <h2>Launching the UI</h2>
+    <pre><code>cd ~/xtts-project/xtts-finetune-webui
+source ../xtts-env/bin/activate
+python3 xtts_demo.py
+# → Running on local URL: http://127.0.0.1:5003</code></pre>
+
+    <h2>Data processing: confirmed Bulgarian genuinely isn't supported</h2>
+    <p>The "Dataset Language" dropdown had no Bulgarian option at all — consistent with what was already known (Bulgarian isn't in XTTS v2's 17 supported languages). This UI is specifically for fine-tuning <em>within</em> existing supported languages, not adding a new one.</p>
+    <p><strong>Decided to use Russian as a fun stand-in</strong> — same spirit as an earlier zero-shot cross-lingual experiment, not aiming for a real "Bulgarian" result.</p>
+
+    <h2>Three cascading dependency fixes</h2>
+    <p>All stemming from the Blackwell-fix torch upgrade (<code>torch 2.11.0+cu128</code>) creating ripple effects through the rest of the stack — none of these were bugs in the setup itself, just newer-library-version consequences the toolkit's original authors couldn't have anticipated.</p>
+
+    <h3>1. <code>ModuleNotFoundError: No module named 'torchcodec'</code></h3>
+    <p>Newer <code>torchaudio</code> (2.11+) moved audio loading to depend on a separate <code>torchcodec</code> package.</p>
+    <pre><code>pip install torchcodec</code></pre>
+
+    <h3>2. <code>OSError: libnvrtc.so.13: cannot open shared object file</code></h3>
+    <p>Plain <code>pip install torchcodec</code> grabbed a CUDA-enabled build mismatched to the specific CUDA version in use.</p>
+    <pre><code>pip uninstall -y torchcodec
+pip install torchcodec --index-url=https://download.pytorch.org/whl/cu128</code></pre>
+
+    <h3>3. <code>RuntimeError: Could not load libtorchcodec</code> (missing <code>libnppicc.so.12</code>)</h3>
+    <p>Root cause: torchcodec's CUDA build wants full GPU video/image decoding infrastructure — total overkill for loading small WAV files. <strong>Correct fix: use the CPU-only build instead</strong>, since only audio was ever needed, not GPU video decoding:</p>
+    <pre><code>pip uninstall -y torchcodec
+pip install torchcodec --index-url=https://download.pytorch.org/whl/cpu
+sudo apt install -y ffmpeg  # also needed, TorchCodec's actual decoding backend</code></pre>
+    <p><strong>Result:</strong> "Dataset Processed!" — 138 clips transcribed via Whisper large-v3 (as Russian) and formatted into the training CSVs the tool needs.</p>
+
+    <h2>Fine-tuning: one more fix needed</h2>
+    <p>Defaults kept as-is (6 epochs, batch size 2, max audio 11s) for a first "just see if it works" run.</p>
+    <p><strong>Hit:</strong> <code>_pickle.UnpicklingError: Weights only load failed</code> — a PyTorch 2.6+ security policy change (<code>torch.load()</code> now defaults to <code>weights_only=True</code>) that this toolkit's version of <code>coqui-tts</code> predates and doesn't account for.</p>
+    <p>First attempt — edited the two <code>torch.load()</code> call sites directly in <code>trainer/io.py</code> to add <code>weights_only=False</code>. Didn't fully work — same error resurfaced from a different call site.</p>
+    <p><strong>Real fix — patched <code>torch.load</code> globally</strong>, at the very top of <code>utils/gpt_train.py</code>, before any other imports:</p>
+    <pre><code>import torch
+_original_torch_load = torch.load
+def _patched_torch_load(*args, **kwargs):
+    kwargs['weights_only'] = False
+    return _original_torch_load(*args, **kwargs)
+torch.load = _patched_torch_load
+
+# ... rest of the file's original imports follow</code></pre>
+    <p>Safe to do here since the checkpoint being loaded is XTTS's own official base model, not an untrusted file.</p>
+
+    <div class="abstract-box"><strong>Result: training actually ran.</strong> ~0.05–0.1s per step, 43 steps/epoch × 6 epochs, finished in about 2 minutes — genuinely fast, confirming the earlier GPU/Blackwell fix is doing real work. Loss declined steadily each epoch (5.68 → 4.22 average). One accidental interruption via Ctrl+C mid-run required a clean re-run — the second run completed fully: <code>Model training done!</code>, final checkpoint <code>best_model_258.pth</code> (5.3GB).</div>
+
+    <h2>First listen — genuinely interesting, not just "it worked"</h2>
+    <p>UI auto-populated all four checkpoint paths correctly. Switched Language <code>en</code> → <code>ru</code> to match training, loaded the fine-tuned model, ran inference.</p>
+    <ul>
+      <li><strong>Russian test text:</strong> sounded like the actual recorded voice, with a very close accent match — XTTS's voice-cloning conditioning captured real vocal character from the fine-tuning data, largely independent of which language slot was technically used.</li>
+      <li><strong>Bulgarian text fed through the Russian-tagged model:</strong> sounded like <strong>Bessarabian Bulgarian</strong> — a real, historically-isolated Bulgarian dialect softened by centuries of Slavic-language contact. A genuinely apt comparison: feeding real Bulgarian words through a Russian phonemizer/tokenizer produces exactly the <em>kind</em> of systematic softening and pronunciation drift that dialect actually has — just computationally, via a language-tag mismatch, instead of geography and time.</li>
+    </ul>
+
+    <h2>Status</h2>
+    <ul>
+      <li>✅ ML Desktop's <code>xtts-finetune-webui</code> environment fully working end to end: data processing, training, and inference all confirmed functional</li>
+      <li>✅ First real local GPU training run completed on the new machine</li>
+      <li>✅ Genuinely interesting (if unintended) result — a Bulgarian-accented voice clone via a Russian-language proxy</li>
+      <li>Purely a curiosity thread throughout — no impact on the real <a href="../../projects/active/dimitar-voice-finetune/dimitar-finetune-round2-report.html">Dimitar/Piper voice work</a>, which remains the actual assistant voice</li>
+    </ul>
+  </div>
+
+</body>
+</html>

@@ -24,9 +24,11 @@
     <h1>SO-ARM101 Leader/Follower Arm — Build & Pi 4 Migration Report</h1>
     <p class="subtitle">Part of the same project as the AIY Voice Kit <a href="../../recent/aiy-voice-kit/aiy-voice-kit-final-report.html">final report</a> and AIY Vision Kit <a href="../../recent/aiy-vision-kit/aiy-vision-kit-final-report.html">final report</a> — see the project <a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">roadmap</a> for the overall plan.</p>
 
-    <h2>Status: Phase 2 Complete</h2>
-    <p>Both arms (leader + follower) assembled, calibrated, and confirmed running live teleoperation at a stable 60Hz — first on a Mac for initial validation, then successfully migrated to the target hardware (a Raspberry Pi 4, 1GB). Camera integration was also validated ahead of schedule.</p>
-     
+    <div class="abstract-box">
+      <strong>Goal:</strong> assemble the SO-ARM101 leader/follower pair, validate teleoperation, and migrate the working setup from Mac to the target Pi 4 hardware.<br><br>
+      <strong>Result:</strong> ✅ Phase 2 complete — both arms assembled, calibrated, and confirmed running live teleoperation at a stable 60Hz, first on a Mac for validation, then successfully migrated to the Pi 4 (1GB). Camera integration validated ahead of schedule.
+    </div>
+
     <h2>Assembly</h2>
     <p>Refreshingly uneventful compared to the AIY kits — the SO-ARM101's 3D-printed parts and clear motor-ID-then-assemble sequence (built into Hugging Face's official LeRobot documentation) meant no real snags worth documenting. Motor IDs were set one at a time before each motor was mechanically installed into its joint — necessary since IDs can't be addressed individually once several motors share a daisy-chained bus.</p>
 

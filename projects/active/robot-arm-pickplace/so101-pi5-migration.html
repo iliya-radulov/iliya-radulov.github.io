@@ -1,0 +1,103 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SO-101 Rig Migration: Mac → Pi 5 — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="robot-arm-pickplace.html">← Back to Robot Arm Pick-and-Place</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Technical Deep-Dive</div>
+    <h1>SO-101 Rig Migration: Mac → Raspberry Pi 5</h1>
+    <p class="subtitle">Fixing a root cause instead of routing around it — plus a debugging arc that found the opposite fix from the one assumed going in</p>
+
+    <div class="abstract-box">
+      <strong>Result:</strong> ✅ Migration validated — first real recording session completed on the Pi 5, both cameras on dedicated USB 3.0 ports, arm controller on the hub. The camera-crash problem that motivated this move is gone, and gone for a real, root-cause reason, not a workaround.
+    </div>
+
+    <h2>The problem that started this</h2>
+    <p><strong>Symptom:</strong> cameras worked fine standalone, but crashed during an actual rollout with "camera too slow."</p>
+    <p><strong>Root cause, found after ~2 hours:</strong> the USB hub wasn't communicating reliably under real load. Switching ports helped but remained unstable.</p>
+    <p><strong>Underlying reason:</strong> the Mac has no native USB-A ports — both cameras <em>and</em> the arm's serial controller all funneled through external hubs, competing for shared bandwidth. Not a camera problem. A Mac-connectivity problem.</p>
+
+    <h2>The decision: migrate to a Pi 5 (4GB)</h2>
+    <p><strong>Why this genuinely fixes the root cause, not just works around it:</strong> the Pi 5 has 4 native USB ports (2× USB 3.0, 2× USB 2.0) — enough for main camera, gripper camera, and the arm's serial controller to each get a direct, dedicated port, no hub aggregation at all. This removes the actual bottleneck rather than routing around it.</p>
+    <p><strong>Bonus, not yet acted on:</strong> the Pi 5 also has the AI Camera (IMX500) — a CSI camera, entirely separate from the USB bus. Headroom for a future third camera angle with zero impact on the USB situation.</p>
+
+    <h2>Pre-migration state</h2>
+    <ul>
+      <li>✅ New wide-angle cameras installed</li>
+      <li>✅ New 3D-printed wrist camera holder (official LeRobot design)</li>
+      <li>✅ New 3D-printed overhead/main camera holder (official XLeRobot design, repurposed for this stationary rig) — positioned between the two SO-101 arms</li>
+      <li>✅ Cameras individually tested — both work perfectly in isolation</li>
+      <li>✅ A separate, earlier USB hub short-circuit incident already diagnosed and resolved</li>
+    </ul>
+
+    <h2>Migration day: the real debugging arc</h2>
+
+    <h3>1. Motor 5 intermittently missing from the bus scan</h3>
+    <p>Traced to a marginal physical connector, confirmed by its inconsistent appear/disappear pattern — not a fixed hardware fault.</p>
+
+    <h3>2. The servo controller needed the hub, not a direct port — the opposite of the camera fix</h3>
+    <p>Moving the servo controller from a direct Pi USB port to the USB hub stabilized the connection completely. Direct Pi USB ports proved unstable for this specific low-bandwidth serial connection — the opposite arrangement from what the camera situation would suggest.</p>
+    <div class="abstract-box">Hubs can help <em>stabilize/condition</em> a low-bandwidth signal even while being exactly wrong for high-bandwidth video. This wasn't predicted going in — it was found through today's actual debugging, and it's a genuinely useful distinction for any future USB troubleshooting on this rig: "hub vs. direct" isn't a universal rule, it depends on what's actually being carried.</div>
+
+    <h3>3. "Overload error" on shutdown — benign, not a fault</h3>
+    <p>Cycled across different motors (4, then 5, then 2, then 1) on different runs. Diagnosed as the expected, safe protective response: whichever joint happens to be under gravitational load at the exact moment torque disables triggers the error. Confirmed benign by the pattern itself (a different motor each time, not one recurring failure point) and by three consecutive fully clean, error-free active teleoperation runs (18s, 31s, 35s, all at a rock-solid 59.73Hz).</p>
+
+    <h3>4. Recalibrated both arms as a precaution</h3>
+    <p>Genuinely healthy ranges on every joint — no signs of mechanical damage from the overload scares.</p>
+
+    <h3>5. The real scare: the follower arm went completely dead</h3>
+    <p>After all the software fixes above, the follower arm showed zero response and zero torque — didn't move, didn't even resist gravity.</p>
+    <p><strong>Root cause:</strong> the follower's separate power supply (an old laptop adapter, chosen for its higher current) had been physically unplugged — left disconnected during the day's cable reorganization while moving the rig to the Pi 5. The data/USB connection was fine the entire time, which is exactly why software reported zero errors — the arm simply had no power to move anything.</p>
+    <p><strong>Fix:</strong> reconnect the power cable. Confirmed with a full clean 52-second teleoperation test — completely stable, zero issues.</p>
+    <div class="abstract-box"><strong>General lesson:</strong> if an arm connects cleanly, times cleanly, and reports no errors, but simply doesn't move — check power before touching any code. A healthy communication bus and healthy motor power are two completely separate things, and a bus can look perfectly fine while the motors have nothing to actually work with.</div>
+
+    <h2>Audio side quest: episode-boundary cues</h2>
+    <p><code>spd-say</code> initially failed with <code>No such file or directory</code>. Root cause, worked through in order:</p>
+    <ol>
+      <li><code>speech-dispatcher</code> wasn't installed at all → installed via <code>apt</code></li>
+      <li>Default audio backend is PulseAudio, which wasn't installed → <code>espeak-ng "test"</code> (bypassing speech-dispatcher entirely) also produced no sound, isolating the problem to ALSA output routing rather than speech-dispatcher itself</li>
+      <li>The Pi 5 has <strong>two independent HDMI audio devices</strong> (<code>card 0: vc4hdmi0</code>, <code>card 1: vc4hdmi1</code>) — one per micro-HDMI port. Only the port with a display actually attached outputs audio.</li>
+      <li><code>speaker-test -D plughw:0,0</code> produced audible sound → card 0 is the correct, connected device</li>
+      <li><code>speaker-test -D plughw:1,0</code> failed with error <code>-524</code> — expected, since nothing is plugged into that port</li>
+    </ol>
+    <pre><code>sudo apt install -y speech-dispatcher espeak-ng</code></pre>
+    <p>Set card 0 as the ALSA default in <code>~/.asoundrc</code>:</p>
+    <pre><code>defaults.pcm.card 0
+defaults.ctl.card 0</code></pre>
+    <p>Confirmed working:</p>
+    <pre><code>espeak-ng "test"
+spd-say "test"</code></pre>
+    <div class="abstract-box"><strong>Lesson for any Pi 5 audio issue going forward:</strong> if sound hangs (not errors outright), suspect the ALSA/PulseAudio backend before the application layer. And on Pi 5 specifically, always confirm <em>which</em> HDMI card is actually connected via <code>speaker-test</code> on each one — the two ports are independent devices, not a single fallback pair.</div>
+
+    <h2>Working configuration</h2>
+    <pre><code>Follower arm: /dev/ttyUSB1 (via USB hub)
+Leader arm:   /dev/ttyUSB0 (via USB hub)
+Main camera (overhead):  /dev/video2, direct USB 3.0 port
+Gripper camera (wrist):  /dev/video0, direct USB 3.0 port</code></pre>
+    <p><em>Port numbers can shift on reboot/reconnect — always reconfirm with <code>lerobot-find-port</code> and <code>v4l2-ctl --list-devices</code> rather than assuming these persist.</em></p>
+
+    <h2>Result: migration validated</h2>
+    <p>Successfully completed a real recording session (episode 0, 12.8s, clean 29.93Hz) using both cameras on dedicated USB 3.0 ports and the arm controller via the hub. The original goal — proving the Pi 5's native ports would fix the Mac's USB-hub camera instability — is confirmed.</p>
+
+    <h2>What's next</h2>
+    <p>A full validation dataset was recorded on this rig and transferred to the ML Desktop for training — full details, including a real gotcha in how <code>lerobot-record</code> names its output folder, are in <a href="ml-desktop-lerobot-setup.html">ML Desktop: LeRobot Setup &amp; First Pi 5 Dataset</a>.</p>
+  </div>
+
+</body>
+</html>

@@ -24,6 +24,20 @@
     <h1>AIY Vision Kit (V1.1) — Setup Troubleshooting Log</h1>
     <p class="subtitle">Getting the Pi Zero WH online — a different set of quirks from the Voice Kit</p>
 
+    <div class="abstract-box">
+      <strong>Status: Resolved.</strong> The Vision Kit's Pi Zero WH is online and reachable over WiFi at its own dedicated hostname (<code>aiy-vision.local</code>). Every blocker along the way turned out to be software or process-state related — nothing here needed a hardware fix.
+    </div>
+
+    <h2>The short version</h2>
+    <ul>
+      <li>A dark board with no lights on wasn't a dead Pi — the Zero simply has no dedicated power LED at all.</li>
+      <li>No WiFi and no ethernet port available at first — solved with USB gadget mode (<code>dwc2</code> + <code>g_ether</code>) for a direct USB network link.</li>
+      <li>SSH "Permission denied" turned out to be a stale mDNS/ARP entry, caused by two Pis sharing the same default hostname — fixed by renaming this one to <code>aiy-vision</code>.</li>
+      <li>WiFi setup silently failed because of invisible curly quotes in the SSID/password — retyped with plain straight quotes.</li>
+      <li>A <code>wpa_supplicant</code> process stuck since first boot needed a full reboot, not a patch.</li>
+      <li>End result: stable WiFi at <code>aiy-vision.local</code>, independent of the USB tether.</li>
+    </ul>
+
     <p>A record of getting the Vision Kit's Raspberry Pi Zero WH online, following on from the Voice Kit setup. Unlike the Voice Kit (which needed its own Pi 3/4), this kit shipped with its own Pi Zero WH — smaller, cheaper, but with its own quirks (no ethernet port, no power LED, different HDMI size).</p>
 
     <h2>1. Hardware assembly</h2>
@@ -81,6 +95,14 @@
       <li><strong>Running multiple Pis with the same default hostname causes real, confusing SSH conflicts</strong> — rename each one early, before it becomes a debugging session of its own.</li>
       <li><strong>Curly/smart quotes silently break config files</strong> that expect plain ASCII quotes — a classic invisible bug, worth checking whenever a config file "looks right" but a service refuses to parse it.</li>
       <li><strong>When a network service looks "active" but behaves oddly, check when it started</strong> — a service running since first boot, never properly reloaded, is a common source of stale-state bugs that a clean reboot solves faster than patching.</li>
+    </ul>
+
+    <h2>Reference documents</h2>
+    <ul>
+      <li>This document — initial WiFi/networking setup</li>
+      <li><a href="aiy-vision-kit-camera-fix-summary.html">Camera replacement &amp; final fix</a> (dead camera, GPU memory, background service conflict)</li>
+      <li><a href="session-wrapup-vision-demos-stage1-complete.html">Live demo session</a> (face/joy/object detection working)</li>
+      <li><a href="aiy-vision-kit-final-report.html">Final build report</a> — full status and honest retrospective</li>
     </ul>
   </div>
 <script data-goatcounter="https://iliya-radulov.goatcounter.com/count"

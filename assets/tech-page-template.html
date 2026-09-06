@@ -1,0 +1,173 @@
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  TECH PAGE TEMPLATE — copy this file, rename it, fill in the brackets.
+  Uses the shared assets/style.css — do not add page-specific <style>
+  blocks here. If a page genuinely needs a different visual system
+  (like the alloy-lab or GoExplore pages), that's a deliberate Tier-1
+  hub decision, not this template.
+
+  See tech-page-checklist.md alongside this file for the short version
+  of the rules below.
+  ═══════════════════════════════════════════════════════════════════
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>[PAGE TITLE] — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <!--
+    Path depth check: count folders from this file up to the site root.
+    Most project subpages sit 3 levels deep (projects/active/PROJECT/page.html)
+    → ../../../assets/style.css is correct as-is.
+    If your page sits one level deeper, add one more ../
+  -->
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+
+  <!-- Site nav — copy verbatim, just confirm the relative paths match this file's depth -->
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+
+  <!--
+    Back-link: point at the page one level up in the hierarchy —
+    the project overview page, not always the top-level Active list.
+    e.g. a session log points back to the project's main page, not "Active Projects".
+  -->
+  <a class="back-link" href="[project-overview.html]">← Back to [project overview / roadmap / active projects]</a>
+
+  <div class="article-body">
+
+    <!--
+      Eyebrow — one of the existing conventions, don't invent new ones:
+      "Maker · Active Project"            → build logs, session wrap-ups
+      "Maker · Active Project · Phase N"  → when the project has numbered phases
+      "Maker · Active Project · Session Log" → chronological narrative entries
+      "Interdisciplinary · Reference"     → hub/reference pages (hardware notes, parts lists)
+      "Coding · Infrastructure"           → server/database/pipeline work
+    -->
+    <div class="eyebrow">[Maker · Active Project]</div>
+
+    <h1>[Page Title — matches or closely echoes the &lt;title&gt; tag]</h1>
+    <p class="subtitle">[One sentence: what this page covers and why it exists]</p>
+
+    <!--
+      ═══ REQUIRED: abstract-box ═══
+      Every tech page gets one, right after the subtitle, before the first <h2>.
+      Two accepted shapes:
+
+      (a) Goal / Result — default for anything with a clear before/after
+          (session logs, builds, migrations, deep dives)
+
+      (b) Key takeaway — use INSTEAD of Goal/Result only when the page's
+          main value is a single insight rather than a task with an outcome.
+          Can also be used as a SECOND box further down the page, alongside
+          a Goal/Result box at the top — see session-wrapup-pi4-modern-stack-setup.html
+          for an example of both boxes on one page.
+
+      Keep it to 2–4 lines total. Use <br><br> between Goal and Result, not
+      separate <p> tags — matches existing spacing.
+    -->
+    <div class="abstract-box">
+      <strong>Goal:</strong> [what you set out to do this session/build/migration]<br><br>
+      <strong>Result:</strong> [✅ / ⚠️ / 🔄] [what actually happened — lead with the outcome, not the process]
+    </div>
+
+    <!--
+      OPTIONAL: quick-status table — use for reference/hub pages with several
+      independent decisions or items (see hardware-notes.html), not for a
+      single linear session log where the abstract-box already covers it.
+    -->
+    <!--
+    <table>
+      <tr><th>[Item / Decision]</th><th>Status</th></tr>
+      <tr><td>[thing one]</td><td>✅ [done / confirmed]</td></tr>
+      <tr><td>[thing two]</td><td>🕓 [in progress / pending]</td></tr>
+      <tr><td>[thing three]</td><td>☐ [planned]</td></tr>
+    </table>
+    -->
+
+    <!-- ═══ BODY SECTIONS ═══ each real section gets its own <h2> -->
+
+    <h2>[Section — e.g. "Hardware", "What was set up", "Background"]</h2>
+    <p>[Prose. Keep sentences dense with actual specifics — model numbers,
+       exact error strings, real measurements — not vague summaries.]</p>
+
+    <!-- Bullet list — for enumerable facts (parts, config, findings) -->
+    <ul>
+      <li><strong>[Label]:</strong> [detail]</li>
+      <li><strong>[Label]:</strong> [detail]</li>
+    </ul>
+
+    <!-- Numbered list — for issues hit & resolved, in the order encountered -->
+    <ol>
+      <li><strong>[What broke]</strong> — [root cause]. [How it was fixed].</li>
+    </ol>
+
+    <!-- Code / commands actually run — always <pre><code>, never inline text pretending to be a command -->
+    <pre><code>[the actual command or config, verbatim]</code></pre>
+
+    <!-- Real data table — actual numbers, not "results were good" -->
+    <table>
+      <tr><th>[Metric]</th><th>[Value]</th></tr>
+      <tr><td>[metric name]</td><td>[real measured value]</td></tr>
+    </table>
+
+    <!--
+      Photo — use the site-photo class directly on the <img>, with a plain
+      muted caption paragraph underneath. Do NOT invent wrapper classes
+      (.shot/.cam etc.) — they aren't defined in style.css and will render
+      unstyled. This exact pattern is the only supported one:
+    -->
+    <!--
+    <img src="screens/[filename].jpg" alt="[what the photo shows]" class="site-photo">
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-top:-16px;">[Caption]</p>
+    -->
+
+    <!--
+      OPTIONAL but recommended for deep-dive pages: an honest lessons section.
+      This is what separates a good tech page from a flat one — admit what
+      didn't work, not just what did.
+    -->
+    <h2>Key Engineering Decisions &amp; Lessons</h2>
+    <p><strong>[The lesson, stated as a claim]:</strong> [what happened that taught it, including the failure if there was one].</p>
+
+    <!--
+      OPTIONAL: status/limitations table for deep-dive pages — converts a
+      bullet list of caveats into something scannable. Use ⚠️ for known
+      limitations, ☐ for planned next steps.
+    -->
+    <h2>Current Limitations (Next Iteration Targets)</h2>
+    <table>
+      <tr><th>Aspect</th><th>Status</th></tr>
+      <tr><td>[limitation]</td><td>⚠️ [what's actually limited and why]</td></tr>
+      <tr><td>[planned next step]</td><td>☐ Planned</td></tr>
+    </table>
+
+    <!--
+      ═══ REQUIRED: footer cross-link ═══
+      Every page that's part of a sequence gets this. Pick the phrasing that's true:
+        "Continues from [prev page]." — this page picks up where another left off
+        "Continued in [next page]."   — this page's story continues elsewhere
+        Use both if the page sits in the middle of a chain.
+      Reference-type pages (hub/parts-list style, not a chronological session)
+      can instead just note what they're "Part of" or "Referenced by".
+    -->
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;">
+      <em>Continues from <a href="[prev-page.html]">[prev page title]</a>. Continued in <a href="[next-page.html]">[next page title]</a>.</em>
+    </p>
+
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

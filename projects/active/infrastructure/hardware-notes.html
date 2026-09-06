@@ -25,6 +25,19 @@
     <p class="subtitle">Compute and platform decisions, with the reasoning kept alongside each one — shared infrastructure, not scoped to one project</p>
     <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:24px;">Referenced by the robot arm work (<a href="../voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">Stage 1, closed</a> / <a href="../voice-vision-arm-roadmap2/roadmap-stage2.html">Stage 2, active</a>) and by other projects using the same home server and ML desktop.</p>
 
+    <div class="abstract-box">
+      <strong>What this page is:</strong> the running log of compute/platform decisions for the robot arm project and shared infrastructure — kept together, with reasoning, so the "why" survives independently of any one project's timeline.<br><br>
+      <strong>Current state:</strong> all four major decisions below are settled and acted on; the only open item is validating training throughput on the new ML desktop.
+    </div>
+
+    <table>
+      <tr><th>Decision</th><th>Status</th></tr>
+      <tr><td>Pi 4 (1GB) role — record/train elsewhere, infer/teleop locally</td><td>✅ Confirmed by testing</td></tr>
+      <tr><td>Pi 5 M.2 slot — NVMe SSD, not AI accelerator</td><td>✅ Decided</td></tr>
+      <tr><td>New ML desktop — CSL Sprint 5753, RTX 5060 Ti 16GB</td><td>✅ Ordered, set up, working</td></tr>
+      <tr><td>10" touchscreen — reserved, not yet assigned</td><td>🕓 Held for Phase 4/5</td></tr>
+    </table>
+
     <h2>On the Pi 4 (1GB) — is it enough?</h2>
     <p>For teleoperation and inference, yes. For <em>recording</em>, no — this was tested and corrected mid-project. Don't worry about not getting the 2GB model — even 2GB wouldn't be enough to train imitation-learning/VLA policies at reasonable speed; that kind of training really wants a machine with a GPU. The practical split, confirmed by actual testing rather than assumed upfront:</p>
     <ul>

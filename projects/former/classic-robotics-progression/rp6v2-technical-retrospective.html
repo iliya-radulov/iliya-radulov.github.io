@@ -1,39 +1,145 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Technical Retrospective: RP5 to RP6v2 — Iliya Angelov Radulov</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --phoenix: #C8721A;
+      --phoenix-light: #E8924A;
+      --phoenix-glow: #F0A855;
+      --dark: #121212;
+      --surface: #1C1C1C;
+      --surface2: #242424;
+      --border: #2E2E2E;
+      --text: #E8E0D8;
+      --text-muted: #8A8078;
+      --content-w: 860px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: var(--text); line-height: 1.7; }
+
+    #topbar { position: sticky; top: 0; z-index: 50; background: rgba(18,18,18,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+    #topbar .inner { max-width: var(--content-w); margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    #topbar .back { font-size: 0.82rem; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+    #topbar .back:hover { color: var(--phoenix-light); }
+
+    #site-nav { max-width: var(--content-w); margin: 0 auto; padding: 14px 24px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    #site-nav a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); text-decoration: none; transition: all 0.15s; }
+    #site-nav a:hover { border-color: var(--phoenix); color: var(--phoenix-light); }
+    #site-nav a.current { background: var(--phoenix); border-color: var(--phoenix); color: #fff; }
+
+    header.hero { max-width: var(--content-w); margin: 0 auto; padding: 48px 24px 32px; border-bottom: 1px solid var(--border); }
+    .eyebrow { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--phoenix); font-weight: 600; margin-bottom: 12px; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; line-height: 1.2; color: var(--text); margin-bottom: 14px; }
+    .hero .tagline { font-size: 1rem; color: var(--text-muted); max-width: 60ch; }
+    .hero .tagline strong { color: var(--text); font-weight: 500; }
+
+    .tool-pills { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 10px; }
+    .pill { padding: 5px 13px; border-radius: 20px; font-size: 0.76rem; font-weight: 500; background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); }
+
+    main { max-width: var(--content-w); margin: 0 auto; padding: 0 24px 60px; }
+
+    .section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+    .section:last-of-type { border-bottom: none; }
+    .section .section-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--phoenix-light); border: 1px solid var(--border); background: var(--surface2); border-radius: 5px; padding: 2px 10px; display: inline-block; margin-bottom: 10px; }
+    .section h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--text); margin-bottom: 14px; line-height: 1.25; }
+    .section h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--phoenix-light); margin: 24px 0 10px; }
+    .section p { font-size: 0.95rem; color: var(--text-muted); max-width: 62ch; margin-bottom: 16px; }
+    .section p strong { color: var(--text); font-weight: 600; }
+    .section ul, .section ol { color: var(--text-muted); font-size: 0.95rem; margin: 0 0 16px 1.5rem; line-height: 1.8; }
+    .section ul li, .section ol li { margin-bottom: 4px; }
+    .section ul li strong, .section ol li strong { color: var(--text); }
+
+    .abstract-box { background: var(--surface); border-left: 3px solid var(--phoenix); border-radius: 8px; padding: 20px 24px; margin: 16px 0 24px; }
+    .abstract-box p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0; }
+    .abstract-box .kw { margin-top: 12px; font-size: 0.78rem; color: var(--text-muted); }
+    .abstract-box .kw strong { color: var(--phoenix-light); }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 0.85rem; }
+    table th, table td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+    table th { background: var(--surface2); color: var(--phoenix-light); font-weight: 600; }
+    table td { color: var(--text-muted); }
+    table code { font-family: 'IBM Plex Mono', monospace; color: var(--phoenix-glow); font-size: 0.78rem; }
+
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; line-height: 1.7; color: var(--text); margin: 12px 0 20px; }
+    pre code { background: transparent; padding: 0; color: var(--text); }
+
+    .diagram-box { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0 24px; }
+    .diagram-col { flex: 1; min-width: 200px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+    .diagram-col .diagram-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--phoenix); font-weight: 600; margin-bottom: 10px; }
+    .diagram-col ul { margin: 0; padding-left: 18px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.7; }
+
+    .glossary dt { color: var(--phoenix-light); font-weight: 600; font-size: 0.88rem; margin-top: 14px; }
+    .glossary dd { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; margin-left: 0; margin-bottom: 6px; }
+
+    footer { max-width: var(--content-w); margin: 0 auto; padding: 32px 24px 50px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-top: 1px solid var(--border); }
+    footer .byline { font-size: 0.82rem; color: var(--text-muted); }
+    footer .byline strong { color: var(--text); }
+    footer .foot-links { display: flex; gap: 18px; }
+    footer .foot-links a { font-size: 0.82rem; color: var(--phoenix-light); text-decoration: none; font-weight: 500; }
+    footer .foot-links a:hover { text-decoration: underline; }
+
+    @media (max-width: 720px) {
+      .hero h1 { font-size: 1.7rem; }
+      #topbar .inner { flex-direction: column; align-items: flex-start; }
+      .section h2 { font-size: 1.3rem; }
+      .diagram-box { flex-direction: column; }
+      table { font-size: 0.75rem; }
+    }
+  </style>
 </head>
-<body class="subpage-body">
-  <nav class="subpage-nav">
-    <a href="../../../index.html">🏠 Home</a>
-    <a href="../../active/active.html">⚡ Active</a>
-    <a href="../../recent/recent.html">🕓 Recent</a>
-    <a href="../former.html" class="current">📁 Former</a>
-    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
-    <a href="../../../index.html#fragments">🧩 Fragments</a>
-    <a href="../../../index.html#gallery">🖼️ Gallery</a>
-  </nav>
-  <a class="back-link" href="classic-robotics-progression.html">← Back to the full progression</a>
+<body>
 
-  <div class="article-body">
-    <div class="eyebrow">Maker · Technical Deep-Dive</div>
-    <h1>Technical Retrospective: The Evolution of a Tracked Robotic Fleet</h1>
-    <p class="subtitle">From the Conrad Robby RP5 to the Arexx RP6v2 Modular System</p>
+<div id="topbar">
+  <div class="inner">
+    <a class="back" href="classic-robotics-progression.html">&larr; Back to the full progression</a>
+  </div>
+</div>
 
+<nav id="site-nav">
+  <a href="../../../index.html">🏠 Home</a>
+  <a href="../../active/active.html">⚡ Active</a>
+  <a href="../../recent/recent.html">🕓 Recent</a>
+  <a href="../former.html" class="current">📁 Former</a>
+  <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+  <a href="../../../index.html#fragments">🧩 Fragments</a>
+  <a href="../../../index.html#gallery">🖼️ Gallery</a>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">Maker · Technical Deep-Dive</div>
+  <h1>Technical Retrospective: The Evolution of a Tracked Robotic Fleet</h1>
+  <p class="tagline">From the Conrad Robby RP5 to the Arexx RP6v2 Modular System — <strong>a genuine paradigm shift underneath, from interpreted, open-loop 8-bit automation to distributed, closed-loop multi-processor control.</strong></p>
+  <div class="tool-pills">
+    <span class="pill">⚙️ ATmega32</span>
+    <span class="pill">🔧 I²C</span>
+    <span class="pill">📐 PID</span>
+    <span class="pill">📡 Odometry</span>
+    <span class="pill">💻 C/C++</span>
+  </div>
+</header>
+
+<main>
+
+  <section class="section">
+    <span class="section-num">01</span>
+    <h2>Introduction &amp; Historical Context</h2>
     <div class="abstract-box">
-      This retrospective covers a four-robot tracked fleet spanning roughly a decade of embedded robotics development: a baseline Conrad Robby RP5 and three distinct architectural configurations of the Arexx RP6v2 platform. All four share an identical rubber-tracked mechanical chassis, but represent a genuine paradigm shift underneath — from interpreted, open-loop 8-bit automation to distributed, closed-loop multi-processor control.
+      <p>This retrospective covers a four-robot tracked fleet spanning roughly a decade of embedded robotics development: a baseline Conrad Robby RP5 and three distinct architectural configurations of the Arexx RP6v2 platform. All four share an identical rubber-tracked mechanical chassis, but represent a genuine paradigm shift underneath — from interpreted, open-loop 8-bit automation to distributed, closed-loop multi-processor control.</p>
       <div class="kw"><strong>Keywords:</strong> Embedded Systems, Robby RP5, Arexx RP6v2, ATmega32, Closed-Loop Odometry, Fixed-Point Arithmetic, Cooperative Multitasking</div>
     </div>
-
-    <h2>1. Introduction &amp; Historical Context</h2>
     <p>Consumer and educational robotics between the early 2000s and 2010s went through a fundamental transition — away from rigid, proprietary logic controllers and toward open, bare-metal programmable platforms. At the center of that shift was a rugged, rubber-tracked tank chassis, originally released by Conrad Electronic as the <strong>Robby RP5</strong> (Conrad CCRP5). When Arexx Engineering later developed the <strong>RP6</strong> and <strong>RP6v2</strong>, they kept the same dependable mechanical layout and completely re-engineered the electronics inside it.</p>
     <p>This fleet — one baseline RP5 and three differently configured RP6v2 units — documents that architectural evolution directly.</p>
+  </section>
 
-    <h2>2. The Architectural Shift</h2>
+  <section class="section">
+    <span class="section-num">02</span>
+    <h2>The Architectural Shift</h2>
     <p>The mechanical continuity between the RP5 and RP6v2 reflects a simple engineering principle: when a chassis works, don't touch it — upgrade the electronics instead. Both share the same dual-DC-motor drivetrain; what changed completely is what's driving it.</p>
 
     <div class="diagram-box">
@@ -54,7 +160,7 @@
         </ul>
       </div>
     </div>
-    <p style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:-14px;">Same tracked chassis and dual DC gearboxes on both sides — the mechanics stayed constant.</p>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-top:-8px;">Same tracked chassis and dual DC gearboxes on both sides — the mechanics stayed constant.</p>
 
     <table>
       <tr><th>Feature</th><th>Robby RP5 (Conrad CCRP5)</th><th>Arexx RP6 System (v2)</th></tr>
@@ -66,9 +172,12 @@
       <tr><td>Bus architecture</td><td>Rigid proprietary I/O rails</td><td>Master/slave I²C bus</td></tr>
       <tr><td>Sensors (out of box)</td><td>Light sensors, IR anti-collision, bumper</td><td>ACS (IR proximity), bumpers, light, current</td></tr>
     </table>
+  </section>
 
-    <h2>3. The Fleet Breakdown</h2>
-    <p>Four physical units, each representing a step in the same progression:</p>
+  <section class="section">
+    <span class="section-num">03</span>
+    <h2>The Fleet Breakdown</h2>
+    <p>Four physical units, each representing a step in the same progression.</p>
 
     <h3>3.1 Unit 1 — The Baseline Conrad Robby RP5</h3>
     <p>The original Motorola-driven C-Control module, running timed open-loop execution blocks. Serves as the historical control model against which the closed-loop RP6v2 units are contrasted.</p>
@@ -105,24 +214,39 @@
         </ul>
       </div>
     </div>
-    <p style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:-14px;">Both branches hang off the ATmega32 master core (8 MHz / 8 MIPS) via the I²C / TWI bus.</p>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-top:-8px;">Both branches hang off the ATmega32 master core (8 MHz / 8 MIPS) via the I²C / TWI bus.</p>
+  </section>
 
-    <h2>4. Generational Contrast — Open-Loop vs. Closed-Loop</h2>
+  <section class="section">
+    <span class="section-num">04</span>
+    <h2>Generational Contrast — Open-Loop vs. Closed-Loop</h2>
+
     <h3>4.1 The RP5's "blind" navigation (open-loop)</h3>
     <p>The RP5 had no hardware mechanism to measure actual track rotation or wheel slip. Driving straight required hardcoded calibration values inside the CCBASIC script to balance left/right motor voltages — and as battery voltage degraded over a session, those ratios drifted, and so did the robot's path.</p>
+
     <h3>4.2 The RP6v2's active feedback (closed-loop)</h3>
     <p>The RP6v2 resolved this with integrated optical encoders: hardware interrupts continuously monitor wheel velocity, and a software PID loop adjusts motor power in real time. Hit an obstacle or lose traction, and the loop corrects power delivery immediately to hold the intended path.</p>
+  </section>
 
-    <h2>5. The Software Toolchain Transition</h2>
+  <section class="section">
+    <span class="section-num">05</span>
+    <h2>The Software Toolchain Transition</h2>
+
     <h3>5.1 The RP5 execution model</h3>
     <p>Programmed inside the proprietary Conrad C-Control IDE using CCBASIC, compiled to compressed bytecode and transmitted over an RS-232 serial cable. The onboard microcontroller ran a permanent interpreter loop, fetching tokens from an external EEPROM — a real computational overhead that capped execution speed.</p>
+
     <h3>5.2 The RP6v2 execution model</h3>
     <p>A shift to compiled, native C/C++ via the open-source WinAVR toolchain (or Atmel Studio) and the AVR-GCC cross-compiler, with Makefiles tuned for size (<code>-Os</code>) to fit the ATmega32's 32KB flash limit. Direct hardware register access pushed execution to a deterministic 8 MIPS.</p>
+
     <h3>5.3 Flashing and telemetry via RP6Loader v2</h3>
     <p>The old DB9 serial link gave way to a USB-to-UART bridge (FTDI). Code was uploaded with RP6Loader, a cross-platform Java tool that triggers the bootloader via the DTR line — and since the Arexx library redirects standard C <code>printf()</code> output straight to UART, live sensor telemetry streams directly back to a PC terminal.</p>
+  </section>
 
-    <h2>6. Code Architecture Showcase — Multi-Tasking on Bare Metal</h2>
-    <p>With no OS or threading available, the ATmega32 relies on cooperative multitasking driven by hardware interrupts and non-blocking software timers. The example below runs real-time safety telemetry and a navigation state machine concurrently, without either one blocking the other:</p>
+  <section class="section">
+    <span class="section-num">06</span>
+    <h2>Code Architecture Showcase — Multi-Tasking on Bare Metal</h2>
+    <p>With no OS or threading available, the ATmega32 relies on cooperative multitasking driven by hardware interrupts and non-blocking software timers. The example below runs real-time safety telemetry and a navigation state machine concurrently, without either one blocking the other.</p>
+
     <pre><code>#include "RP6RobotBaseLib.h"
 #include &lt;avr/pgmspace.h&gt;
 
@@ -193,9 +317,12 @@ int main(void) {
     }
     return 0;
 }</code></pre>
+  </section>
 
-    <h2>7. Ecosystem Retrospective — Legacy vs. Modern Edge AI</h2>
-    <p>Contrasting this platform with something like a Raspberry Pi 5 or NVIDIA Jetson running ROS 2 shows how far the paradigm has moved:</p>
+  <section class="section">
+    <span class="section-num">07</span>
+    <h2>Ecosystem Retrospective — Legacy vs. Modern Edge AI</h2>
+    <p>Contrasting this platform with something like a Raspberry Pi 5 or NVIDIA Jetson running ROS 2 shows how far the paradigm has moved.</p>
 
     <div class="diagram-box">
       <div class="diagram-col">
@@ -220,13 +347,19 @@ int main(void) {
 
     <h3>7.1 Resource scarcity vs. abundance</h3>
     <p>Working on the RP6 meant a constant resource-optimization puzzle — 32KB of flash and 2KB of SRAM forced minimal variable sizes, bitmask packing, and storing text in flash via <code>PROGMEM</code>. Modern platforms abstract memory constraints away almost entirely.</p>
+
     <h3>7.2 Monolithic super-loops vs. distributed nodes</h3>
     <p>The RP6v2 runs one sequential loop — an I²C bus fault or a hung routine freezes the whole system, a real physical collision risk. ROS 2 instead splits logic into independent Nodes communicating via publish-subscribe; if a high-level mapping node crashes, the motor driver node keeps running its own safe-stop procedure.</p>
+
     <h3>7.3 Thresholds vs. dense spatial awareness</h3>
     <p>The RP5/RP6 read the world through simple numeric thresholds — binary bumper triggers, analog IR spikes. Modern platforms build rich 3D point clouds via LiDAR or depth cameras and use SLAM to map and localize down to millimeter accuracy.</p>
+
     <h3>7.4 The enduring value of legacy systems</h3>
     <p>Despite the huge processing gap, a full Linux OS is fundamentally non-deterministic — it can pause application code at any millisecond for background tasks. That's exactly why the RP6v2's design principles still matter: modern robotics architectures are hybrids, pairing a high-level computer for vision/planning with an independent, real-time microcontroller — doing exactly what the ATmega32 did — dedicated to deterministic, microsecond-accurate motor control and emergency interrupt handling.</p>
+  </section>
 
+  <section class="section">
+    <span class="section-num">08</span>
     <h2>Appendix A: Odometry Calculations</h2>
     <p>Firmware translates raw encoder counts into linear distance using fixed constants derived from the chassis geometry.</p>
     <ul>
@@ -242,7 +375,10 @@ int main(void) {
 uint32_t calculateDistanceInMM(uint32_t rawEncoderTicks) {
     return (rawEncoderTicks * 1047) / 1000;
 }</code></pre>
+  </section>
 
+  <section class="section" style="border-bottom:none;">
+    <span class="section-num">09</span>
     <h2>Appendix B: Glossary</h2>
     <dl class="glossary">
       <dt>ACS (Anti-Collision System)</dt><dd>Optical proximity setup pulsing an IR emitter and monitoring reflections to detect obstacles before contact.</dd>
@@ -265,9 +401,17 @@ uint32_t calculateDistanceInMM(uint32_t rawEncoderTicks) {
       <dt>TWI (Two-Wire Interface)</dt><dd>Atmel's hardware naming for its I²C-compatible peripheral.</dd>
       <dt>WinAVR</dt><dd>Legacy open-source Windows toolchain containing AVR-GCC, used to build software for Arexx robots.</dd>
     </dl>
+  </section>
 
+</main>
+
+<footer>
+  <div class="byline">By <strong>Iliya Angelov Radulov</strong> — from BASIC to multi-processor.</div>
+  <div class="foot-links">
+    <a href="../../../index.html">🏠 More projects</a>
   </div>
-<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
-async src="//gc.zgo.at/count.js"></script>
+</footer>
+
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

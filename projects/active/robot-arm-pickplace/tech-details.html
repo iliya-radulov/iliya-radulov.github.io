@@ -24,6 +24,11 @@
     <h1>Technical Deep Dive: SO-101 Pick-and-Place</h1>
     <p class="subtitle">Hardware, software stack, dataset, training configuration, and the full engineering story behind the autonomous grasp</p>
 
+    <div class="abstract-box">
+      <strong>Goal:</strong> document the full hardware/software stack, dataset, and training configuration behind the SO-101's first successful autonomous pick-and-place, and capture the engineering lessons for reuse on future arms (LeKiwi, XLeRobot).<br><br>
+      <strong>Result:</strong> ✅ Working autonomous grasp — ACT policy, 30 episodes, 2 cameras, 5,000 training steps. Reliable within a limited position/orientation range; broader robustness is the next iteration's target.
+    </div>
+
     <h2>Hardware</h2>
     <ul>
       <li><strong>Arm platform:</strong> SO-101 (open-source, 3D-printed, 6-DOF) — two units, configured as a leader (human-operated) and follower (task-performing) pair</li>
@@ -111,13 +116,15 @@
     <p><strong>Hardware quirks compound.</strong> Several issues stacked before the setup was stable: an unpowered USB hub caused intermittent camera format failures; USB device enumeration order shifted after hardware changes (mitigated by switching to stable <code>/dev/serial/by-path</code> identifiers rather than the OS-assigned <code>/dev/ttyUSB0</code>-style names, which are not guaranteed stable across reconnects); and a Raspberry Pi 4 (1GB RAM) proved unable to sustain simultaneous camera capture, arm control, and real-time video encoding, which motivated the move to more capable hardware for the recording/training phase.</p>
 
     <h2>Current Limitations (Next Iteration Targets)</h2>
-    <ul>
-      <li><strong>Position sensitivity:</strong> reliable grasping currently requires the object to be placed within roughly the same region as training demonstrations — described during testing as more of a "line" of workable positions than a single fixed point, likely reflecting the training data's consistent approach angle</li>
-      <li><strong>Orientation sensitivity:</strong> the target object is elongated, and the model has not yet seen diverse rotations during training, so grasp reliability is expected to degrade for orientations far from those demonstrated</li>
-      <li><strong>Planned next steps:</strong> record additional episodes spanning a deliberate (not random) set of positions and orientations to build broader robustness, and migrate the working pipeline to dedicated always-on hardware (Raspberry Pi 5) as the project's long-term home</li>
-    </ul>
+    <table>
+      <tr><th>Aspect</th><th>Status</th></tr>
+      <tr><td>Position sensitivity</td><td>⚠️ Reliable only within roughly the training region — more of a workable "line" than a fixed point, likely reflecting the training data's consistent approach angle</td></tr>
+      <tr><td>Orientation sensitivity</td><td>⚠️ Untested rotations expected to degrade reliability — object is elongated, training data lacked diverse rotations</td></tr>
+      <tr><td>Next: deliberate position/orientation dataset</td><td>☐ Planned</td></tr>
+      <tr><td>Next: migrate to Raspberry Pi 5 (long-term home)</td><td>☐ Planned</td></tr>
+    </table>
 
-    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Related: <a href="pi4-recording-attempt.html">first recording attempt on the Pi 4</a>, <a href="mac-recording-training-log.html">migration to Mac and training kickoff</a>, and the <a href="milestone-first-successful-pickplace.html">full milestone log</a>.</em></p>
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>Written the same day as the <a href="mac-recording-training-log.html">Mac migration and training kickoff log</a> — read that first for the chronological story, this page for the consolidated technical reference. Also related: <a href="pi4-recording-attempt.html">first recording attempt on the Pi 4</a> and the <a href="milestone-first-successful-pickplace.html">full milestone log</a>.</em></p>
   </div>
 <script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
 async src="//gc.zgo.at/count.js"></script>

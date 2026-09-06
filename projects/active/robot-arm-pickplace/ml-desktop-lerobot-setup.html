@@ -1,0 +1,166 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ML Desktop: LeRobot Setup &amp; First Pi 5 Dataset — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="so101-pi5-migration.html">← Back to the Pi 5 migration</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Technical Deep-Dive · Living Document</div>
+    <h1>ML Desktop: LeRobot Setup &amp; First Pi 5 Dataset</h1>
+    <p class="subtitle">The training half of the pipeline, set up and proven end to end — first entry in what will grow as SmolVLA work continues</p>
+
+    <div class="abstract-box">
+      <strong>Result:</strong> Pi 5 record → transfer → ML Desktop, proven working end to end. First real dataset off the new rig (28 episodes), GPU confirmed genuinely functional (no Blackwell issue this time), storage/repo policy decided. Next: train on it, then plan SmolVLA's actual data needs properly.
+    </div>
+
+    <h2>Current system architecture</h2>
+    <pre><code>┌─────────────────────────────────────────────────────────────┐
+│  Pi 5 (4GB) — hostname "lab" — 192.168.2.110                  │
+│  User: assistant                                               │
+│  Role: SO-101 rig host — arms + cameras, recording             │
+│  Replaces: "brain" (Pi 4, being phased out)                    │
+└─────────────────────────────────────────────────────────────┘
+                          │  scp (dataset transfer)
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│  ML Desktop — user iliya-radulov                                │
+│  Role: GPU training (ACT now, SmolVLA next; also XTTS)          │
+│  GPU: RTX 5060 Ti 16GB — CUDA 13 stack confirmed working        │
+└─────────────────────────────────────────────────────────────┘
+                          │  (planned) archive after training
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Home server — 192.168.2.42 — always-on storage, Samba,        │
+│  Wake-on-LAN target                                             │
+└─────────────────────────────────────────────────────────────┘
+
+Also on the network:
+- Mac — largely superseded by the Pi 5 for this rig (its lack of
+  native USB-A caused the camera-hub instability that motivated
+  the migration)
+- voice (Pi 4) — voice trigger, Vosk STT + Piper TTS</code></pre>
+
+    <h2>lerobot install on the ML Desktop</h2>
+    <pre><code>Location: ~/Documents/github/active/so101-pickplace-project/lerobot
+Venv:     lerobot/robot  (activate: source robot/bin/activate)
+Installed: lerobot 0.6.2, torch 2.11.0+cu130, torchvision 0.26.0,
+           full CUDA 13 stack (nvidia-cudnn-cu13, nvidia-cublas-13.1.0.3, etc.)
+Also required: datasets (installed separately, not pulled in automatically)</code></pre>
+
+    <p><strong>GPU verification passed cleanly this time</strong> — no Blackwell/<code>sm_120</code> issue, unlike the original XTTS setup which needed a dedicated fix (<a href="../infrastructure/ml-desktop-blackwell-fix.html">full write-up</a>). This venv's torch build already has native Blackwell support:</p>
+    <pre><code>import torch
+print(torch.__version__)          # 2.11.0+cu130
+print(torch.cuda.is_available())  # True
+x = torch.randn(3,3).cuda()       # works, no errors</code></pre>
+    <p><strong>Note:</strong> <code>torchcodec</code> fails to load on both the Pi and (likely) here too — harmless, silently falls back to the <code>pyav</code> decoder, which works fine. The specific error (<code>libnppicc.so.13: cannot open shared object file</code>) is a missing NVIDIA library, irrelevant since <code>pyav</code> covers everything needed.</p>
+
+    <h2>Repo structure</h2>
+    <pre><code>~/Documents/github/active/
+├── arm/                        (private — full documentation)
+├── iliya-radulov/               (public — profile repo)
+├── iliya-radulov.github.io/     (public — portfolio site)
+├── my_db_project/               (public — materials science DB, Stage 2)
+├── so101-pickplace-project/     (private — THIS project)
+│   ├── lerobot/                 (NEW today — library clone + venv, gitignored)
+│   ├── reports/
+│   ├── roadmap/
+│   ├── scripts/
+│   ├── session-notes/
+│   ├── figs/
+│   ├── logs/
+│   └── portfolio/
+└── UselessTools/                (public — utility projects)</code></pre>
+
+    <h2>Storage policy, decided today</h2>
+    <ul>
+      <li><strong>Datasets</strong> (raw episodes/video): cache locally at <code>~/.cache/huggingface/lerobot/local/</code> during active training, then archive to the home server (<code>storage1/training/lerobot/</code>, same convention as the existing bgdiv archive) once a training run is complete. Not kept long-term on the ML Desktop's NVMe.</li>
+      <li><strong>Checkpoints</strong>: live in the project folder on disk (<code>so101-pickplace-project/lerobot/outputs/train/&lt;run_name&gt;/checkpoints/</code>) — <strong>not git-committed</strong> (binary weights bloat git history badly). Archived to the server once superseded, same as datasets.</li>
+      <li><strong>Git repo</strong> holds only genuinely small artifacts: reports, scripts, roadmap docs, session notes, config.</li>
+    </ul>
+    <p><code>.gitignore</code> added to <code>so101-pickplace-project</code> today:</p>
+    <pre><code>outputs/
+lerobot/outputs/
+*.mp4
+*.parquet</code></pre>
+
+    <h2>First real Pi-5-hosted dataset</h2>
+    <p><code>so101_pi5_act_validation</code> — 28 episodes, 16,758 frames. Schema: 7 positions × 4 orientations × 1 repetition, deliberately no repeats — this run is pipeline validation, not intended as a robust trained checkpoint. Single-shot coverage trades trajectory-averaging robustness for full spatial breadth.</p>
+    <pre><code>lerobot-record \
+    --robot.type=so101_follower \
+    --robot.port=/dev/ttyUSB1 \
+    --robot.id=my_follower_arm \
+    --robot.cameras='{"main": {"type": "opencv", "index_or_path": "/dev/video2", "width": 640, "height": 480, "fps": 30}, "gripper": {"type": "opencv", "index_or_path": "/dev/video0", "width": 320, "height": 240, "fps": 30}}' \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/ttyUSB0 \
+    --teleop.id=my_leader_arm \
+    --dataset.repo_id=local/so101_pi5_act_validation \
+    --dataset.single_task="Pick up the object and place it in the target" \
+    --dataset.num_episodes=28 \
+    --dataset.episode_time_s=20 \
+    --dataset.reset_time_s=8 \
+    --dataset.push_to_hub=false</code></pre>
+    <p><strong>Note:</strong> no <code>fourcc: MJPG</code> in this config — the Innomaker cameras reject MJPG negotiation via OpenCV entirely (<code>set_ok=False</code>, confirmed earlier on the Mac). Running raw format instead; this is fine on the Pi since each camera now has its own dedicated USB 3.0 port, with no bandwidth contention to work around.</p>
+
+    <h3>A real gotcha: the folder name isn't what you think</h3>
+    <div class="abstract-box"><code>lerobot-record</code> <strong>appends a timestamp suffix</strong> to the actual folder name, even though a clean <code>repo_id</code> was passed in. The real path was <code>so101_pi5_act_validation_20260905_160525</code>, not the bare <code>so101_pi5_act_validation</code> used in the argument. This caused an initial <code>LeRobotDataset</code> lookup failure — it tried the literal repo_id, didn't find a local match, then incorrectly attempted to resolve it against the Hugging Face Hub, producing a 401 error. <strong>Lesson:</strong> check the actual terminal output from <code>lerobot-record</code> for the real save path immediately after recording, rather than assuming the bare repo_id is the folder name.</div>
+
+    <p><strong>Locations:</strong></p>
+    <ul>
+      <li>Pi 5: <code>/home/assistant/.cache/huggingface/lerobot/local/so101_pi5_act_validation_20260905_160525</code></li>
+      <li>ML Desktop: same path under <code>~/.cache/huggingface/lerobot/local/</code>, transferred via <code>scp</code>, verified byte-identical via matching episode/frame counts on both ends (28 / 16,758)</li>
+    </ul>
+    <pre><code>scp -r assistant@192.168.2.110:/home/assistant/.cache/huggingface/lerobot/local/so101_pi5_act_validation_20260905_160525 ~/.cache/huggingface/lerobot/local/</code></pre>
+    <p>First transfer attempt was interrupted (<code>Connection closed by 192.168.2.110 port 22</code>) partway through; a second identical run completed successfully. Post-transfer verification (episode/frame count match) confirmed no corruption from the interrupted first attempt.</p>
+
+    <h3>Housekeeping — not yet done</h3>
+    <p>10 leftover test folders remain on the Pi from earlier pipeline debugging (all named <code>so101_pi5_validation_*</code>, timestamps between 12:09–13:52 on Sept 5) — short validation runs made while chasing the connection/power issues, not real data. Safe to delete once confirmed unneeded:</p>
+    <pre><code># On the Pi, after double-checking none are wanted:
+rm -rf ~/.cache/huggingface/lerobot/local/so101_pi5_validation_2026090*</code></pre>
+
+    <h2>Open questions — carried forward, still genuinely unresolved</h2>
+
+    <h3>What should SmolVLA training data actually look like?</h3>
+    <p>Unlike ACT (which benefits from dense position/orientation grids since it learns the task from scratch), SmolVLA starts from a pretrained VLA base with broad visual/language priors. Fine-tuning data needs likely shift toward:</p>
+    <ul>
+      <li>Genuine task/language variety — not just repeating "pick and place" at different coordinates, but distinct instructions like "push the object left" or "stack X on Y," each with its own demonstration episodes</li>
+      <li>Less emphasis on exhaustive spatial grid coverage per task, more emphasis on representative variation (positions, backgrounds, lighting) within each task</li>
+    </ul>
+    <p><strong>Not yet decided:</strong> the concrete episode schema (how many tasks, how many episodes per task, position/orientation coverage per task) — deliberately deferred to a dedicated planning session rather than decided in passing.</p>
+
+    <h3>Does a checkpoint trained on SO-101 transfer to LeKiwi / XLeRobot?</h3>
+    <p><strong>Empirically partially tested, not fully resolved:</strong></p>
+    <ul>
+      <li>An earlier LeKiwi cross-hardware test (the <a href="so101-bgdiv-v1-report.html">bgdiv_v1</a> checkpoint, newspaper background) produced 0% success — but diagnosed as a <strong>calibration-mapping mismatch</strong> (correct approach direction, consistent positional/angular offset) rather than a vision or policy-generalization failure. Camera mount imprecision was also a contributing factor at the time.</li>
+      <li><strong>Mitigations now in place</strong> that should improve a future retest: camera mounts standardized (identical official design across all arms), cameras now identical hardware across arms, calibration reference convention now deliberately fixed (parallel-to-table true-center calibration).</li>
+      <li><strong>XLeRobot (bimanual)</strong> is a harder case — its action/state space is roughly double a single-arm policy's, so a single-arm SO-101 checkpoint's action head won't transfer directly. The frozen vision encoder portion of a VLA model might transfer even when the action head doesn't — a real, common pattern in VLA fine-tuning, not yet tested for this specific case.</li>
+      <li><strong>Next real test:</strong> once LeKiwi is fully assembled (pending: replacement 3D-printed arm mount + correctly-sized screws from the Seeed complaint, Pi 5 power board arriving 8–15 Sept), retest cross-hardware transfer with the now-standardized camera/calibration setup and see whether the earlier offset problem persists or resolves.</li>
+    </ul>
+
+    <h2>Immediate next steps, in order</h2>
+    <ol>
+      <li>Delete the 10 leftover Pi test folders (optional housekeeping, low priority)</li>
+      <li><strong>Run ACT training</strong> on <code>so101_pi5_act_validation</code> (28 episodes) — first real use of the RTX 5060 Ti for this project</li>
+      <li>Once that validates the full pipeline (Pi record → transfer → Desktop train), move to the <strong>SmolVLA episode schema planning</strong> above — a dedicated session, not a decide-in-passing task</li>
+      <li>Retest LeKiwi cross-hardware transfer once physically assembled, with the standardized camera/calibration setup</li>
+    </ol>
+
+    <p style="margin-top:32px;color:var(--text-muted);font-size:0.85rem;"><em>This page will grow/chain forward as ACT training completes and SmolVLA work actually begins, rather than being rewritten from scratch each time.</em></p>
+  </div>
+
+</body>
+</html>

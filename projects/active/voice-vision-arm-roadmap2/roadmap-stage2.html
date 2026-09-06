@@ -47,15 +47,14 @@
       <ul>
         <li>✅ Base kit delivered, both arms assembled and validated on the Mac (MPS), all 9 motor IDs set</li>
         <li>✅ Pi 5 power question resolved — Yahboom Power Expansion Board ordered, ETA 8–15 Sept</li>
-        <li>⚠️ <strong>Three defects found on delivery, formal complaint filed with OpenELAB</strong> (Order #13152): wrong
+        <li>⚠️ <strong>Three defects found on delivery, formal complaint filed with Seeed</strong> (Order #13152): wrong
           buck converter, arm mount doesn't fit the base plate, undersized screws. Full details: <a
             href="../lekiwi/lekiwi-base-assembly.html">LeKiwi Base: Delivery, Defects &amp; Wheel Motor Setup</a>.</li>
         <li>☐ <strong>Physical daisy-chain assembly currently blocked</strong> on the arm-mount defect — waiting on
-          OpenELAB's replacement parts</li>
+          Seeed's replacement parts</li>
         <li>☐ ACT validation pass on the LeKiwi arm once physically assembled (hardware/pipeline check, not a SmolVLA
           data run)</li>
-        <li>☐ Camera/mount upgrade planned before the LeKiwi push — see Thread 2, since the two are linked (new cameras
-          needed for meaningful multi-task data either way)</li>
+        <li>✅ <strong>Camera/mount upgrade complete</strong> (see Thread 2) — new wide-angle cameras and standardized mounts now installed across the setup, and the calibration convention (parallel-to-table, true-center) is fixed the same way on every arm, which should help once cross-hardware transfer to LeKiwi is retested</li>
       </ul>
     </div>
 
@@ -72,11 +71,18 @@
           16GB, CUDA 13.2 verified). Full spec and reasoning: <a href="../infrastructure/hardware-notes.html">Hardware Notes</a>.</li>
         <li>✅ Base network trigger protocol (Flask + Vosk + Piper) already proven in Stage 1 — reusable as-is for
           SmolVLA's command path</li>
-        <li>⏳ New wide-angle camera (110° vs. the current 75° FOV) ordered — needed both to fix a known camera-coverage
-          failure (position P7) and for a consistent setup going into multi-task recording</li>
-        <li>☐ <strong>The real next step: design and record a genuinely multi-task dataset.</strong> Current data is
+        <li>✅ <strong>New wide-angle cameras installed</strong> (110° vs. the previous 75° FOV) — fixes the known camera-coverage
+          failure (position P7) and gives a consistent setup going into multi-task recording</li>
+        <li>✅ <strong>SO-101 rig migrated from Mac to a Pi 5</strong> — root-cause fix for recurring camera-crash-during-rollout
+          errors (the Mac's lack of native USB-A was forcing cameras and the arm controller to share hub bandwidth).
+          Full diagnosis and debugging arc: <a href="../robot-arm-pickplace/so101-pi5-migration.html">SO-101 Rig Migration: Mac → Pi 5</a>.</li>
+        <li>✅ <strong>Record → transfer → train pipeline proven end to end on the new hardware</strong> — first Pi-5-hosted
+          dataset (28 episodes) recorded, transferred to the ML Desktop, GPU confirmed genuinely functional. Full setup,
+          storage policy, and open questions: <a href="../robot-arm-pickplace/ml-desktop-lerobot-setup.html">ML Desktop: LeRobot Setup &amp; First Pi 5 Dataset</a>.</li>
+        <li>☐ <strong>Immediate next step:</strong> run ACT training on the validation dataset to confirm the full pipeline, before moving to genuine SmolVLA multi-task data planning</li>
+        <li>☐ <strong>The real next step after that: design and record a genuinely multi-task dataset.</strong> Current data is
           single-task throughout (pick-and-place only) — language conditioning is meaningless without task variety to
-          actually condition on</li>
+          actually condition on. Deliberately deferred to its own planning session, not decided in passing.</li>
         <li>☐ Validate whether the Pi 5 (4GB) can run SmolVLA inference at usable speed at all, or whether a
           Mac/desktop-tethered setup is needed long-term</li>
         <li>☐ Once trained: re-test the original text-triggered backdoor attack from the poisoning investigation —
@@ -140,21 +146,23 @@
           text-transform: uppercase;
         ">⏳ Pulse</span>
         <span style="font-weight: 400;">
-          Three parallel threads, none blocking each other. <strong>LeKiwi</strong> waits on OpenELAB's replacement parts.
-          <strong>SmolVLA</strong> waits on the new camera + a real multi-task dataset design. <strong>Voice
+          Three parallel threads, none blocking each other. <strong>LeKiwi</strong> waits on Seeed's replacement parts.
+          <strong>SmolVLA</strong> pipeline now proven end to end on the new Pi 5 + ML Desktop setup — next up is real ACT
+          training on the validation dataset, then a proper multi-task dataset design. <strong>Voice
             polishing</strong> is ready to resume anytime, now genuinely easier with local GPU training available.
         </span>
       </div>
       <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.6; display: flex; gap: 20px; flex-wrap: wrap;">
-        <span>📦 LeKiwi: blocked on OpenELAB replacement parts</span>
-        <span>📷 New cameras: ordered</span>
-        <span>🖥️ ML Desktop: ready for local training</span>
+        <span>📦 LeKiwi: blocked on Seeed replacement parts</span>
+        <span>📷 New cameras: installed</span>
+        <span>🔧 SO-101 rig: migrated to Pi 5, camera-crash root cause fixed</span>
+        <span>🖥️ ML Desktop: record→transfer→train pipeline proven</span>
         <span>🎙️ Dimitar round 3: ready to resume anytime</span>
       </div>
     </div>
 
     <div class="last-updated">
-      Started: 1 September 2026
+      Started: 1 September 2026 · Last updated: 5 September 2026
     </div>
 
   </div>

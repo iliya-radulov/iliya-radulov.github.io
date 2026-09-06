@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My First 3D Design · Belt Holders for Makeblock Laser</title>
+
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        /* ── reset & base ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #0b1a2e;
+            line-height: 1.6;
+            padding: 2rem 1.5rem;
+        }
+
+        .page {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.03);
+            padding: 2.5rem 2.5rem 3rem;
+            transition: box-shadow 0.2s;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem 0.75rem;
+            }
+            .page {
+                padding: 1.75rem 1.25rem 2rem;
+                border-radius: 1.5rem;
+            }
+        }
+
+        /* ── header ── */
+        .header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #eef2f6;
+        }
+
+        .header-left h1 {
+            font-size: 2.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            color: #0a1a2f;
+        }
+
+        .header-left .subhead {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #3b5a7a;
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+        }
+
+        .header-left .subhead i {
+            color: #2d7a6e;
+            width: 1.2rem;
+            text-align: center;
+        }
+
+        .badge-date {
+            background: #eef6f4;
+            color: #1e5a4e;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            white-space: nowrap;
+        }
+
+        .header-right .status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #ebf4ff;
+            color: #1a4f7a;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.4rem 1rem 0.4rem 0.9rem;
+            border-radius: 40px;
+            border: 1px solid #d4e2f0;
+        }
+
+        .status-tag i {
+            color: #2a7faa;
+        }
+
+        /* ── hero image placeholder ── */
+        .hero-placeholder {
+            background: linear-gradient(145deg, #eef2f6, #e2e8f0);
+            border-radius: 1.5rem;
+            padding: 2.5rem 1.5rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
+            border: 2px dashed #cbd5e0;
+            color: #2c4a6a;
+        }
+
+        .hero-placeholder i {
+            font-size: 3rem;
+            color: #3b6b8a;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-placeholder p {
+            font-weight: 500;
+            font-size: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .hero-placeholder small {
+            display: block;
+            margin-top: 0.4rem;
+            font-weight: 400;
+            color: #4d6a85;
+        }
+
+        /* ── sections ── */
+        .section {
+            margin-top: 2.5rem;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0b1a2e;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
+
+        .section-title i {
+            color: #2d7a6e;
+            width: 1.8rem;
+            font-size: 1.3rem;
+        }
+
+        .section p,
+        .section li {
+            color: #1e3349;
+        }
+
+        .section ul {
+            list-style: none;
+            padding-left: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .section ul li {
+            background: #f1f5f9;
+            padding: 0.25rem 1rem 0.25rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .section ul li i {
+            color: #2d7a6e;
+            font-size: 0.75rem;
+        }
+
+        .highlight-box {
+            background: #f6fafc;
+            border-left: 5px solid #2d7a6e;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.25rem 0;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .highlight-box strong {
+            color: #0b2d3f;
+        }
+
+        .highlight-box .code-snip {
+            background: #eef2f6;
+            padding: 0.15rem 0.7rem;
+            border-radius: 6px;
+            font-family: 'Inter', monospace;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #1a4f6a;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.25rem 0;
+        }
+
+        @media (max-width: 600px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card-stat {
+            background: #f8fafc;
+            padding: 1rem 1.25rem;
+            border-radius: 1rem;
+            border: 1px solid #e9edf2;
+        }
+
+        .card-stat .label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #52718e;
+        }
+
+        .card-stat .value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0b1a2e;
+            margin-top: 0.1rem;
+        }
+
+        .card-stat .note {
+            font-size: 0.9rem;
+            color: #3b5a7a;
+        }
+
+        /* ── github card ── */
+        .github-card {
+            background: #0b1a2e;
+            color: #eef2f6;
+            border-radius: 1.25rem;
+            padding: 1.25rem 1.75rem;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem 1.5rem;
+            transition: background 0.2s;
+        }
+
+        .github-card i {
+            font-size: 1.6rem;
+            color: #b0c7db;
+        }
+
+        .github-card .gh-text {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .github-card .gh-text a {
+            color: #9fc9ff;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.15s;
+        }
+
+        .github-card .gh-text a:hover {
+            border-bottom-color: #9fc9ff;
+        }
+
+        .github-card .gh-label {
+            background: #1f3750;
+            padding: 0.25rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #c7dcec;
+            white-space: nowrap;
+        }
+
+        /* ── next challenge ── */
+        .challenge-banner {
+            background: #eef4fa;
+            border-radius: 1.25rem;
+            padding: 1.5rem 2rem;
+            margin-top: 1.75rem;
+            border: 1px solid #dce6f0;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+        }
+
+        .challenge-banner i {
+            font-size: 2rem;
+            color: #b45309;
+        }
+
+        .challenge-banner .ch-text {
+            flex: 1;
+            font-weight: 500;
+            color: #1a3349;
+        }
+
+        .challenge-banner .ch-text strong {
+            color: #8a3d0a;
+        }
+
+        /* ── footer ── */
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #eef2f6;
+            font-size: 0.9rem;
+            color: #4b6a86;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem 1.5rem;
+        }
+
+        .footer a {
+            color: #1f5a7a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer .heart {
+            color: #b13b3b;
+        }
+
+        /* ── extras ── */
+        .text-muted {
+            color: #4d6a85;
+        }
+
+        .mt-1 {
+            margin-top: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+
+        <!-- ═══ HEADER ═══ -->
+        <header class="header">
+            <div class="header-left">
+                <h1>🔧 Belt Holders · Makeblock Laser</h1>
+                <div class="subhead">
+                    <span><i class="fas fa-cube"></i> first original 3D design</span>
+                    <span><i class="fas fa-calendar-alt"></i> March 2025</span>
+                    <span class="badge-date"><i class="fas fa-check-circle"></i> prototype ✅</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="status-tag">
+                    <i class="fas fa-print"></i> printed · fit test
+                </span>
+            </div>
+        </header>
+
+        <!-- ═══ HERO ═══ -->
+        <div class="hero-placeholder">
+            <i class="fas fa-3d-printer"></i>
+            <p>Replacement belt holders for the <strong>Makeblock laser cutter</strong> (2015)</p>
+            <small>designed in FreeCAD · printed on my first 3D printer</small>
+        </div>
+
+        <!-- ═══ SECTION: THE BACKSTORY ═══ -->
+        <section class="section">
+            <div class="section-title">
+                <i class="fas fa-rocket"></i> The journey
+            </div>
+            <p>
+                I recently bought my first 3D printer and have been learning the ropes by printing
+                parts for my other projects — <strong>Pi Cam boxes</strong>, cases for
+                <strong>Pi 4 / 5 / 3</strong>, flex cam mounts, tilt‑pan mounts, and components
+                for my <strong>SO101 arm</strong>. After dozens of downloaded models, I felt ready
+                to try my own design.
+            </p>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> Pi Cam boxes</li>
+                <li><i class="fas fa-check-circle"></i> Pi4 / Pi5 / Pi3 cases</li>
+                <li><i class="fas fa-check-circle"></i> Flex cam mounts</li>
+                <li><i class="fas fa-check-circle"></i> Tilt‑pan mounts</li>
+                <li><i class="fas fa-check-circle"></i> SO101 arm parts</li>
+            </ul>
+        </section>
+
+        <!-- ═══ SECTION: THE DESIGN ═══ -->
+        <section class="section">
+            <div class="section-title">
+                <i class="fas fa-pencil-ruler"></i> Design &amp; CAD
+            </div>
+            <p>
+                My first self‑designed part was a <strong>simple stencil</strong> — just a silhouette
+                extruded to 3D. Easy. But the real challenge came next: designing
+                <strong>replacement belt holders</strong> for an old Makeblock laser cutter (circa 2015).
+            </p>
+            <div class="highlight-box">
+                <i class="fas fa-code" style="margin-right: 0.5rem; color: #2d7a6e;"></i>
+                I spent a few hours learning <strong>FreeCAD</strong> (Fusion 360’s free tier was too
+                limited for my needs). As an open‑source fan, I can honestly say —
+                <strong>FreeCAD is fantastic</strong> for this kind of mechanical part design.
+            </div>
+            <div class="grid-2col">
+                <div class="card-stat">
+                    <div class="label"><i class="fas fa-ruler-combined"></i> first design</div>
+                    <div class="value">Stencil</div>
+                    <div class="note">silhouette → extrude → slice → print</div>
+                </div>
+                <div class="card-stat">
+                    <div class="label"><i class="fas fa-cogs"></i> belt holders</div>
+                    <div class="value">M4 nuts · 8 mm</div>
+                    <div class="note">next time: 8.2 mm for easier fit</div>
+                </div>
+            </div>
+            <p class="mt-1">
+                <i class="fas fa-arrow-right" style="color: #2d7a6e;"></i>
+                The holes came out a bit tight — I used <span class="code-snip">8 mm</span> for M4 nuts,
+                but <span class="code-snip">8.2 mm</span> would have made assembly smoother.
+                Lesson learned for v2!
+            </p>
+        </section>
+
+        <!-- ═══ SECTION: PRINT & RESULT ═══ -->
+        <section class="section">
+            <div class="section-title">
+                <i class="fas fa-print"></i> Print &amp; result
+            </div>
+            <p>
+                The first print of the belt holders was a success! The parts fit the laser cutter’s
+                mechanics, and with a little persuasion (and a few gentle taps) the M4 nuts went in.
+                It’s incredibly satisfying to see a part you designed on screen become a physical
+                object that <em>actually works</em>.
+            </p>
+            <div style="background: #f1f6fa; border-radius: 1rem; padding: 1rem 1.5rem; margin-top: 1rem;">
+                <i class="fas fa-check-circle" style="color: #1f7a5a; margin-right: 0.5rem;"></i>
+                <span style="font-weight: 500;">First original design → successfully printed &amp; test‑fitted.</span>
+            </div>
+        </section>
+
+        <!-- ═══ SECTION: NEXT CHALLENGE ═══ -->
+        <section class="section">
+            <div class="section-title">
+                <i class="fas fa-microchip"></i> The next big challenge
+            </div>
+            <p>
+                Now that the mechanical parts are ready, the <strong>real</strong> work begins:
+                getting the laser cutter itself back to life. The software hasn’t been updated
+                since 2017, so I’ll need to dig into the codebase and see what can be revived.
+            </p>
+
+            <div class="challenge-banner">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span class="ch-text">
+                    <strong>Reviving the Makeblock laser</strong> — software last updated in <strong>2017</strong>.
+                    The hardware is solid, but the control stack needs some love.
+                </span>
+            </div>
+
+            <!-- GitHub link -->
+            <div class="github-card">
+                <i class="fab fa-github"></i>
+                <span class="gh-text">
+                    <a href="https://github.com/Makeblock-official/MLaser" target="_blank">
+                        Makeblock-official/MLaser
+                    </a>
+                    &nbsp;· the original repo (2017)
+                </span>
+                <span class="gh-label"><i class="far fa-star"></i> archive</span>
+            </div>
+            <p class="mt-1" style="font-size: 0.95rem; color: #2c4a6a;">
+                <i class="fas fa-lightbulb" style="color: #b47d2a;"></i>
+                If you have experience with this laser or have revived old Makeblock gear,
+                I’d love to hear your tips!
+            </p>
+        </section>
+
+        <!-- ═══ SECTION: TOOLS ═══ -->
+        <section class="section">
+            <div class="section-title">
+                <i class="fas fa-tools"></i> Tools &amp; materials
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.6rem 1.2rem;">
+                <span style="background: #e5edf5; padding: 0.3rem 1.2rem; border-radius: 40px; font-weight: 500;"><i class="fas fa-cube"></i> FreeCAD</span>
+                <span style="background: #e5edf5; padding: 0.3rem 1.2rem; border-radius: 40px; font-weight: 500;"><i class="fas fa-print"></i> Slicer (Cura / PrusaSlicer)</span>
+                <span style="background: #e5edf5; padding: 0.3rem 1.2rem; border-radius: 40px; font-weight: 500;"><i class="fas fa-ruler"></i> M4 nuts &amp; bolts</span>
+                <span style="background: #e5edf5; padding: 0.3rem 1.2rem; border-radius: 40px; font-weight: 500;"><i class="fas fa-microchip"></i> Makeblock laser (2015)</span>
+                <span style="background: #e5edf5; padding: 0.3rem 1.2rem; border-radius: 40px; font-weight: 500;"><i class="fas fa-code"></i> GitHub · MLaser</span>
+            </div>
+        </section>
+
+        <!-- ═══ FOOTER ═══ -->
+        <footer class="footer">
+            <span>
+                <i class="fas fa-arrow-left" style="margin-right: 0.3rem;"></i>
+                <a href="#">back to projects</a>
+            </span>
+            <span>
+                made with <span class="heart">♥</span> &amp; <i class="fas fa-3d-printer"></i>
+                &nbsp;·&nbsp; open source
+            </span>
+            <span>
+                <i class="fas fa-tag"></i> v1 · 2025
+            </span>
+        </footer>
+
+    </div>
+    <!-- end .page -->
+
+</body>
+</html>

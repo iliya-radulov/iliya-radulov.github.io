@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alloy Lab · Stage 2 — The Characterisation Layer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #fcf9f6;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #1e1e20;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    /* ---- nav ---- */
+    .nav-wrap { max-width: 1100px; margin: 0 auto 1rem; }
+    .subpage-nav {
+      display: flex; flex-wrap: wrap; gap: 0.3rem 0.7rem;
+      padding: 0.7rem 1.1rem; background: #f7f5f1; border-radius: 16px;
+      border: 1px solid #eae5de; margin-bottom: 1rem; font-size: 0.85rem;
+    }
+    .subpage-nav a {
+      color: #6b6b6b; text-decoration: none; padding: 0.25rem 0.55rem;
+      border-radius: 6px; font-weight: 500; transition: all 0.15s ease;
+    }
+    .subpage-nav a:hover { color: #1e1e20; background: #ede9e3; }
+    .subpage-nav a.current { color: #fff; background: #b56a2a; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      color: #b56a2a; text-decoration: none; font-size: 0.9rem;
+      font-weight: 500; margin-bottom: 0.4rem;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    /* ---- container ---- */
+    .container {
+      max-width: 1100px; margin: 0 auto; background: #fff;
+      border-radius: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.06), 0 8px 20px rgba(0,0,0,0.03);
+      padding: 3rem 2.5rem;
+    }
+    @media (max-width: 640px) {
+      .container { padding: 1.8rem 1.2rem; }
+      h1 { font-size: 2.2rem; }
+    }
+
+    /* ---- typography ---- */
+    .eyebrow {
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #b56a2a; margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: 'Times New Roman', Georgia, serif;
+      font-weight: 700; font-size: 3.2rem; line-height: 1.1;
+      letter-spacing: -0.02em; margin-bottom: 0.25rem; color: #1c1c1e;
+    }
+    h1 .stage-badge {
+      display: inline-block; background: #b56a2a; color: #fff;
+      font-size: 1.2rem; font-weight: 600; padding: 0.1rem 1rem;
+      border-radius: 60px; letter-spacing: 0.04em;
+      margin-left: 0.5rem; vertical-align: middle;
+    }
+    .subhead {
+      font-size: 1.2rem; color: #4a4a4e; margin-top: 0.25rem;
+      border-left: 4px solid #b56a2a; padding-left: 1.2rem;
+    }
+    h2 {
+      font-family: 'Times New Roman', Georgia, serif;
+      font-size: 2rem; margin-top: 2.8rem; margin-bottom: 0.75rem;
+      letter-spacing: -0.01em; border-bottom: 2px solid #edeae5;
+      padding-bottom: 0.4rem;
+    }
+    h3 { font-weight: 600; font-size: 1.3rem; margin-top: 1.8rem; margin-bottom: 0.4rem; }
+    p { color: #2d2d30; margin-bottom: 1.2rem; max-width: 75ch; }
+
+    /* ---- meta grid ---- */
+    .meta-grid {
+      display: flex; flex-wrap: wrap; gap: 1.8rem 3rem;
+      margin: 2rem 0 2.5rem; padding: 1.5rem 0;
+      border-top: 1px solid #eae7e2; border-bottom: 1px solid #eae7e2;
+    }
+    .meta-item .label {
+      font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: #7a7a7a;
+    }
+    .meta-item .value { font-weight: 600; font-size: 1.1rem; }
+
+    /* ---- stats dark ---- */
+    .stats-big {
+      display: flex; flex-wrap: wrap; gap: 2rem 3.5rem;
+      background: #1e1e20; color: #fff;
+      border-radius: 28px; padding: 2rem 2.5rem; margin: 2rem 0 2.5rem;
+    }
+    .stats-big .stat .number {
+      font-family: 'Times New Roman', serif;
+      font-size: 2.4rem; font-weight: 700; color: #d78c4a; line-height: 1;
+    }
+    .stats-big .stat .desc { font-size: 0.9rem; opacity: 0.7; }
+    @media (max-width: 600px) { .stats-big { flex-direction: column; gap: 1.2rem; } }
+
+    /* ---- cards ---- */
+    .card-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.2rem; margin: 1.8rem 0;
+    }
+    .card {
+      background: #f7f5f1; border-radius: 20px; padding: 1.5rem;
+      border: 1px solid #eae5de;
+    }
+    .card .card-tag {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+      color: #b56a2a; font-weight: 700;
+    }
+    .card h4 { font-size: 1.2rem; margin: 0.3rem 0 0.2rem; }
+    .card p { font-size: 0.95rem; color: #3f3f42; margin-bottom: 0; }
+
+    /* ---- pipeline card (wider) ---- */
+    .pipeline-card {
+      background: #f7f5f1; border-radius: 20px; padding: 1.8rem 2rem;
+      border: 1px solid #eae5de; margin: 1.2rem 0;
+    }
+    .pipeline-card .pipeline-header {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;
+    }
+    .pipeline-card .tech-badge {
+      font-size: 0.75rem; text-transform: uppercase; font-weight: 700;
+      letter-spacing: 0.06em; color: #fff; background: #b56a2a;
+      padding: 0.25rem 0.9rem; border-radius: 40px;
+    }
+    .pipeline-card h4 { font-size: 1.25rem; margin: 0; }
+    .pipeline-card .validation-note {
+      font-size: 0.82rem; color: #7a7a7a; font-style: italic; margin-top: 0.3rem;
+    }
+    .pipeline-card ul {
+      margin: 0.6rem 0 0 1.2rem; color: #2d2d30; font-size: 0.95rem;
+    }
+    .pipeline-card ul li { margin-bottom: 0.3rem; }
+
+    /* ---- tables ---- */
+    .table-wrap {
+      overflow-x: auto; margin: 1.8rem 0;
+      border-radius: 16px; border: 1px solid #e5e0d9;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th {
+      background: #f3f0ea; text-align: left; padding: 0.8rem 1rem;
+      font-weight: 600; color: #1e1e1e; border-bottom: 1px solid #d6d0c7;
+    }
+    td { padding: 0.7rem 1rem; border-bottom: 1px solid #e9e4dc; }
+    tr:last-child td { border-bottom: none; }
+    .check { color: #2a7a2a; font-weight: 700; }
+    .dash { color: #aaa; }
+
+    /* ---- code / mono ---- */
+    pre {
+      background: #1b1b1d; color: #ece7e0; padding: 1.2rem 1.5rem;
+      border-radius: 18px; overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.85rem; line-height: 1.5; margin: 1.5rem 0;
+    }
+    .inline-code {
+      background: #eeeae4; padding: 0.1rem 0.4rem; border-radius: 6px;
+      font-family: monospace; font-size: 0.9rem; color: #a55d1c;
+    }
+
+    /* ---- timeline steps ---- */
+    .timeline-step {
+      display: flex; gap: 1.2rem; margin: 1.2rem 0;
+      padding: 0.8rem 1rem; background: #faf8f5;
+      border-radius: 18px; border-left: 4px solid #b56a2a;
+    }
+    .timeline-step .step-icon { font-size: 1.4rem; min-width: 2rem; }
+    .timeline-step .step-content p { margin-bottom: 0.2rem; color: #2d2d30; font-size: 0.95rem; }
+    .timeline-step .step-content strong { display: block; margin-bottom: 0.2rem; }
+
+    /* ---- quote box ---- */
+    .quote-box {
+      background: #f2eee9; padding: 1.8rem 2rem; border-radius: 28px;
+      font-style: italic; border: 1px solid #ddd6cd; margin: 2rem 0; color: #2b2b2d;
+    }
+    .quote-box .attribution {
+      margin-top: 0.4rem; font-style: normal; font-weight: 500; color: #6b5f50;
+    }
+    .quote-box.dark {
+      background: #1e1e20; color: #ece7e0; border-color: #3d3d3d;
+    }
+    .quote-box.dark .attribution { color: #b5a187; }
+
+    /* ---- image placeholder ---- */
+    .img-slot {
+      background: #f3f0ea; border: 2px dashed #c9c2b8;
+      border-radius: 20px; padding: 2.5rem 2rem;
+      text-align: center; margin: 2rem 0; color: #7a7a7a;
+    }
+    .img-slot .slot-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .img-slot .slot-label { font-size: 0.85rem; font-weight: 600; color: #b56a2a; }
+    .img-slot .slot-desc { font-size: 0.8rem; margin-top: 0.3rem; color: #9a9a9a; }
+
+    /* ---- architecture diagram ---- */
+    .arch-diagram {
+      background: #1b1b1d; border-radius: 24px; padding: 2rem 2.2rem;
+      margin: 2rem 0; overflow-x: auto;
+    }
+    .arch-diagram pre {
+      background: transparent; padding: 0; margin: 0; font-size: 0.82rem;
+      color: #d0c9bf; border-radius: 0;
+    }
+    .arch-diagram .arch-title {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: #d78c4a; font-weight: 700; margin-bottom: 0.8rem;
+    }
+
+    /* ---- instrument badge row ---- */
+    .badge-list {
+      display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin: 0.8rem 0 1.2rem;
+    }
+    .badge-list .badge {
+      background: #ede9e3; padding: 0.2rem 1rem; border-radius: 40px;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: #2d2d2d;
+    }
+
+    /* ---- highlight text ---- */
+    .highlight {
+      background: #fbf3eb; padding: 0.1rem 0.3rem;
+      border-radius: 6px; font-weight: 500;
+    }
+
+    hr { border: 0; border-top: 2px solid #eae5de; margin: 2.5rem 0; }
+
+    /* ---- decision box ---- */
+    .decision-box {
+      background: #fff8f2; border: 1px solid #e8d5bc;
+      border-radius: 20px; padding: 1.4rem 1.8rem; margin: 1.5rem 0;
+    }
+    .decision-box .decision-label {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: #b56a2a; font-weight: 700; margin-bottom: 0.4rem;
+    }
+    .decision-box p { margin-bottom: 0; font-size: 0.95rem; }
+
+    /* ---- two-col layout ---- */
+    .two-col {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.5rem; margin: 1.5rem 0;
+    }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ---- footer nav ---- */
+    .footer-nav {
+      margin-top: 3rem; display: flex; flex-wrap: wrap;
+      justify-content: space-between; align-items: center;
+      border-top: 1px solid #ddd8d0; padding-top: 2rem;
+      font-size: 0.9rem; color: #5d5d5d;
+    }
+    .footer-nav a { color: #b56a2a; text-decoration: none; font-weight: 500; }
+    .footer-nav a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="nav-wrap">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="alloy-lab-database.html">← Back to Alloy Lab Database</a>
+</div>
+
+<div class="container">
+
+  <!-- ===== HEADER ===== -->
+  <div class="eyebrow">Personal Research Infrastructure · Stage 2</div>
+  <h1>
+    Alloy Lab Database
+    <span class="stage-badge">stage 2</span>
+  </h1>
+  <div class="subhead">
+    Validated characterisation pipelines · multi‑instrument integration · ML‑ready schema
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-item">
+      <span class="label">Status</span>
+      <div class="value">✅ Complete · production ready</div>
+    </div>
+    <div class="meta-item">
+      <span class="label">Instruments</span>
+      <div class="value">XRD · VSM · SEM (3 manufacturers)</div>
+    </div>
+    <div class="meta-item">
+      <span class="label">Database tables</span>
+      <div class="value">16 · fully populated</div>
+    </div>
+    <div class="meta-item">
+      <span class="label">Timeline</span>
+      <div class="value">July – September 2026</div>
+    </div>
+  </div>
+
+  <div class="stats-big">
+    <div class="stat"><span class="number">3</span><div class="desc">validated characterisation pipelines</div></div>
+    <div class="stat"><span class="number">170</span><div class="desc">XRD peaks · fitted &amp; stored</div></div>
+    <div class="stat"><span class="number">690</span><div class="desc">SEM images imported</div></div>
+    <div class="stat"><span class="number">0.9 Å</span><div class="desc">lattice param accuracy vs NIST standard</div></div>
+  </div>
+
+  <!-- ===== INTRO ===== -->
+  <p style="font-size:1.05rem; font-weight:400;">
+    Stage 2 transforms the lab‑book foundation of Stage 1 into a
+    <span class="highlight">validated research platform</span>.
+    Every instrument pipeline is built on real data. Every number in the database
+    has a known provenance. The schema is designed for machine learning —
+    and the infrastructure is now ready for Stage 3.
+  </p>
+
+  <div class="quote-box">
+    "The hard, instrument‑specific work is done. What remains is science."
+    <div class="attribution">— Stage 2 completion summary, September 2026</div>
+  </div>
+
+  <!-- ===== WHY ===== -->
+  <h2>Why this exists</h2>
+  <p>
+    Experimental materials research generates a lot of files — XRD patterns,
+    VSM hysteresis loops, SEM images, synthesis notes — spread across instrument
+    computers, personal laptops, and shared folders. The analysis lives in
+    Origin projects. The samples are tracked in spreadsheets. The connection
+    between "what we made" and "what we measured" is mostly in someone's head.
+  </p>
+  <p>
+    Stage 1 built the data‑capture layer: a composition calculator,
+    literature cross‑checking against three external databases, and basic file
+    import. <strong>Stage 2 adds the analytical layer</strong>: real, validated
+    characterisation pipelines for every instrument in the lab, with results
+    stored in a structured schema designed — from the start — for machine learning.
+  </p>
+
+  <!-- ===== PIPELINE OVERVIEW ===== -->
+  <h2>Three pipelines, built from scratch</h2>
+  <p>
+    Each pipeline was built on real lab data, validated against a known reference,
+    and integrated end‑to‑end before the next was started. No shared code,
+    no shared assumptions — each instrument has its own failure modes.
+  </p>
+
+  <!-- XRD -->
+  <div class="pipeline-card">
+    <div class="pipeline-header">
+      <span class="tech-badge">XRD</span>
+      <h4>X-ray diffraction — peak fitting pipeline</h4>
+    </div>
+    <p class="validation-note">Validated against NIST SRM 660c (LaB₆) certified reference material — lattice parameter converging to within 0.0001 Å of the certified value.</p>
+    <ul>
+      <li>Background subtraction and Kα2 stripping (Cu anode)</li>
+      <li>Neighbour‑aware peak fitting — each peak fit uses local context, not isolated windows</li>
+      <li>R² quality score per peak — low‑quality fits flagged, not silently averaged</li>
+      <li>Scherrer crystallite size and d‑spacing extracted automatically</li>
+      <li>Results stored in two tables: long‑format <span class="inline-code">xrd_peaks</span> (one row per peak) and wide‑format <span class="inline-code">xrd_features</span> (ML‑ready, one row per sample)</li>
+    </ul>
+
+    <div class="img-slot">
+      <div class="slot-icon">📷</div>
+      <div class="slot-label">XRD pattern with fitted peaks</div>
+      <div class="slot-desc">Screenshot of the interactive standalone tool — live sensitivity controls, per-peak accept/reject</div>
+    </div>
+  </div>
+
+  <!-- VSM -->
+  <div class="pipeline-card">
+    <div class="pipeline-header">
+      <span class="tech-badge">VSM</span>
+      <h4>Vibrating sample magnetometry — multi‑segment pipeline</h4>
+    </div>
+    <p class="validation-note">End‑to‑end tested against real production database — three real bugs found and fixed during integration, including a NaN-masking issue that silently hid a 60 K temperature jump.</p>
+    <ul>
+      <li>Instrument auto‑detection: PPMS VSM / MPMS3 / ACMS — each has different column conventions</li>
+      <li>Mass extraction from file header (primary) or filename (fallback, with confidence flag)</li>
+      <li>Automatic segmentation: MH loops / MT scans / idle / corrupted — rolling‑window classification, not naive point‑to‑point derivatives</li>
+      <li>Second‑quadrant Hc/Mr extraction — crossing‑point interpolation on the descending branch only</li>
+      <li>Temperature coefficients α(Hc) and β(Mr) fitted when multiple loops at different temperatures are present</li>
+      <li>Isothermal entropy change ΔSm via Maxwell relation — with a check that distinguishes genuine isothermal sweeps from full bipolar loops before attempting the calculation</li>
+      <li>Demagnetising correction and BH<sub>max</sub> for cuboid samples</li>
+    </ul>
+
+    <div class="img-slot">
+      <div class="slot-icon">📷</div>
+      <div class="slot-label">VSM hysteresis loop — interactive analyzer</div>
+      <div class="slot-desc">Multi-segment file: segments listed on the left, Hc/Mr markers on the plot, per-segment accept/reject</div>
+    </div>
+  </div>
+
+  <!-- SEM -->
+  <div class="pipeline-card">
+    <div class="pipeline-header">
+      <span class="tech-badge">SEM</span>
+      <h4>Scanning electron microscopy — unified metadata + phase fraction</h4>
+    </div>
+    <p class="validation-note">Built and tested against real images from three instrument manufacturers. Two real physical findings emerged during development — one corrected a material identity assumption (NdFeB vs MnGa), one confirmed that automated thresholding was correctly detecting real magnetic domain contrast, not a segmentation artifact.</p>
+    <ul>
+      <li>Three manufacturers, three completely different metadata conventions — unified into one schema automatically</li>
+      <li>Zeiss: proprietary compressed binary TIFF tags (already solved in Stage 1, extended here)</li>
+      <li>JEOL: sidecar <span class="inline-code">.txt</span> file, custom <span class="inline-code">$KEY value</span> format — scale bar in pixels + real units for exact pixel calibration</li>
+      <li>Tescan: sidecar <span class="inline-code">.hdr</span> file, standard INI format — PixelSizeX directly in metres, 16‑bit image data</li>
+      <li>Phase fraction via Otsu thresholding — offered as a starting suggestion, not forced: operator adjusts the threshold live and saves the confirmed result</li>
+    </ul>
+
+    <div class="decision-box">
+      <div class="decision-label">Design decision — why operator judgment is required</div>
+      <p>
+        Simple global thresholding worked well on one real JEOL image
+        (correctly traced the grain‑boundary phase) and failed in two different ways on others —
+        texture confusion on a Tescan image (which turned out to be real magnetic domain
+        contrast, confirmed via Kerr microscopy), and noise confusion on a Zeiss image.
+        A pipeline that pretends to automate a judgment it cannot reliably make
+        is worse than one that is honest about its limits.
+      </p>
+    </div>
+
+    <div class="img-slot">
+      <div class="slot-icon">📷</div>
+      <div class="slot-label">SEM phase fraction — interactive tool</div>
+      <div class="slot-desc">BSE/COMPO image with overlay showing segmented phase, live threshold slider, calibrated area readout in µm²</div>
+    </div>
+  </div>
+
+  <!-- ===== DATABASE ===== -->
+  <h2>Schema — designed for machine learning from the start</h2>
+  <p>
+    The Stage 2 schema additions are not just storage — they are a feature
+    matrix. Every table was designed with the eventual ML query in mind:
+    what goes in the X matrix, what goes in the y vector.
+  </p>
+
+  <div class="arch-diagram">
+    <div class="arch-title">Stage 2 schema additions</div>
+    <pre>
+alloy_lab (PostgreSQL 17, Docker, home server)
+│
+├── xrd_peaks              one row per fitted peak
+│     two_theta · d_spacing · fwhm · r_squared · crystallite_size_nm
+│
+├── xrd_features           one row per sample · ML-ready wide format
+│     n_peaks · n_peaks_high_quality · peak1..peak5_* · mean_r_squared
+│
+├── vsm_files              file-level VSM metadata
+├── vsm_segments           MH / MT / idle / corrupted boundaries
+├── vsm_mh_details         Hc · Mr · BHmax · flag · branch_found
+├── vsm_mt_details + vsm_mt_candidates   transition candidates
+├── vsm_temperature_coefficients         α(Hc) · β(Mr) · R²
+│
+├── compositions           (extended Stage 1)
+│     + composition_type: 'aimed' | 'measured' | 'reference'
+│     + atomic_percent: auto-computed from weight % on every new sample
+│
+└── synthesis              method · temperature · atmosphere · duration
+      synthesis routes auto-saved from screening results</pre>
+  </div>
+
+  <div class="badge-list">
+    <span class="badge">PostgreSQL 17</span>
+    <span class="badge">Docker</span>
+    <span class="badge">psycopg2</span>
+    <span class="badge">OpenCV</span>
+    <span class="badge">scipy</span>
+    <span class="badge">customtkinter</span>
+    <span class="badge">matplotlib</span>
+    <span class="badge">numpy</span>
+  </div>
+
+  <!-- ===== SAMPLE DATA ===== -->
+  <h2>Real data, real validation</h2>
+  <p>
+    The database contains validated measurements from samples across
+    multiple alloy systems — rare‑earth permanent magnets, magnetocaloric
+    alloys, and novel transition‑metal compositions. Sample names are
+    anonymised pending publication.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Sample</th>
+          <th>System</th>
+          <th>XRD peaks</th>
+          <th>Mean R²</th>
+          <th>VSM Hc</th>
+          <th>Composition (wt% + at%)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Sample A</strong></td>
+          <td>Rare-earth permanent magnet</td>
+          <td>57</td>
+          <td>0.938</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td><strong>Sample B</strong></td>
+          <td>Rare-earth permanent magnet</td>
+          <td>58</td>
+          <td>0.943</td>
+          <td class="dash">—</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td><strong>Sample C</strong></td>
+          <td>Rare-earth permanent magnet</td>
+          <td>55</td>
+          <td>0.937</td>
+          <td class="dash">—</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td><strong>Sample D</strong></td>
+          <td>La-Fe-Si magnetocaloric</td>
+          <td class="dash">—</td>
+          <td class="dash">—</td>
+          <td class="dash">—</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td><strong>Sample E</strong></td>
+          <td>Mn-Al-C magnet</td>
+          <td class="dash">—</td>
+          <td class="dash">—</td>
+          <td class="dash">—</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td><strong>Sample F</strong></td>
+          <td>Fe-Co-P (synthesis blocked)</td>
+          <td class="dash">—</td>
+          <td class="dash">—</td>
+          <td class="dash">—</td>
+          <td class="check">✓ + routes</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== INTERACTIVE TOOLS ===== -->
+  <h2>Interactive tools — operator in the loop</h2>
+  <p>
+    Three standalone tools, each launched from the Data Viewer with the
+    current file pre‑loaded and auto‑analysed. The operator reviews the
+    result, adjusts parameters if needed, and saves confirmed results
+    directly to the database. No manual transcription. No copy‑paste errors.
+  </p>
+
+  <div class="card-row">
+    <div class="card">
+      <span class="card-tag">Tool · XRD</span>
+      <h4>XRD Analyzer</h4>
+      <p>Live prominence/distance controls, per-peak accept/reject,
+         mean R² recomputed from accepted peaks only. Save to DB
+         replaces previous analysis for that sample.</p>
+    </div>
+    <div class="card">
+      <span class="card-tag">Tool · VSM</span>
+      <h4>VSM MH Analyzer</h4>
+      <p>Full file loaded, auto-segmented. Adjustable branch-detection
+         sensitivity per segment. Accept/reject per segment. Save to DB
+         updates Hc/Mr for confirmed segments.</p>
+    </div>
+    <div class="card">
+      <span class="card-tag">Tool · SEM</span>
+      <h4>Phase Fraction</h4>
+      <p>Otsu threshold as starting suggestion. Live slider, optional
+         invert. Calibrated area readout in µm². Save stores the
+         operator-confirmed fraction — not the Otsu guess.</p>
+    </div>
+  </div>
+
+  <div class="img-slot">
+    <div class="slot-icon">📷</div>
+    <div class="slot-label">Data Viewer — all three analysis buttons</div>
+    <div class="slot-desc">XRD, VSM, and SEM files viewed in-app, each with a one-click launcher for its standalone analysis tool</div>
+  </div>
+
+  <!-- ===== INTERESTING DECISIONS ===== -->
+  <h2>What the building actually taught</h2>
+
+  <div class="timeline-step">
+    <div class="step-icon">🧲</div>
+    <div class="step-content">
+      <strong>Instrument metadata is not automatically trustworthy</strong>
+      <p>Zeiss stores metadata in proprietary compressed binary TIFF tags —
+         not in any standard field. JEOL stores it in a sidecar text file
+         using its own key format. Tescan uses INI format and stores pixel
+         size in metres directly, making it the easiest of the three.
+         Three manufacturers, three completely different conventions — none
+         of them documented in any accessible specification.</p>
+    </div>
+  </div>
+
+  <div class="timeline-step">
+    <div class="step-icon">🔬</div>
+    <div class="step-content">
+      <strong>A "segmentation failure" turned out to be correct physics</strong>
+      <p>Otsu thresholding failed on a Tescan image — apparently detecting
+         directional surface texture rather than compositional phases.
+         A Kerr microscopy image of the same sample region confirmed
+         the "texture" was real magnetic domain contrast. The algorithm
+         was correct; the physical interpretation needed updating.
+         The material was also misidentified (NdFeB assumed, MnGa actual)
+         — both mistakes were caught before anything was committed.</p>
+    </div>
+  </div>
+
+  <div class="timeline-step">
+    <div class="step-icon">⚗️</div>
+    <div class="step-content">
+      <strong>The synthesis screener now records its own reasoning</strong>
+      <p>When the screener flags a composition as physically blocked
+         (e.g. phosphorus vapour loss during iron melting), it now saves
+         the full reasoning — not just the flag — into the synthesis table.
+         Someone picking up the sample months later will know exactly
+         why arc melting was ruled out and what alternatives were suggested,
+         without needing to re-run the screener or find the original notes.</p>
+    </div>
+  </div>
+
+  <div class="timeline-step">
+    <div class="step-icon">⚡</div>
+    <div class="step-content">
+      <strong>Atomic percent is now computed automatically</strong>
+      <p>Every new sample entry computes and stores both weight percent
+         and atomic percent — immediately, from the calculator's output,
+         using IUPAC atomic weights. Previously this was a manual
+         backfill script run occasionally. The compositions table now
+         has a <span class="inline-code">composition_type</span> column distinguishing
+         aimed, measured, and reference compositions.</p>
+    </div>
+  </div>
+
+  <div class="timeline-step">
+    <div class="step-icon">🛠️</div>
+    <div class="step-content">
+      <strong>path_repair.py — because files move</strong>
+      <p>After a folder rename broke every file path in the database,
+         a repair tool was built that scans all stored paths, identifies
+         broken ones, searches for missing files by filename under
+         a given root, handles ambiguous matches interactively, and
+         updates the database with confirmed new paths.
+         Running it confirmed one broken path; the file was found in
+         three copies on two different drives.</p>
+    </div>
+  </div>
+
+  <!-- ===== INFRASTRUCTURE ===== -->
+  <h2>Infrastructure — three machines, one database</h2>
+  <p>
+    On 3 September 2026, the database was migrated from a local Docker
+    container on the development laptop to a dedicated home server.
+    The migration took one session with zero data loss.
+  </p>
+
+  <div class="arch-diagram">
+    <div class="arch-title">Current system architecture</div>
+    <pre>
+Home Server (192.168.2.42 · AMD FX-4320 · Ubuntu Server 26.04)
+├── Docker: postgres:17 · alloy-postgres
+│     50 samples · 16 tables · persistent volume
+├── Wake-on-LAN: MAC 2c:56:dc:74:c4:ff · ~60s from cold poweroff
+├── /mnt/storage1 (2.7 TB) · datasets, training runs
+└── /mnt/storage2 (931 GB) · repos, docs
+
+M4 Mac  ──────────────────→  192.168.2.42:5432  ✅
+ML Desktop (192.168.2.210)  → 192.168.2.42:5432  ✅
+  Ryzen 9900X + RTX 5060 Ti 16 GB · Ubuntu Desktop 26.04</pre>
+  </div>
+
+  <div class="img-slot">
+    <div class="slot-icon">📷</div>
+    <div class="slot-label">Three machines, one database</div>
+    <div class="slot-desc">Mac laptop, ML desktop, and home server terminals — all confirming connection to the same PostgreSQL instance</div>
+  </div>
+
+  <!-- ===== WHAT THIS ENABLES ===== -->
+  <h2>What this enables for Stage 3</h2>
+  <p>
+    The database now contains a complete, validated feature set.
+    Every table was designed with the ML query in mind.
+  </p>
+
+  <div class="two-col">
+    <div class="card">
+      <span class="card-tag">Feature matrix (X)</span>
+      <h4>Composition + structure</h4>
+      <p>Element fractions (wt% + at%) · XRD peak positions, widths, intensities · crystallite size · d-spacing</p>
+    </div>
+    <div class="card">
+      <span class="card-tag">Target properties (y)</span>
+      <h4>Magnetic + thermal</h4>
+      <p>Hc, Mr, BHmax · temperature coefficients α/β · entropy change ΔSm · SEM phase fraction</p>
+    </div>
+  </div>
+
+  <p>
+    <strong>Proposed Stage 3 loop:</strong>
+    feature matrix → Gaussian Process / Neural Network regression →
+    property prediction → composition recommendations →
+    back into calculator → new sample → new measurements.
+  </p>
+
+  <div class="quote-box dark">
+    "What started as a way to stop losing track of lab notebooks
+    is turning into an actual research platform."
+    <div class="attribution">— 3 September 2026</div>
+  </div>
+
+  <hr />
+
+  <p style="font-size:1rem; color:#4a4a4e;">
+    Stage 2 represents several months of careful, methodical engineering:
+    building instrument‑specific parsers validated against real data and
+    certified reference standards, designing a database schema that serves
+    both the lab‑book needs of today and the ML needs of tomorrow, and
+    building interactive tools that enforce good scientific practice —
+    honest about what can be automated, and honest about what cannot.
+  </p>
+  <p style="font-weight:500; color:#1e1e20;">
+    The project is now in a strong position for Stage 3.
+    The infrastructure is ready. The data is clean. The hard work is done.
+  </p>
+
+  <!-- ===== RESOURCES ===== -->
+  <h3>Resources</h3>
+  <ul style="margin: 0.8rem 0 1.5rem 1.5rem; color: #2d2d30; line-height: 2;">
+    <li>📓 <a href="Alloy_Lab_Database_Stage2.pdf" style="color:#b56a2a; font-weight:500;">Presentation: Alloy Lab Database Stage 2 (PDF)</a></li>
+    <li>📓 <a href="alloy-lab-database.html" style="color:#b56a2a; font-weight:500;">Stage 1 — the lab-book foundation</a></li>
+    <li>📰 <a href="alloy_db_migration_home_server.html" style="color:#b56a2a; font-weight:500;">Database migration: Alloy Lab moves to the home server</a></li>
+    <li>🐙 <a href="https://github.com/iliya-radulov/my_db_project" style="color:#b56a2a; font-weight:500;">Repository: Alloy Lab Database</a></li>
+    <li>📜 <a href="https://github.com/iliya-radulov/my_db_project/blob/master/MANIFESTO.md" style="color:#b56a2a; font-weight:500;">Manifesto: on the role of AI/ML in this project</a></li>
+  </ul>
+
+  <div class="footer-nav">
+    <span>Alloy Lab Database · personal research infrastructure</span>
+    <span><a href="#">⬆ back to top</a></span>
+  </div>
+
+</div>
+
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

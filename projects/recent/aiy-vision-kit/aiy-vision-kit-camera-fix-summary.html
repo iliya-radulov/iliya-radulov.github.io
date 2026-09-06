@@ -24,6 +24,20 @@
     <h1>AIY Vision Kit — Camera Replacement &amp; Final Fix</h1>
     <p class="subtitle">Follow-up to the <a href="aiy-vision-kit-troubleshooting-log.html">initial troubleshooting log</a>, covering the camera hardware failure and its resolution</p>
 
+    <div class="abstract-box">
+      <strong>Status: Resolved.</strong> Camera confirmed working end-to-end — detection, capture, and a clean photo — after ruling out the cable and config, then finding and fixing two separate real issues: a dead original sensor and a background service silently holding the camera open.
+    </div>
+
+    <h2>The short version</h2>
+    <ul>
+      <li>New cable, same old camera: still not detected — the cable wasn't the problem.</li>
+      <li>New 8MP camera (Sony IMX219): detected immediately — the original 2017 5MP sensor had failed after 9 years unused.</li>
+      <li>Capture then failed with <code>ENOSPC</code> — two stacked causes, not one.</li>
+      <li>Raising GPU memory (128MB → 256MB) was necessary but not sufficient on its own.</li>
+      <li>The real blocker: <code>joy_detection_demo.service</code>, an auto-started demo silently holding the camera via MMAL — stopped and disabled it.</li>
+      <li>First real photo captured, and the fix survived a full reassembly.</li>
+    </ul>
+
     <h2>Background</h2>
     <p>After getting WiFi and SSH working, the camera still wouldn't detect (<code>vcgencmd get_camera</code> → <code>detected=0</code>) despite correct cable orientation and multiple reseats. Suspected either a bad cable or a dead sensor after 9 years in storage.</p>
 
@@ -73,6 +87,14 @@ raspistill -o test_after_reassembly.jpg</code></pre>
 
     <h2>Key takeaway</h2>
     <p>When a "camera not working" error persists after fixing the obvious hardware causes, check <strong>what else might already have the camera open</strong> — background services from the original OS image are an easy thing to overlook, especially on a system you didn't build from scratch yourself.</p>
+
+    <h2>Reference documents</h2>
+    <ul>
+      <li><a href="aiy-vision-kit-troubleshooting-log.html">Initial WiFi/networking troubleshooting log</a></li>
+      <li>This document — camera failure &amp; fix (8MP swap)</li>
+      <li><a href="session-wrapup-vision-demos-stage1-complete.html">Live demo session</a> (face/joy/object detection working)</li>
+      <li><a href="aiy-vision-kit-final-report.html">Final build report</a> — full status and honest retrospective</li>
+    </ul>
   </div>
 <script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
 async src="//gc.zgo.at/count.js"></script>

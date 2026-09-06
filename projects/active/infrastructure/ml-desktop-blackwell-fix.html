@@ -1,0 +1,77 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ML Desktop: Blackwell GPU Fix (RTX 5060 Ti) — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="new-desktop-setup.html">← Back to New ML Desktop Setup</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Interdisciplinary · Reference</div>
+    <h1>ML Desktop: Blackwell GPU Fix (RTX 5060 Ti)</h1>
+    <p class="subtitle">First real workload run on the new machine — a genuine PyTorch/GPU compatibility gap, diagnosed
+      and fixed</p>
+
+    <div class="abstract-box">
+      <code>nvidia-smi</code> and <code>torch.cuda.is_available()</code> both said the GPU was fine. It wasn't — the
+      pinned PyTorch version predated Blackwell architecture support entirely. Detected is not the same as working.
+    </div>
+
+    <h2>The symptom</h2>
+    <pre><code>UserWarning: NVIDIA GeForce RTX 5060 Ti with CUDA capability sm_120 is not compatible
+with the current PyTorch installation. The current PyTorch install supports CUDA
+capabilities sm_50 sm_60 sm_70 sm_75 sm_80 sm_86 sm_90.</code></pre>
+
+    <h2>Root cause</h2>
+    <p>Confirmed via research: <code>torch==2.1.2</code> (the version pinned by the toolkit being tested) predates
+      NVIDIA's Blackwell architecture entirely. <strong>PyTorch only added official Blackwell (<code>sm_120</code>)
+        support starting with version 2.7.0</strong> (April 2025), via <code>cu128</code>-and-later builds.</p>
+    <p><code>torch.cuda.is_available()</code> returning <code>True</code> was genuinely misleading — that's driver-level
+      detection only, not proof the actual compute kernels work for this specific architecture. A GPU can be correctly
+      detected by the driver and still be unusable by a too-old PyTorch build.</p>
+
+    <h2>The fix</h2>
+    <p>Upgraded torch alone, left the rest of whatever toolkit's pinned versions in place:</p>
+    <pre><code>pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128</code></pre>
+    <p>Result: clean upgrade to <code>torch 2.11.0+cu128</code>, <code>torchvision 0.26.0</code>,
+      <code>torchaudio 2.11.0</code> — no errors.</p>
+
+    <h2>Verifying it actually works, not just installs</h2>
+    <p>Confirmed with a real GPU computation, not just version detection:</p>
+    <pre><code>python3 -c "
+import torch
+x = torch.randn(1000, 1000, device='cuda')
+y = torch.randn(1000, 1000, device='cuda')
+z = torch.matmul(x, y)
+torch.cuda.synchronize()
+print('GPU compute OK:', z.shape, z.device)
+"
+# → GPU compute OK: torch.Size([1000, 1000]) cuda:0</code></pre>
+    <p>Confirmed: the GPU is genuinely usable now, not just detected.</p>
+
+    <div class="abstract-box"><strong>General lesson for this machine going forward:</strong> any future CUDA-based
+      project that pins an older torch version is likely to hit this exact same wall. Worth checking a new toolkit's
+      pinned torch version against Blackwell support (2.7.0+) before assuming <code>nvidia-smi</code> working means the
+      project will too.</div>
+  </div>
+
+</body>
+
+</html>

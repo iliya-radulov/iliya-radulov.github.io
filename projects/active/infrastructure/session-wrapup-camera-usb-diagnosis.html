@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Camera Integration: USB Enumeration Crash — Diagnosis &amp; Fix — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../robot-arm-pickplace/robot-arm-pickplace.html">← Back to project overview</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Active Project · Debugging Session</div>
+    <h1>New Camera Integration: USB Enumeration Crash — Diagnosis &amp; Fix</h1>
+    <p class="subtitle">First <code>lerobot-rollout</code> after installing the new Innomaker cameras crashed within ~1 second, every run. Full elimination sequence, root cause, and fix.</p>
+
+    <div class="abstract-box">
+      <strong>Current state:</strong> crash diagnosed and resolved — root cause was a marginal USB port position in a
+      two-hub daisy chain, not the cameras, lerobot, or MPS. Fix applied by swapping physical ports; rollout now runs to
+      completion.<br><br>
+      <strong>Also decided:</strong> arm control/inference is moving to the Pi (native USB ports, headless) to remove this
+      class of problem going forward. A fresh training dataset recorded on the new cameras is next, since the existing
+      checkpoint's poor performance here is expected domain shift, not a new bug.
+    </div>
+
+    <h2>Symptom</h2>
+    <p>After installing two new cameras (Innomaker U20CAM-1080p-S1 as <code>main</code>, U20CAM-720P as <code>gripper</code>) on the SO-101 rig, running the existing <code>so101_bgdiv_v1</code> checkpoint via <code>lerobot-rollout</code> crashed consistently, always within about a second of the control loop starting:</p>
+    <pre><code>TimeoutError: OpenCVCamera(0) latest frame is too old: 503–526 ms (max allowed: 500 ms).</code></pre>
+    <p>Always <code>OpenCVCamera(0)</code>. Never the other camera. Every single attempt.</p>
+
+    <h2>Elimination Sequence</h2>
+    <table>
+      <tr><th>Hypothesis</th><th>Test</th><th>Result</th></tr>
+      <tr><td>Camera hardware itself is faulty</td><td>Standalone single-camera OpenCV read loop, 5s, no lerobot involved</td><td>Clean — 0 failed reads, ~30fps, worst gap 65ms</td></tr>
+      <tr><td>USB bandwidth contention between two simultaneous streams</td><td>Standalone dual-camera simultaneous read loop, MJPG forced, matched to rollout resolutions</td><td>Clean — 0 failed reads on either camera (though camera(0) already showed a worse worst-case gap: 168ms vs. 66ms)</td></tr>
+      <tr><td>Uncompressed frame format overloading the pipe</td><td>Added <code>fourcc: MJPG</code> to the real rollout command</td><td>Camera rejected MJPG outright ("failed to set fourcc=MJPG"), fell back to default format. Crash unchanged.</td></tr>
+      <tr><td>MPS cold-start / first-inference-call stall</td><td>Ran a 3s throwaway "warmup" rollout immediately before the real one</td><td>No improvement — crashed identically. Root cause: each CLI invocation is a fresh process; MPS compilation doesn't carry over between separate process launches.</td></tr>
+      <tr><td>Connection order (camera(0) connects after camera(1), loop starts before it's ready)</td><td>Reordered the JSON so <code>gripper</code> (index 0) connects first</td><td>No improvement — camera(0) still failed even when it connected <em>first</em>. Ordering ruled out.</td></tr>
+      <tr><td>USB device enumeration instability</td><td>Ran <code>system_profiler SPCameraDataType</code> twice in a row, no physical changes between runs</td><td><strong>Confirmed unstable</strong> — the two cameras' Unique IDs and listed order changed between consecutive checks with nothing touched. This is a real, camera-agnostic symptom, invisible to buffered reads (both standalone tests used OpenCV's default multi-frame buffer) and fatal to lerobot's unbuffered "always freshest frame" read path.</td></tr>
+      <tr><td>Marginal physical port / hub position</td><td>Physically moved the cameras to different ports</td><td><strong>Fixed.</strong> Crash resolved.</td></tr>
+    </table>
+
+    <h2>Root Cause</h2>
+    <p>Not either camera, not lerobot, not MPS, not connection order. The actual cause was a marginal USB port position somewhere in the physical chain: <strong>Mac (no native USB-A) → TP-Link UH700 powered USB 3.0 hub → second hub</strong>, with both cameras and the arm's serial connection sharing this chain. Two hubs in series adds real USB-tree depth, which matters more for high-bandwidth video devices than for the arm's low-bandwidth serial link — and the new cameras' higher native resolution (1280×720 / 1920×1080, vs. whatever the originals negotiated) pushes more data through that same marginal chain than before.</p>
+    <p>lerobot's camera wrapper deliberately uses a minimal internal buffer (always read the freshest frame, not a queued one) — correct behavior for real-time control, but it means there's no slack to absorb even a brief enumeration hiccup. A standalone script using OpenCV's default buffering quietly tolerates the exact same instability that crashes the real control loop.</p>
+
+    <h2>Fix Applied</h2>
+    <p>Swapped which physical port each camera plugs into on the hub chain. Crash resolved; rollout runs to completion without camera errors.</p>
+
+    <h2>Separate, Expected Issue: Pick-and-Place Quality</h2>
+    <p>With the crash fixed, the <code>so101_bgdiv_v1</code> checkpoint's actual pick-and-place performance on the new cameras is poor. <strong>This is not a new bug</strong> — it's expected domain shift. The checkpoint was trained entirely on the old cameras' resolution, FOV, and color/sensitivity response; the new cameras are a genuinely different visual input distribution. This is exactly the scenario the roadmap's open item ("reference photos before the camera swap, validate after") was anticipating. The real fix is a fresh training pass recorded on the new camera feed — already the plan, not a new problem to chase.</p>
+
+    <h2>Decision: Move Inference to the Pi</h2>
+    <p>Going forward, arm control and rollout will run through the Pi (4 or 5) rather than the Mac. Reasoning: the Pi has 4 native USB ports and can run headless — removing the two-hub daisy-chain entirely, along with the class of enumeration-instability problem it caused here. This isn't just a workaround for today's issue; it's a more robust topology for the arm+camera setup generally, independent of which specific hub or port was marginal this time.</p>
+
+    <h2>Next</h2>
+    <ul>
+      <li>✅ Camera crash resolved, root cause understood and documented</li>
+      <li>☐ Fresh training dataset recording on the new cameras — planned to start tomorrow</li>
+      <li>☐ Migrate arm control/inference to Pi 4/5 (headless, native ports) — decided, not yet executed</li>
+    </ul>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

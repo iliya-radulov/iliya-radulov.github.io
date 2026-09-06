@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My First 3D Design · Belt Holders for Makeblock Laser — Iliya Angelov Radulov</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #fcf9f6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #1e1e20;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        /* ---- site nav ---- */
+        .nav-wrap { max-width: 1100px; margin: 0 auto 1rem; }
+        .subpage-nav {
+            display: flex; flex-wrap: wrap; gap: 0.3rem 0.7rem;
+            padding: 0.7rem 1.1rem; background: #f7f5f1; border-radius: 16px;
+            border: 1px solid #eae5de; margin-bottom: 1rem; font-size: 0.85rem;
+        }
+        .subpage-nav a {
+            color: #6b6b6b; text-decoration: none; padding: 0.25rem 0.55rem;
+            border-radius: 6px; font-weight: 500; transition: all 0.15s ease;
+        }
+        .subpage-nav a:hover { color: #1e1e20; background: #ede9e3; }
+        .subpage-nav a.current { color: #ffffff; background: #b56a2a; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            color: #b56a2a; text-decoration: none; font-size: 0.9rem;
+            font-weight: 500; margin-bottom: 0.4rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.06), 0 8px 20px rgba(0,0,0,0.03);
+            padding: 3rem 2.5rem;
+        }
+
+        @media (max-width: 640px) {
+            .container { padding: 1.8rem 1.2rem; }
+            h1 { font-size: 2.2rem; }
+        }
+
+        /* ---- typography ---- */
+        .eyebrow {
+            font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #b56a2a; margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-family: 'Times New Roman', 'Georgia', serif;
+            font-weight: 700; font-size: 3rem; line-height: 1.1;
+            letter-spacing: -0.02em; margin-bottom: 0.25rem; color: #1c1c1e;
+        }
+
+        h1 .stage-badge {
+            display: inline-block; background: #b56a2a; color: white;
+            font-size: 1.1rem; font-weight: 600; padding: 0.1rem 1rem;
+            border-radius: 60px; letter-spacing: 0.04em; margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .subhead {
+            font-size: 1.15rem; color: #4a4a4e; margin-top: 0.25rem;
+            border-left: 4px solid #b56a2a; padding-left: 1.2rem;
+        }
+
+        .meta-grid {
+            display: flex; flex-wrap: wrap; gap: 1.8rem 3rem;
+            margin: 2rem 0 2.5rem; padding: 1.5rem 0;
+            border-top: 1px solid #eae7e2; border-bottom: 1px solid #eae7e2;
+        }
+        .meta-item .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #7a7a7a; }
+        .meta-item .value { font-weight: 600; font-size: 1.05rem; }
+
+        h2 {
+            font-family: 'Times New Roman', 'Georgia', serif;
+            font-size: 1.9rem; margin-top: 2.8rem; margin-bottom: 0.75rem;
+            letter-spacing: -0.01em; border-bottom: 2px solid #edeae5; padding-bottom: 0.4rem;
+        }
+
+        h3 {
+            font-weight: 600; font-size: 1.2rem;
+            margin-top: 1.8rem; margin-bottom: 0.4rem;
+            display: flex; align-items: baseline; gap: 0.6rem;
+        }
+        h3 .step-index {
+            font-family: 'Times New Roman', serif; color: #d78c4a;
+            font-size: 1.1rem; font-weight: 700; min-width: 1.4rem;
+        }
+
+        p { color: #2d2d30; margin-bottom: 1.2rem; max-width: 75ch; }
+
+        .highlight { background: #fbf3eb; padding: 0.1rem 0.3rem; border-radius: 6px; font-weight: 500; }
+
+        /* ---- stats ---- */
+        .stats-big {
+            display: flex; flex-wrap: wrap; gap: 2rem 3.5rem;
+            background: #1e1e20; color: white; border-radius: 28px;
+            padding: 2rem 2.5rem; margin: 2rem 0 2.5rem;
+        }
+        .stats-big .stat .number { font-family: 'Times New Roman', serif; font-size: 2.2rem; font-weight: 700; color: #d78c4a; line-height: 1; }
+        .stats-big .stat .desc { font-size: 0.88rem; opacity: 0.7; }
+        @media (max-width: 600px) { .stats-big { flex-direction: column; gap: 1.2rem; } }
+
+        /* ---- badges ---- */
+        .badge-list { display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin: 0.8rem 0 1.6rem; }
+        .badge-list .badge { background: #ede9e3; padding: 0.2rem 1rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: #2d2d2d; }
+
+        /* ---- quote ---- */
+        .quote-box {
+            background: #f2eee9; padding: 1.8rem 2rem; border-radius: 28px;
+            font-style: italic; border: 1px solid #ddd6cd; margin: 2rem 0; color: #2b2b2d;
+        }
+        .quote-box .attribution { margin-top: 0.4rem; font-style: normal; font-weight: 500; color: #6b5f50; }
+
+        /* ---- highlight box ---- */
+        .highlight-box {
+            background: #f6fafc;
+            border-left: 5px solid #b56a2a;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.25rem 0;
+            color: #2d2d30;
+        }
+
+        /* ---- inline code ---- */
+        .inline-code { background: #eeeae4; padding: 0.1rem 0.4rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; color: #a55d1c; }
+
+        hr { border: 0; border-top: 2px solid #eae5de; margin: 2rem 0; }
+
+        ul.plain { margin: 1rem 0 1.5rem 1.5rem; color: #2d2d30; }
+        ul.plain li { margin-bottom: 0.3rem; }
+
+        /* ---- hero placeholder ---- */
+        .hero-placeholder {
+            background: linear-gradient(145deg, #f3ede6, #ede5da);
+            border-radius: 1.5rem;
+            padding: 2.5rem 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+            border: 2px dashed #d4c9bc;
+            color: #4a3d2e;
+        }
+        .hero-placeholder p {
+            font-weight: 500;
+            font-size: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .hero-placeholder small {
+            display: block;
+            margin-top: 0.4rem;
+            color: #7a6a58;
+        }
+
+        /* ---- footer nav ---- */
+        .footer-nav {
+            margin-top: 3rem; display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; border-top: 1px solid #ddd8d0; padding-top: 2rem;
+            font-size: 0.9rem; color: #5d5d5d;
+        }
+        .footer-nav a { color: #b56a2a; text-decoration: none; font-weight: 500; }
+        .footer-nav a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="nav-wrap">
+    <nav class="subpage-nav">
+        <a href="../../../index.html">🏠 Home</a>
+        <a href="../../active/active.html" class="current">⚡ Active</a>
+        <a href="../../recent/recent.html">🕓 Recent</a>
+        <a href="../../former/former.html">📁 Former</a>
+        <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+        <a href="../../../index.html#fragments">🧩 Fragments</a>
+        <a href="../../../index.html#gallery">🖼️ Gallery</a>
+    </nav>
+    <a class="back-link" href="#">← Back to 3D Printing</a>
+</div>
+
+<div class="container">
+
+    <div class="eyebrow">3D Printing · Hardware · Making</div>
+    <h1>Belt Holders · Makeblock Laser <span class="stage-badge">✅ printed</span></h1>
+    <div class="subhead">First original design — from broken PA plastic to a working PETG replacement, designed from scratch in FreeCAD</div>
+
+    <div class="meta-grid">
+        <div class="meta-item"><span class="label">Status</span><div class="value">✅ Prototype · fit tested</div></div>
+        <div class="meta-item"><span class="label">Printer</span><div class="value">Creality Ender 3 V3 Plus</div></div>
+        <div class="meta-item"><span class="label">Filament</span><div class="value">Creality Hyper PLA · yellow</div></div>
+        <div class="meta-item"><span class="label">CAD</span><div class="value">FreeCAD 1.1.3</div></div>
+        <div class="meta-item"><span class="label">Print time</span><div class="value">~31 min · 9 g</div></div>
+    </div>
+
+    <!-- hero image placeholder -->
+    <div class="hero-placeholder">
+        <p>🖨️ Replacement belt holders for the <strong>Makeblock laser cutter</strong> (2015)</p>
+        <small>designed in FreeCAD · printed on Creality Ender 3 V3 Plus</small>
+    </div>
+
+    <div class="badge-list">
+        <span class="badge">FreeCAD 1.1.3</span>
+        <span class="badge">Creality Print</span>
+        <span class="badge">Creality Hyper PLA</span>
+        <span class="badge">M4 nuts &amp; bolts</span>
+        <span class="badge">Makeblock laser (2015)</span>
+        <span class="badge">GitHub · MLaser</span>
+    </div>
+
+    <h2>The journey</h2>
+
+    <p>
+        I recently got my first 3D printer and have been learning the ropes by printing
+        parts for other projects — <strong>Pi Cam boxes</strong>, cases for
+        <strong>Pi 4 / 5 / 3</strong>, flex cam mounts, tilt‑pan mounts, and components
+        for my <strong>SO‑ARM101 robot arm</strong>. After dozens of downloaded models,
+        I felt ready to try my own design.
+    </p>
+
+    <ul class="plain">
+        <li>✅ Pi Cam boxes</li>
+        <li>✅ Pi 4 / Pi 5 / Pi 3 cases</li>
+        <li>✅ Flex cam mounts</li>
+        <li>✅ Tilt‑pan mounts</li>
+        <li>✅ SO‑ARM101 arm parts</li>
+    </ul>
+
+    <h2>Design &amp; CAD</h2>
+
+    <p>
+        My first self‑designed part was a <strong>simple stencil</strong> — just a silhouette
+        extruded to 3D. Easy enough. But the real challenge came next: designing
+        <strong>replacement belt holders</strong> for an old Makeblock laser cutter (circa 2015)
+        whose original PA (polyamide) parts had become brittle as glass and were falling apart.
+    </p>
+
+    <div class="highlight-box">
+        I spent a few hours learning <strong>FreeCAD</strong>. As an open‑source fan I can
+        honestly say — FreeCAD is fantastic for this kind of mechanical part design. Fully
+        parametric, exports STL cleanly, and runs well on both Mac and Linux.
+    </div>
+
+    <h3><span class="step-index">01</span>Measure the broken part</h3>
+    <p>
+        With a <strong>Mitutoyo caliper</strong> I measured the crumbling originals.
+        The plate is symmetric — all four wheel holes sit exactly <span class="inline-code">4.1 mm</span>
+        from each edge, and all holes are <span class="inline-code">4.1 mm</span> diameter (M4 clearance).
+        Overall plate: <span class="inline-code">50.6 × 43.4 × 6 mm</span>.
+    </p>
+
+    <h3><span class="step-index">02</span>Sketch in FreeCAD</h3>
+    <p>
+        Started with a fully‑constrained rectangle, padded to 6 mm, then added the four corner
+        holes as a second sketch on the top face — pocketed through‑all. The hex nut traps
+        (4 mm deep from the back face) came last.
+    </p>
+
+    <h3><span class="step-index">03</span>Hex nut traps — the interesting bit</h3>
+    <p>
+        The original part used hexagonal pockets to capture M4 nuts so they can't spin during
+        assembly — a classic 3D‑print trick. I modelled them as <span class="inline-code">8 mm</span>
+        across‑flats hex pockets, 4 mm deep. Lesson learned: next version uses
+        <span class="inline-code">8.2 mm</span> — PETG shrinks slightly and the nuts were a tight push.
+    </p>
+
+    <!-- stats -->
+    <div class="stats-big">
+        <div class="stat"><span class="number">50.6</span><div class="desc">plate width (mm)</div></div>
+        <div class="stat"><span class="number">43.4</span><div class="desc">plate height (mm)</div></div>
+        <div class="stat"><span class="number">6</span><div class="desc">thickness (mm)</div></div>
+        <div class="stat"><span class="number">4.2</span><div class="desc">hole diameter (mm)</div></div>
+        <div class="stat"><span class="number">31</span><div class="desc">print time (min)</div></div>
+        <div class="stat"><span class="number">9</span><div class="desc">filament used (g)</div></div>
+    </div>
+
+    <h2>Print &amp; result</h2>
+
+    <p>
+        Sliced in <strong>Creality Print</strong>, sent wirelessly to the
+        <strong>Ender 3 V3 Plus</strong>. The printer ran its automatic bed‑levelling routine,
+        and ~31 minutes later the parts were done. Both pieces came out clean — holes in the
+        right positions, hex pockets functional, overall dimensions spot on.
+    </p>
+
+    <p>
+        With a little persuasion the M4 nuts went in. It's surprisingly satisfying to see
+        something you designed on screen become a physical object that <em>actually works</em>.
+    </p>
+
+    <div class="highlight-box">
+        ✅ First original design → successfully printed &amp; test‑fitted against the Makeblock frame.
+        PETG will outlast the original PA — the material that caused the failure in the first place.
+    </div>
+
+    <h2>Why PETG over the original PA?</h2>
+    <p>
+        The original parts were moulded in PA (polyamide / nylon). PA becomes brittle with age
+        and UV exposure — exactly what happened here after ~10 years. PETG is tougher, more
+        impact‑resistant, and holds up better long‑term for indoor mechanical parts. The
+        replacement should outlast the machine itself.
+    </p>
+
+    <h2>The next challenge</h2>
+
+    <p>
+        Now that the mechanical parts are ready, the <strong>real</strong> work begins:
+        getting the laser cutter back to life. The original control software
+        (<strong>mLaser</strong>) hasn't been updated since 2017 and is Windows‑only.
+        The plan is to run it from a <strong>Raspberry Pi 4</strong> on Linux, or find a
+        modern open‑source alternative.
+    </p>
+
+    <div class="highlight-box">
+        <strong>Reviving the Makeblock laser</strong> — mLaser last updated 2017.
+        Hardware is solid; the control stack needs some love.
+        Candidate: run the open‑source repo on the Pi 4, or replace with
+        <strong>LaserWeb / LightBurn</strong> if the firmware speaks GRBL.
+    </div>
+
+    <p>
+        The original repo is still on GitHub —
+        <a href="https://github.com/Makeblock-official/MLaser" target="_blank">Makeblock-official/MLaser</a>
+        (2017, open source). If you've revived old Makeblock gear, I'd love to hear your approach.
+    </p>
+
+    <div class="quote-box">
+        "Designed on screen in the morning, physically holding it in the afternoon — that never gets old."
+        <div class="attribution">— September 2026</div>
+    </div>
+
+    <hr />
+
+    <div class="footer-nav">
+        <span>3D Printing · first original design · see also <a href="#">SO‑ARM101 cam mount</a></span>
+        <span><a href="#">⬆ back to top</a></span>
+    </div>
+
+</div>
+</body>
+</html>

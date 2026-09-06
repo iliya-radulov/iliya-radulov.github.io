@@ -4,10 +4,217 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Home Server — Setup Summary &amp; Storage Plan — Iliya Angelov Radulov</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../../../assets/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    /* ===== GLOBAL RESET & BASE ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d1117;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #e6edf3;
+      padding: 1.5rem 1rem 4rem 1rem;
+      line-height: 1.6;
+    }
+
+    .page-wrapper { max-width: 1000px; margin: 0 auto; }
+
+    /* ===== NAVIGATION ===== */
+    .subpage-nav {
+      display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem;
+      padding: 0.8rem 1.2rem; background: #161b22; border-radius: 14px;
+      border: 1px solid #30363d; margin-bottom: 1.8rem; font-size: 0.9rem;
+    }
+    .subpage-nav a {
+      color: #8b949e; text-decoration: none; padding: 0.3rem 0.6rem;
+      border-radius: 6px; transition: all 0.15s ease; font-weight: 500;
+    }
+    .subpage-nav a:hover { color: #f0f6fc; background: #21262d; }
+    .subpage-nav a.current { color: #f0f6fc; background: #1f6feb; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      color: #58a6ff; text-decoration: none; font-size: 0.9rem;
+      font-weight: 500; margin-bottom: 1.8rem; transition: color 0.15s;
+    }
+    .back-link:hover { color: #79c0ff; }
+
+    /* ===== ARTICLE BODY ===== */
+    .article-body {
+      background: #161b22; border-radius: 20px; padding: 2.5rem 3rem;
+      border: 1px solid #30363d;
+    }
+
+    .eyebrow {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: #8b949e; font-weight: 600; margin-bottom: 0.4rem;
+    }
+
+    h1 {
+      font-size: 2rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #f0f6fc, #b8d4f0);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 0.3rem; line-height: 1.2;
+    }
+
+    .subtitle {
+      font-size: 1rem; color: #8b949e; margin-bottom: 1.6rem;
+      font-weight: 400; padding-bottom: 0;
+    }
+
+    /* ===== QUICK FACTS STRIP ===== */
+    .quickfacts {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem;
+      margin-bottom: 1.4rem;
+    }
+    .qf {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 0.8rem 0.9rem;
+    }
+    .qf .qf-label {
+      font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #6e7681; font-weight: 600; margin-bottom: 0.25rem;
+    }
+    .qf .qf-value {
+      font-size: 0.92rem; color: #f0f6fc; font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .qf .qf-value.good { color: #3fb950; }
+    .qf .qf-value.amber { color: #d29922; }
+
+    /* ===== QUICK NAV ===== */
+    .quicknav {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      padding-bottom: 1.4rem; margin-bottom: 1.6rem;
+      border-bottom: 1px solid #21262d;
+    }
+    .quicknav a {
+      font-size: 0.78rem; color: #8b949e; text-decoration: none;
+      background: #0d1117; border: 1px solid #30363d; border-radius: 999px;
+      padding: 0.35rem 0.85rem; transition: all 0.15s ease; font-weight: 500;
+    }
+    .quicknav a:hover { color: #f0f6fc; border-color: #58a6ff; }
+
+    h2 {
+      font-size: 1.25rem; font-weight: 600; color: #f0f6fc;
+      margin-top: 2.2rem; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+      scroll-margin-top: 1.5rem;
+    }
+    h2::before {
+      content: ''; display: inline-block; width: 4px; height: 1.3rem;
+      background: #58a6ff; border-radius: 4px; flex: none;
+    }
+
+    /* ===== STATUS BADGES ===== */
+    .status-badge {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.04em; padding: 0.22rem 0.6rem; border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 0.3rem;
+    }
+    .status-badge.good { background: rgba(63,185,80,0.15); color: #3fb950; }
+    .status-badge.amber { background: rgba(210,153,34,0.15); color: #d29922; }
+    .status-badge.blue { background: rgba(88,166,255,0.15); color: #58a6ff; }
+
+    h3 {
+      font-size: 1.05rem; font-weight: 600; color: #e6edf3;
+      margin-top: 1.5rem; margin-bottom: 0.6rem;
+    }
+
+    p { color: #b1bac4; margin-bottom: 0.8rem; }
+    p a, li a { color: #58a6ff; text-decoration: none; }
+    p a:hover, li a:hover { text-decoration: underline; }
+
+    /* ===== TABLES ===== */
+    .table-wrap {
+      overflow-x: auto; margin: 1rem 0 1.2rem 0; border-radius: 12px;
+      border: 1px solid #21262d;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; background: #0d1117; }
+    table th {
+      background: #1c2333; color: #b1bac4; font-weight: 600; text-align: left;
+      padding: 0.7rem 1rem; font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 0.05em; border-bottom: 1px solid #30363d;
+    }
+    table td { padding: 0.7rem 1rem; border-bottom: 1px solid #21262d; color: #e6edf3; }
+    table tr:last-child td { border-bottom: none; }
+    table code { background: #1c2333; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8rem; color: #f0e6d0; }
+
+    /* ===== CODE BLOCKS ===== */
+    pre {
+      background: #0d1117; padding: 1rem 1.2rem; border-radius: 12px;
+      overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.8rem; line-height: 1.7; border: 1px solid #21262d;
+      margin: 0.8rem 0 1.2rem 0; color: #e6edf3; white-space: pre-wrap; word-break: break-word;
+    }
+    pre code { background: transparent; padding: 0; font-size: inherit; color: inherit; }
+
+    /* ===== LISTS ===== */
+    ul { list-style: none; padding-left: 0; margin: 0.6rem 0 1rem 0; }
+    ul li { padding: 0.2rem 0 0.2rem 1.6rem; position: relative; color: #b1bac4; }
+    ul li::before { content: '▸'; position: absolute; left: 0; color: #58a6ff; font-weight: 600; }
+    ul li ul { margin: 0.2rem 0 0.2rem 0; }
+    ul li ul li { padding-left: 1.8rem; }
+    ul li ul li::before { content: '–'; color: #8b949e; }
+
+    /* ===== CHECK LIST (tested/confirmed) ===== */
+    .check-list { margin: 0.6rem 0 1rem 0; }
+    .check-list li { padding-left: 1.7rem; }
+    .check-list li::before {
+      content: '\f058'; font-family: "Font Awesome 6 Free"; font-weight: 900;
+      color: #3fb950; left: 0; font-size: 0.9rem;
+    }
+
+    /* ===== STATUS / CHECKBOX (follow-ups) ===== */
+    .task-item { display: flex; align-items: flex-start; gap: 0.7rem; padding: 0.35rem 0; color: #b1bac4; }
+    .task-item .fa-square { color: #8b949e; font-size: 0.85rem; margin-top: 0.2rem; }
+    .task-item.warn { color: #d29922; }
+    .task-item.warn .fa-square { color: #d29922; }
+
+    /* ===== INFO BOXES ===== */
+    .info-box {
+      background: #0d1117; border-radius: 12px; padding: 0.9rem 1.1rem;
+      margin: 0.8rem 0 1.2rem 0; font-size: 0.9rem; color: #b1bac4;
+      border: 1px solid #21262d;
+    }
+    .info-box.info { border-left: 3px solid #58a6ff; }
+    .info-box.success { border-left: 3px solid #3fb950; }
+    .info-box.warn { border-left: 3px solid #d29922; }
+    .info-box strong { color: #f0f6fc; }
+    .info-box .icon { margin-right: 0.5rem; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .article-body { padding: 1.5rem 1.2rem; }
+      h1 { font-size: 1.6rem; }
+      .subpage-nav { gap: 0.2rem 0.5rem; font-size: 0.75rem; padding: 0.6rem 0.8rem; }
+      .subpage-nav a { padding: 0.2rem 0.4rem; }
+      table { font-size: 0.78rem; }
+      table th, table td { padding: 0.5rem 0.6rem; }
+      pre { font-size: 0.7rem; padding: 0.8rem; }
+      .quickfacts { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 1rem 0.8rem; }
+      h1 { font-size: 1.3rem; }
+      .subpage-nav { flex-direction: column; gap: 0.2rem; }
+    }
+
+    /* ===== UTILITY ===== */
+    .mt-0 { margin-top: 0; }
+    .mb-0 { margin-bottom: 0; }
+    .inline-code {
+      background: #1c2333; padding: 0.15rem 0.5rem; border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #f0e6d0;
+      border: 1px solid #30363d;
+    }
+  </style>
 </head>
-<body class="subpage-body">
+<body>
+<div class="page-wrapper">
+
+  <!-- ===== NAVIGATION (preserved) ===== -->
   <nav class="subpage-nav">
     <a href="../../../index.html">🏠 Home</a>
     <a href="../../active/active.html" class="current">⚡ Active</a>
@@ -17,27 +224,53 @@
     <a href="../../../index.html#fragments">🧩 Fragments</a>
     <a href="../../../index.html#gallery">🖼️ Gallery</a>
   </nav>
-  <a class="back-link" href="hardware-notes.html">← Back to Hardware Notes</a>
 
+  <a class="back-link" href="hardware-notes.html">
+    <i class="fas fa-arrow-left"></i> Back to Hardware Notes
+  </a>
+
+  <!-- ===== MAIN CONTENT ===== -->
   <div class="article-body">
+
     <div class="eyebrow">Interdisciplinary · Reference</div>
     <h1>Home Server — Setup Summary &amp; Storage Plan</h1>
     <p class="subtitle">Built 16 August 2026, updated 30 August 2026 — the always-on storage anchor for the whole multi-machine system</p>
 
-    <h2>1. Hardware</h2>
-    <table>
-      <tr><th>Component</th><th>Details</th></tr>
-      <tr><td>Motherboard</td><td>ASUS M5A78L-M LE/USB3</td></tr>
-      <tr><td>CPU</td><td>AMD FX-4320 Quad-Core</td></tr>
-      <tr><td>RAM</td><td>6.9 GB</td></tr>
-      <tr><td>Boot drive</td><td>Samsung SSD 840 EVO, 250 GB (<code>/dev/sdb</code>) — SMART: PASSED, 0 reallocated sectors, healthy</td></tr>
-      <tr><td>Storage drive 1</td><td>Seagate ST3000VX000, 2.7 TB (<code>/dev/sda</code>) — SMART: PASSED, 0 reallocated sectors. Had a bad SATA cable causing bus errors, replaced, confirmed clean afterward. Added 2 extra case fans.</td></tr>
-      <tr><td>Storage drive 2</td><td>931 GB HDD, ext4 (<code>/dev/sdc</code>) — SMART not yet deeply checked, but mounting/reading fine</td></tr>
-      <tr><td>Network</td><td>Wired ethernet (<code>enp2s0</code>), static IP configured</td></tr>
-      <tr><td>Spare SSD (unused)</td><td>Micron RealSSD C400, 256 GB — kept as spare/backup boot drive</td></tr>
-    </table>
+    <div class="quickfacts">
+      <div class="qf"><div class="qf-label">Static IP</div><div class="qf-value">192.168.2.42</div></div>
+      <div class="qf"><div class="qf-label">Power mode</div><div class="qf-value good">Wake-on-LAN</div></div>
+      <div class="qf"><div class="qf-label">Total storage</div><div class="qf-value">~3.9 TB</div></div>
+      <div class="qf"><div class="qf-label">Postgres</div><div class="qf-value good">Migrated ✓</div></div>
+    </div>
 
-    <h2>2. Software</h2>
+    <div class="quicknav">
+      <a href="#hardware">Hardware</a>
+      <a href="#software">Software</a>
+      <a href="#mounts">Storage Mounts</a>
+      <a href="#wol">Wake-on-LAN</a>
+      <a href="#storage-org">Storage Organization</a>
+      <a href="#postgres">PostgreSQL</a>
+      <a href="#followups">Follow-ups</a>
+    </div>
+
+    <!-- ===== 1. HARDWARE ===== -->
+    <h2 id="hardware">Hardware</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Component</th><th>Details</th></tr>
+        <tr><td>Motherboard</td><td>ASUS M5A78L-M LE/USB3</td></tr>
+        <tr><td>CPU</td><td>AMD FX-4320 Quad-Core</td></tr>
+        <tr><td>RAM</td><td>6.9 GB</td></tr>
+        <tr><td>Boot drive</td><td>Samsung SSD 840 EVO, 250 GB (<code>/dev/sdb</code>) — SMART: PASSED, 0 reallocated sectors, healthy</td></tr>
+        <tr><td>Storage drive 1</td><td>Seagate ST3000VX000, 2.7 TB (<code>/dev/sda</code>) — SMART: PASSED, 0 reallocated sectors. Had a bad SATA cable causing bus errors, replaced, confirmed clean afterward. Added 2 extra case fans.</td></tr>
+        <tr><td>Storage drive 2</td><td>931 GB HDD, ext4 (<code>/dev/sdc</code>) — SMART not yet deeply checked, but mounting/reading fine</td></tr>
+        <tr><td>Network</td><td>Wired ethernet (<code>enp2s0</code>), static IP configured</td></tr>
+        <tr><td>Spare SSD (unused)</td><td>Micron RealSSD C400, 256 GB — kept as spare/backup boot drive</td></tr>
+      </table>
+    </div>
+
+    <!-- ===== 2. SOFTWARE ===== -->
+    <h2 id="software">Software</h2>
     <ul>
       <li><strong>OS:</strong> Ubuntu Server 26.04 LTS (clean install, fully updated)</li>
       <li><strong>Access:</strong> SSH enabled, password auth working — <code>ssh r@192.168.2.42</code></li>
@@ -52,16 +285,19 @@
       </li>
     </ul>
 
-    <h2>3. Storage Mounts</h2>
-    <table>
-      <tr><th>Mount point</th><th>Drive</th><th>Size</th><th>Free (at setup)</th><th>Filesystem</th></tr>
-      <tr><td><code>/mnt/storage1</code></td><td>2.7 TB Seagate</td><td>2.7T</td><td>~1.9 TB</td><td>ext4</td></tr>
-      <tr><td><code>/mnt/storage2</code></td><td>931 GB HDD</td><td>932G</td><td>~903 GB</td><td>ext4</td></tr>
-    </table>
+    <!-- ===== 3. STORAGE MOUNTS ===== -->
+    <h2 id="mounts">Storage Mounts</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Mount point</th><th>Drive</th><th>Size</th><th>Free (at setup)</th><th>Filesystem</th></tr>
+        <tr><td><code>/mnt/storage1</code></td><td>2.7 TB Seagate</td><td>2.7T</td><td>~1.9 TB</td><td>ext4</td></tr>
+        <tr><td><code>/mnt/storage2</code></td><td>931 GB HDD</td><td>932G</td><td>~903 GB</td><td>ext4</td></tr>
+      </table>
+    </div>
     <p>Both are in <code>/etc/fstab</code> (auto-mount on boot) using UUIDs, so they survive reboots and drive-letter reshuffles.</p>
 
-    <h2>4. Wake-on-LAN (WoL)</h2>
-    <p><em>Configured: 30 August 2026</em></p>
+    <!-- ===== 4. WAKE-ON-LAN ===== -->
+    <h2 id="wol">Wake-on-LAN (WoL) <span class="status-badge good"><i class="fa-solid fa-check"></i> Configured 30 Aug</span></h2>
     <p>The server runs on-demand via Wake-on-LAN rather than 24/7, to reduce electricity use and wear on the older FX-4320 hardware.</p>
 
     <h3>Network card</h3>
@@ -73,7 +309,9 @@ Wake-on:          g      (enabled)</code></pre>
     <h3>BIOS setting</h3>
     <p>Motherboard: <strong>ASUS M5A78L-M LE/USB3</strong></p>
     <pre><code>BIOS → Power → APM Configuration → Power On By PCI-E/PCI → Enabled</code></pre>
-    <p>This keeps the NIC powered during full poweroff so it can receive the magic packet. Without this, WoL only works from suspend/sleep, not cold poweroff.</p>
+    <div class="info-box info">
+      <span class="icon">💡</span> This keeps the NIC powered during full poweroff so it can receive the magic packet. Without this, WoL only works from suspend/sleep, not cold poweroff.
+    </div>
 
     <h3>systemd service (persistent across reboots)</h3>
     <p>File: <code>/etc/systemd/system/wol.service</code></p>
@@ -97,13 +335,14 @@ sudo systemctl start wol.service</code></pre>
     <p>Alias set on all machines as <code>wakeserver</code> (see the <a href="new-desktop-setup.html">ML Desktop setup</a>). Server is reachable via SSH ~60–90 seconds after sending the magic packet.</p>
 
     <h3>Tested and confirmed</h3>
-    <ul>
-      <li>Cold poweroff → magic packet → SSH connected ✅</li>
-      <li>Working from Mac (M4) ✅</li>
-      <li>Working from ML Desktop (Ubuntu 26.04) ✅</li>
+    <ul class="check-list">
+      <li>Cold poweroff → magic packet → SSH connected</li>
+      <li>Working from Mac (M4)</li>
+      <li>Working from ML Desktop (Ubuntu 26.04)</li>
     </ul>
 
-    <h2>5. Proposed Storage Organization (draft)</h2>
+    <!-- ===== 5. STORAGE ORGANIZATION ===== -->
+    <h2 id="storage-org">Proposed Storage Organization <span class="status-badge amber"><i class="fa-solid fa-pen"></i> Draft</span></h2>
     <p>Rather than a strict "active drive vs. cold drive" split, organize by <strong>what the data is and how it behaves</strong>:</p>
 
     <h3><code>storage2</code> (931 GB) — small, stable, frequently touched</h3>
@@ -130,26 +369,41 @@ sudo systemctl start wol.service</code></pre>
 │           └── Andreas/ # historical MnGa/CoTi VSM measurements
 └── archive/             # old backups, superseded project versions</code></pre>
 
-    <h2>6. Planned: PostgreSQL Migration (end of Stage 2)</h2>
-    <p>Currently PostgreSQL (alloy_lab DB) runs in Docker on the Mac. Plan:</p>
-    <pre><code>Step 1 → Set up PostgreSQL in Docker on this server
-Step 2 → Migrate DB from Mac → server (pg_dump / pg_restore)
-Step 3 → Update .env on all machines (host: 192.168.2.42)
-Step 4 → Move raw data files to storage1/datasets/alloy_lab/
-Step 5 → Run path_repair.py to fix all file paths in DB
-Step 6 → Decommission Mac's PostgreSQL container</code></pre>
-    <p>All machines (Mac, <a href="new-desktop-setup.html">ML Desktop</a>) will connect to one canonical DB on the server. No diverging copies, no data sitting on the Mac Desktop.</p>
+    <!-- ===== 6. POSTGRESQL MIGRATION ===== -->
+    <h2 id="postgres">PostgreSQL Migration <span class="status-badge good"><i class="fa-solid fa-check"></i> Complete</span></h2>
+    <p>PostgreSQL (alloy_lab DB) now runs in Docker on <em>this</em> server, not the Mac — migrated in one session, no data loss. All machines (Mac, <a href="new-desktop-setup.html">ML Desktop</a>) connect to one canonical DB here. No diverging copies, no data sitting on the Mac Desktop.</p>
+    <div class="info-box success">
+      <span class="icon">🎯</span> Full migration record — every step, the dump/restore commands, the final architecture: <a href="../alloy-lab-database/database-migration-home-server.html">Database Migration: Alloy Lab Moves to the Home Server</a>.
+    </div>
+    <div class="info-box warn">
+      <span class="icon">⏳</span> <strong>Still open:</strong> raw data files (as opposed to the database itself) remain on the Mac Desktop for now — moving them to <code>storage1/datasets/alloy_lab/</code> and re-running <code>path_repair.py</code> is deferred to the data organization pass before Stage 3.
+    </div>
 
-    <h2>7. Known Follow-ups</h2>
-    <ul>
-      <li>☐ Consider switching SSH to key-based auth (more secure for an always-available server)</li>
-      <li>☐ Consider <code>git gc --aggressive</code> on <code>my_db_project</code> (was ~783 MB)</li>
-      <li>☐ Consider periodically pruning old <code>lerobot</code> training runs once reviewed</li>
-      <li>☐ Deep SMART check on storage drive 2 (931 GB) — not yet done</li>
-      <li>☐ Optional: self-hosted Gitea in Docker for local git hosting</li>
-      <li>☐ <code>odenwald-monitor</code> — do not touch until data collection wraps up (~1 month). Known logic issue: train line matching pulling wrong stations, debug after pause.</li>
-    </ul>
+    <!-- ===== 7. FOLLOW-UPS ===== -->
+    <h2 id="followups">Known Follow-ups</h2>
+    <div class="task-item">
+      <span class="fa-regular fa-square"></span> Consider switching SSH to key-based auth (more secure for an always-available server)
+    </div>
+    <div class="task-item">
+      <span class="fa-regular fa-square"></span> Consider <code>git gc --aggressive</code> on <code>my_db_project</code> (was ~783 MB)
+    </div>
+    <div class="task-item">
+      <span class="fa-regular fa-square"></span> Consider periodically pruning old <code>lerobot</code> training runs once reviewed
+    </div>
+    <div class="task-item">
+      <span class="fa-regular fa-square"></span> Deep SMART check on storage drive 2 (931 GB) — not yet done
+    </div>
+    <div class="task-item">
+      <span class="fa-regular fa-square"></span> Optional: self-hosted Gitea in Docker for local git hosting
+    </div>
+    <div class="task-item warn">
+      <span class="fa-solid fa-pause"></span> <code>odenwald-monitor</code> — do not touch until data collection wraps up (~1 month). Known logic issue: train line matching pulling wrong stations, debug after pause.
+    </div>
+
   </div>
+  <!-- end .article-body -->
 
+</div>
+<!-- end .page-wrapper -->
 </body>
 </html>

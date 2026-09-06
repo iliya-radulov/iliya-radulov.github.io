@@ -24,6 +24,19 @@
     <h1>Session Wrap-Up — Vision Kit Live Demos &amp; Stage 1 Complete</h1>
     <p class="subtitle">Quick-reference summary so nothing needs to be re-learned next time</p>
 
+    <div class="abstract-box">
+      <strong>Status: Phase 1 complete.</strong> The camera fix held up after full reassembly, face detection and joy scoring run live on-device, and object detection works once fed a downscaled image. The Vision Kit is fully operational — next up is the SO-ARM101 arm build.
+    </div>
+
+    <h2>The short version</h2>
+    <ul>
+      <li>Reassembly survived — camera still detected fine after being put back in the enclosure.</li>
+      <li>SSH access briefly broke over <code>.local</code> hostname resolution, not the Pi itself — USB gadget mode and connecting via raw IP both worked as fallbacks.</li>
+      <li>Face detection and joy scoring run live on-device at ~8–10 fps, correctly tracking a real-time joy score.</li>
+      <li>Object detection works, but only on a downscaled image — a full 8MP photo reliably triggers the Linux OOM-killer on the Pi Zero's 512MB RAM.</li>
+      <li>Phase 1 (Voice + Vision foundations) is complete; Phase 2 (SO-ARM101 arm) is next, with no blockers.</li>
+    </ul>
+
     <p>After the camera fix (new 8MP V2 camera + gpu_mem bump + disabling the background joy-detection service), this session was about actually running the Vision Kit's live demos.</p>
 
     <h2>1. Reassembly survived ✅</h2>
@@ -76,6 +89,7 @@ python3 face_detection_camera.py</code></pre>
       <li><a href="aiy-vision-kit-troubleshooting-log.html">AIY Vision Kit — initial troubleshooting log</a> (WiFi, hostname collision, USB gadget mode)</li>
       <li><a href="aiy-vision-kit-camera-fix-summary.html">AIY Vision Kit — camera replacement &amp; fix</a> (dead camera, GPU memory, background service conflict)</li>
       <li>Voice + Vision + Arm roadmap (phased plan, parts list, hardware notes) — <a href="../../active/voice-vision-arm-roadmap/voice-vision-arm-roadmap.html">see the full roadmap</a></li>
+      <li><a href="aiy-vision-kit-final-report.html">Final build report</a> — full status and honest retrospective</li>
       <li>This document — live demo session + status check-in</li>
     </ul>
   </div>
