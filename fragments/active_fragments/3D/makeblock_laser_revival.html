@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reviving mLaser · Makeblock Laser Cutter — Iliya Angelov Radulov</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #fcf9f6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #1e1e20;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        /* ---- site nav ---- */
+        .nav-wrap { max-width: 1100px; margin: 0 auto 1rem; }
+        .subpage-nav {
+            display: flex; flex-wrap: wrap; gap: 0.3rem 0.7rem;
+            padding: 0.7rem 1.1rem; background: #f7f5f1; border-radius: 16px;
+            border: 1px solid #eae5de; margin-bottom: 1rem; font-size: 0.85rem;
+        }
+        .subpage-nav a {
+            color: #6b6b6b; text-decoration: none; padding: 0.25rem 0.55rem;
+            border-radius: 6px; font-weight: 500; transition: all 0.15s ease;
+        }
+        .subpage-nav a:hover { color: #1e1e20; background: #ede9e3; }
+        .subpage-nav a.current { color: #ffffff; background: #b56a2a; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            color: #b56a2a; text-decoration: none; font-size: 0.9rem;
+            font-weight: 500; margin-bottom: 0.4rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.06), 0 8px 20px rgba(0,0,0,0.03);
+            padding: 3rem 2.5rem;
+        }
+
+        @media (max-width: 640px) {
+            .container { padding: 1.8rem 1.2rem; }
+            h1 { font-size: 2.2rem; }
+        }
+
+        /* ---- typography ---- */
+        .eyebrow {
+            font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #b56a2a; margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-family: 'Times New Roman', 'Georgia', serif;
+            font-weight: 700; font-size: 3rem; line-height: 1.1;
+            letter-spacing: -0.02em; margin-bottom: 0.25rem; color: #1c1c1e;
+        }
+
+        h1 .stage-badge {
+            display: inline-block; background: #b56a2a; color: white;
+            font-size: 1.1rem; font-weight: 600; padding: 0.1rem 1rem;
+            border-radius: 60px; letter-spacing: 0.04em; margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .subhead {
+            font-size: 1.15rem; color: #4a4a4e; margin-top: 0.25rem;
+            border-left: 4px solid #b56a2a; padding-left: 1.2rem;
+        }
+
+        .meta-grid {
+            display: flex; flex-wrap: wrap; gap: 1.8rem 3rem;
+            margin: 2rem 0 2.5rem; padding: 1.5rem 0;
+            border-top: 1px solid #eae7e2; border-bottom: 1px solid #eae7e2;
+        }
+        .meta-item .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #7a7a7a; }
+        .meta-item .value { font-weight: 600; font-size: 1.05rem; }
+
+        h2 {
+            font-family: 'Times New Roman', 'Georgia', serif;
+            font-size: 1.9rem; margin-top: 2.8rem; margin-bottom: 0.75rem;
+            letter-spacing: -0.01em; border-bottom: 2px solid #edeae5; padding-bottom: 0.4rem;
+        }
+
+        h3 {
+            font-weight: 600; font-size: 1.2rem;
+            margin-top: 1.8rem; margin-bottom: 0.4rem;
+            display: flex; align-items: baseline; gap: 0.6rem;
+        }
+        h3 .step-index {
+            font-family: 'Times New Roman', serif; color: #d78c4a;
+            font-size: 1.1rem; font-weight: 700; min-width: 1.4rem;
+        }
+
+        p { color: #2d2d30; margin-bottom: 1.2rem; max-width: 75ch; }
+
+        .highlight { background: #fbf3eb; padding: 0.1rem 0.3rem; border-radius: 6px; font-weight: 500; }
+
+        /* ---- stats ---- */
+        .stats-big {
+            display: flex; flex-wrap: wrap; gap: 2rem 3.5rem;
+            background: #1e1e20; color: white; border-radius: 28px;
+            padding: 2rem 2.5rem; margin: 2rem 0 2.5rem;
+        }
+        .stats-big .stat .number { font-family: 'Times New Roman', serif; font-size: 2.2rem; font-weight: 700; color: #d78c4a; line-height: 1; }
+        .stats-big .stat .desc { font-size: 0.88rem; opacity: 0.7; }
+        @media (max-width: 600px) { .stats-big { flex-direction: column; gap: 1.2rem; } }
+
+        /* ---- badges ---- */
+        .badge-list { display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin: 0.8rem 0 1.6rem; }
+        .badge-list .badge { background: #ede9e3; padding: 0.2rem 1rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: #2d2d2d; }
+
+        /* ---- quote ---- */
+        .quote-box {
+            background: #f2eee9; padding: 1.8rem 2rem; border-radius: 28px;
+            font-style: italic; border: 1px solid #ddd6cd; margin: 2rem 0; color: #2b2b2d;
+        }
+        .quote-box .attribution { margin-top: 0.4rem; font-style: normal; font-weight: 500; color: #6b5f50; }
+        .quote-box .original { font-style: normal; color: #6b5f50; font-size: 0.92rem; margin-bottom: 0.7rem; }
+
+        /* ---- highlight box ---- */
+        .highlight-box {
+            background: #f6fafc;
+            border-left: 5px solid #b56a2a;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.25rem 0;
+            color: #2d2d30;
+        }
+
+        /* ---- inline code ---- */
+        .inline-code { background: #eeeae4; padding: 0.1rem 0.4rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; color: #a55d1c; }
+
+        hr { border: 0; border-top: 2px solid #eae5de; margin: 2rem 0; }
+
+        ul.plain { margin: 1rem 0 1.5rem 1.5rem; color: #2d2d30; }
+        ul.plain li { margin-bottom: 0.3rem; }
+
+        /* ---- hero placeholder ---- */
+        .hero-placeholder {
+            background: linear-gradient(145deg, #f3ede6, #ede5da);
+            border-radius: 1.5rem;
+            padding: 2.5rem 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+            border: 2px dashed #d4c9bc;
+            color: #4a3d2e;
+        }
+        .hero-placeholder p {
+            font-weight: 500;
+            font-size: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .hero-placeholder small {
+            display: block;
+            margin-top: 0.4rem;
+            color: #7a6a58;
+        }
+
+        /* ---- footer nav ---- */
+        .footer-nav {
+            margin-top: 3rem; display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; border-top: 1px solid #ddd8d0; padding-top: 2rem;
+            font-size: 0.9rem; color: #5d5d5d;
+        }
+        .footer-nav a { color: #b56a2a; text-decoration: none; font-weight: 500; }
+        .footer-nav a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="nav-wrap">
+    <nav class="subpage-nav">
+        <a href="../../../index.html">🏠 Home</a>
+        <a href="../../../projects/active/active.html" >⚡ Active</a>
+        <a href="../../../projects/recent/recent.html">🕓 Recent</a>
+        <a href="../../../projects/former/former.html">📁 Former</a>
+        <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+        <a href="../../../index.html#fragments"class="current">🧩 Fragments</a>
+        <a href="../../../index.html#gallery">🖼️ Gallery</a>
+    </nav>
+    <a class="back-link" href="my_first_print.html">← Back to Belt Holders (3D Printing)</a>
+</div>
+
+<div class="container">
+
+    <div class="eyebrow">Reverse Engineering · Legacy Software · Making</div>
+    <h1>Reviving mLaser <span class="stage-badge">📦 replacement ordered</span></h1>
+    <div class="subhead">The plastic parts were the easy part. Getting a 2015 Chinese-only control stack to talk to a modern G-code sender turned into an archaeology project — one that ended with a single custom four-character string, and a decision to stop fighting it.</div>
+
+    <div class="meta-grid">
+        <div class="meta-item"><span class="label">Status</span><div class="value">📦 New controller board ordered</div></div>
+        <div class="meta-item"><span class="label">Machine</span><div class="value">Makeblock XY Laser (2015)</div></div>
+        <div class="meta-item"><span class="label">Old controller</span><div class="value">MegaPi (ATMega2560)</div></div>
+        <div class="meta-item"><span class="label">Old firmware</span><div class="value">Marlin 1.0.2+ · custom "oMG"</div></div>
+        <div class="meta-item"><span class="label">New controller</span><div class="value">GRBL 1.1 · ATMEGA328P · €27</div></div>
+    </div>
+
+    <div class="hero-placeholder">
+        <p>🔌 A machine that runs on standard Marlin firmware — talking a completely non-standard protocol</p>
+        <small>MegaPi board · Marlin 1.0.2+ · custom-patched acknowledgment string</small>
+    </div>
+
+    <div class="badge-list">
+        <span class="badge">Marlin 1.0.2+</span>
+        <span class="badge">Makeblock MegaPi</span>
+        <span class="badge">mLaser 1.x (Win + Mac)</span>
+        <span class="badge">CNCjs</span>
+        <span class="badge">Custom "oMG" protocol</span>
+        <span class="badge">Chinese documentation</span>
+        <span class="badge">bitmap2gcode</span>
+        <span class="badge">GRBL 1.1 controller · €27</span>
+    </div>
+
+    <h2>Why this needed reviving at all</h2>
+    <p>
+        With the <a href="my_first_print.html">belt holders reprinted in PETG</a> and the mechanics sound again, the machine could physically move. But a laser cutter is only as alive as its control software — and this one's original software wasn't just old, it was <strong>last-century old in spirit</strong>: a bespoke, closed, Windows-first tool built by Makeblock around 2015–2017, before anything like a shared open standard for hobbyist laser senders really existed. Nobody has touched it in almost a decade.
+    </p>
+
+    <h2>Finding mLaser again</h2>
+
+    <h3><span class="step-index">01</span>Two download links, one dead</h3>
+    <p>
+        The <a href="https://github.com/Makeblock-official/MLaser" target="_blank">MLaser GitHub repo</a> lists two release links — one for Windows, one for Mac. The Windows link was simply gone: a broken URL pointing at infrastructure Makeblock stopped maintaining years ago. The Mac link, against expectations, still resolved.
+    </p>
+
+    <h3><span class="step-index">02</span>macOS says "damaged"</h3>
+    <p>
+        Downloading and opening the Mac build got exactly the response you'd expect from an unsigned, unnotarized 2017 <span class="inline-code">.app</span>: macOS's Gatekeeper flagged it as <strong>"damaged and can't be opened,"</strong> its default (and often misleading) message for anything lacking a valid, current code signature — not necessarily an actually corrupted file.
+    </p>
+
+    <h3><span class="step-index">03</span>Manual revival</h3>
+    <p>
+        Bypassing Gatekeeper manually — removing the quarantine attribute macOS attaches to downloaded files rather than trusting the "damaged" verdict at face value — let the app launch normally. mLaser 1.x, untouched since 2017, running again on a current Mac.
+    </p>
+
+    <div class="highlight-box">
+        ✅ mLaser launches. The software isn't actually broken — it's just old enough that modern OS security defaults assume it must be.
+    </div>
+
+    <h2>Reading documentation nobody reads anymore</h2>
+    <p>
+        The repo turned out to be genuinely well documented — just not in a way most people revisiting this hardware today can use directly. The manuals are <strong>entirely in Chinese</strong>, except for the code itself, which at least gave something to search against. At this point the documentation has more <strong>historical value than practical value</strong>: it's a snapshot of how differently a small hardware company approached "just make it work" a decade ago.
+    </p>
+    <p>
+        The clearest example: Makeblock didn't just write their own sender application — they wrote their own <span class="inline-code">bitmap2gcode</span> module to generate G-code for photo engraving, rather than building on any existing tool. Sender, protocol, and G-code generation for image engraving were all custom, all in-house, all closed. Nothing about the stack expected to ever talk to software Makeblock didn't write.
+    </p>
+
+    <h2>Installing CNCjs — and hitting a wall</h2>
+    <p>
+        With the mechanics fixed and Marlin confirmed running, the obvious next step was a modern, actively maintained sender: <strong>CNCjs</strong>. It connected, it looked like it was working — and then it wasn't. <span class="inline-code">M4</span> commands got sent and simply resent, forever, as if nothing had ever executed. Meanwhile, sending the exact same commands by hand over a raw serial terminal worked perfectly, every time.
+    </p>
+
+    <h2>The smoking gun: "oMG"</h2>
+    <p>
+        The Chinese documentation had the answer, buried in a section about the communication protocol between the host computer and Marlin:
+    </p>
+    <div class="quote-box">
+        <div class="original">上位机每向Marlin发送一Gcode命令，Marlin均会返回"oMG"⋯⋯"oMG"字符串是mLaser1.x自定义的一条协议返回字符串，并不是marlin自带的</div>
+        "Every time the host sends a G-code command, Marlin returns <strong>'oMG'</strong> to confirm it executed correctly. Note that 'oMG' is a custom protocol string defined by mLaser1.x itself — not something Marlin sends by default."
+        <div class="attribution">— mLaser 1.x technical documentation (translated)</div>
+    </div>
+    <p>
+        That single line explains everything. Every mainstream G-code sender — CNCjs, LightBurn, UGS, bCNC, all of them — is written expecting the standard Marlin/GRBL handshake: the plain word <span class="inline-code">ok</span>, meaning "line executed, safe to send the next one." This particular board's firmware was custom-patched by Makeblock, specifically for mLaser, to send <span class="inline-code">oMG</span> instead — a private, non-standard token no off-the-shelf sender has ever been taught to recognize.
+    </p>
+
+    <div class="highlight-box">
+        That's exactly why CNCjs sat there resending <span class="inline-code">M4</span> forever: it was still waiting for an <span class="inline-code">ok</span> that was genuinely never going to arrive. What looked like a double acknowledgment in the raw terminal (<span class="inline-code">oMGok</span>) was most likely CNCjs's own console tacking a status label onto the real <span class="inline-code">oMG</span> line — not a second, valid response.
+    </div>
+
+    <p>
+        It also explains, retroactively, why manual terminal control "just worked" from the very first session: a human reading the output and deciding when to send the next line doesn't care what exact word comes back. There's no strict <span class="inline-code">ok</span>-parsing logic standing in the way — just a person looking at the screen.
+    </p>
+
+    <div class="stats-big">
+        <div class="stat"><span class="number">2016</span><div class="desc">firmware compile date</div></div>
+        <div class="stat"><span class="number">2017</span><div class="desc">mLaser last updated</div></div>
+        <div class="stat"><span class="number">oMG</span><div class="desc">non-standard ack string</div></div>
+        <div class="stat"><span class="number">€27</span><div class="desc">replacement GRBL 1.1 controller</div></div>
+        <div class="stat"><span class="number">115200</span><div class="desc">baud rate</div></div>
+        <div class="stat"><span class="number">310×390</span><div class="desc">working area (mm)</div></div>
+    </div>
+
+    <h2>The decision: replace the controller, not the workflow</h2>
+    <p>
+        This isn't a bug a sender-side setting can fix — it's the firmware itself speaking a private dialect that predates the "just use standard <span class="inline-code">ok</span>" convention every modern tool now assumes. Patching around it was possible in theory: a serial proxy rewriting <span class="inline-code">oMG</span> to <span class="inline-code">ok</span> on the fly, or re-flashing Marlin without the mLaser-specific patch. Both are real fixes for the software problem — and both are also more fragile, more time-consuming, and more custom-maintenance than the actual goal (a working laser cutter) really calls for.
+    </p>
+    <p>
+        Instead, the more pragmatic move: replace the MegaPi controller entirely with a board that speaks a protocol every modern sender already understands natively.
+    </p>
+
+    <div class="highlight-box">
+        📦 Ordered: a <strong>GRBL 1.1 controller board</strong> for CNC 3018 / 2418 / 1610-style machines — 3-axis stepper driver with a dual Y output (for the belt-driven Y axis), USB connection, built around an <strong>ATMEGA328P</strong>, supporting <strong>A4988</strong> drivers and both <strong>NEMA 17 and NEMA 23</strong> (42 / 57 mm) motors. <strong>€27.</strong>
+    </div>
+
+    <p>
+        GRBL 1.1 is the de facto standard firmware for exactly this class of small hobbyist CNC/laser controller — which means CNCjs, LightBurn, UGS, and bCNC all speak to it without translation, macros, or workarounds of any kind. The <span class="inline-code">oMG</span> problem doesn't get patched; it gets made irrelevant, because the board that invented it is no longer in the loop.
+    </p>
+    <p>
+        The trade-off is honest: this means retiring the original MegaPi/Marlin electronics rather than fully reviving them, and re-wiring the existing stepper motors and endstops onto the new board once it arrives. But given that the original board's entire reason for being non-standard was a piece of software that's been dead since 2017, keeping it around mostly meant keeping the incompatibility around too.
+    </p>
+
+    <div class="quote-box">
+        A firmware that only one dead application on one dead operating system era ever learned to talk to isn't broken — it's just fluent in a language nobody else bothered to learn. Sometimes the fix isn't a better translator. It's a board that was never taught the old language in the first place.
+        <div class="attribution">— September 2026</div>
+    </div>
+
+    <p>
+        Once the new board arrives: re-wire the existing steppers and endstops, flash the standard GRBL 1.1 firmware it ships with, and connect straight through CNCjs with no macros or custom acknowledgment handling needed. Full session log — hardware fixes, tested G-code commands, CNCjs macros, and the Python fallback scripts that got the machine running in the meantime — is in the <a href="#">Makeblock Laser Revival session notes</a>.
+    </p>
+
+    <hr />
+
+    <div class="footer-nav">
+        <span>Reverse engineering · legacy protocol · see also <a href="my_first_print.html">Belt Holders (3D Printing)</a></span>
+        <span><a href="#">⬆ back to top</a></span>
+    </div>
+
+</div>
+</body>
+</html>
