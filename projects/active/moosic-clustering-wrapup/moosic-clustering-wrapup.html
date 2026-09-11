@@ -120,6 +120,12 @@
       border-color: var(--gold);
       color: var(--gold);
     }
+    
+    nav.site-nav a.current {
+      background: var(--phoenix);
+      border-color: var(--phoenix);
+      color: #fff;
+    }
 
     .hero {
       padding: 56px 0 40px;
@@ -620,12 +626,14 @@
         (Anthropic) across the full arc — from "is fine clustering even a real technique" through nine documented bugs,
         a self-corrected finding, and a final cross-validated recommendation. Every course-correction is kept in the
         project's session report rather than edited out after the fact.</p>
-      <p>A parallel nod to <strong>Andreas</strong>, a colleague working the same unsupervised (machine) learning
-        material, but with a different approach, creating a full <a href="https://github.com/andreas-politzer/playlist_generator"target="_blank">playlist generator</a> <strong></strong> — while this project
-        stayed deliberately narrow (three core algorithms, tuned properly, one honest conclusion), he's building a
-        KNIME-based pipeline covering essentially every scaler/model/parameter combination at once. Different
-        philosophies, both legitimate — his breadth-first approach will likely surface things this depth-first one never
-        will, and vice versa.</p>
+       <p>A parallel nod to <strong>Andreas</strong>, a colleague working the same course material — while this project
+        stayed deliberately narrow (three core algorithms, tuned properly, one cross-validated conclusion), he built a
+        full-stack <a href="https://github.com/andreas-politzer/playlist_generator">playlist generation web app</a> from
+        the same Moosic brief — React/FastAPI, four algorithms including Gaussian Mixture Models, four scaler options, a
+        real drag-and-drop UI. Different kind of ambitious, not a competing one: his own project notes independently
+        land on almost the exact same conclusion this one did — that acoustically similar songs can span genres a
+        listener would never group together, and that "no single clustering metric can fully measure musical
+        usefulness." Reached from two completely different directions, same honest place.</p>
 
       <div class="cinderella-row">
         <img src="figs/cinderella_beans.png" alt="Blindfolded figure sorting beans wearing boxing gloves">
@@ -637,7 +645,7 @@
     </section>
 
     <footer>
-      <p class="signoff">Full notebooks, session report, and presentation deck in the project repository.</p>
+      <p class="signoff">Full notebooks, session report, and presentation deck in the project <a href="https://github.com/iliya-radulov/moosic_playlist" target="_blank" rel="noopener noreferrer">repository</a>.</p>
       <p>Moosic Playlist Clustering — K-Means · DBSCAN · Hierarchical Clustering · Python · scikit-learn</p>
       <p>Individual project · Unsupervised Machine Learning · Data Fundamentals</p>
     </footer>
