@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moosic — Playlist Clustering Project Wrap-Up</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #241A2E;
+      --surface: #2F2238;
+      --surface-2: #392A44;
+      --gold: #E8B04B;
+      --coral: #E8795D;
+      --teal: #6FA7A0;
+      --ink: #F5EFE6;
+      --ink-muted: #B3A3B8;
+      --line: #453655;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans', sans-serif;
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    em {
+      color: var(--gold);
+      font-style: italic;
+    }
+
+    .topbar {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      color: var(--ink-muted);
+    }
+
+    .topbar a {
+      color: var(--ink-muted);
+      font-weight: 600;
+    }
+
+    nav.section-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    nav.section-nav a {
+      color: var(--ink-muted);
+    }
+
+    nav.section-nav a:hover {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    nav.site-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    nav.site-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--ink-muted);
+      text-decoration: none;
+    }
+
+    nav.site-nav a:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .hero {
+      padding: 56px 0 40px;
+    }
+
+    .eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--teal);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 44px;
+      line-height: 1.12;
+      margin-bottom: 18px;
+      max-width: 18ch;
+    }
+
+    .subtitle {
+      font-size: 19px;
+      color: var(--ink-muted);
+      max-width: 68ch;
+      margin-bottom: 30px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 40px;
+    }
+
+    .tag {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 5px 13px;
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--ink-muted);
+      border: 1px solid var(--line);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding: 28px 0 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .stat .num {
+      font-family: 'Fraunces', serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .stat .label {
+      font-size: 13px;
+      color: var(--ink-muted);
+      margin-top: 6px;
+    }
+
+    section {
+      padding: 52px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    section .section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: var(--teal);
+      margin-bottom: 10px;
+    }
+
+    section h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    section p {
+      color: var(--ink-muted);
+      margin-bottom: 14px;
+      max-width: 74ch;
+    }
+
+    section p strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .goal-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .goal-card {
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 22px;
+    }
+
+    .goal-card .icon {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .goal-card h4 {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .goal-card p {
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin: 28px 0;
+    }
+
+    .flow-step {
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 16px 20px;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .flow-step .k {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      color: var(--gold);
+      font-size: 15px;
+    }
+
+    .flow-step .v {
+      font-size: 13px;
+      color: var(--ink-muted);
+      margin-top: 4px;
+    }
+
+    .flow-arrow {
+      color: var(--coral);
+      font-size: 20px;
+    }
+
+    .deepdive-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .deepdive-card {
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 22px;
+      border-left: 3px solid var(--teal);
+    }
+
+    .deepdive-card.warn {
+      border-left-color: var(--coral);
+    }
+
+    .deepdive-card .dd-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--teal);
+      margin-bottom: 8px;
+    }
+
+    .deepdive-card.warn .dd-label {
+      color: var(--coral);
+    }
+
+    .deepdive-card h4 {
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .deepdive-card p {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .deepdive-card .dd-stat {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: var(--gold);
+    }
+
+    table.rec {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 22px;
+    }
+
+    table.rec th,
+    table.rec td {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    table.rec th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--ink-muted);
+      font-weight: 400;
+    }
+
+    table.rec td.verdict-col {
+      color: var(--ink);
+      font-weight: 600;
+      font-family: 'Fraunces', serif;
+    }
+
+    .callout {
+      background: var(--surface-2);
+      border-radius: 6px;
+      padding: 24px;
+      margin-top: 26px;
+      border-left: 3px solid var(--gold);
+    }
+
+    .callout .cal-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .callout p {
+      color: var(--ink);
+      font-size: 14.5px;
+      margin: 0;
+    }
+
+    .cinderella-row {
+      display: flex;
+      gap: 28px;
+      align-items: flex-start;
+      margin-top: 24px;
+    }
+
+    .cinderella-row img {
+      width: 220px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    footer {
+      padding: 40px 0 60px;
+      color: var(--ink-muted);
+      font-size: 13px;
+    }
+
+    footer .signoff {
+      font-style: italic;
+      margin-bottom: 10px;
+      color: var(--ink);
+    }
+
+    @media (max-width: 640px) {
+      h1 {
+        font-size: 32px;
+      }
+
+      .stats,
+      .goal-cards,
+      .deepdive-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cinderella-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="wrap">
+    <div class="topbar">
+      <a href="../../../index.html">← Iliya Angelov Radulov — portfolio</a>
+    </div>
+
+    <nav class="section-nav">
+      <a href="#brief">Brief</a>
+      <a href="#approach">Approach</a>
+      <a href="#findings">Findings</a>
+      <a href="#recommendation">Recommendation</a>
+      <a href="#reflection">Reflection</a>
+    </nav>
+
+    <nav class="site-nav">
+      <a href="../../../index.html">🏠 Home</a>
+      <a href="../../active/active.html" class="current">⚡ Active</a>
+      <a href="../../recent/recent.html">🕓 Recent</a>
+      <a href="../../former/former.html">📁 Former</a>
+      <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+      <a href="../../../index.html#fragments">🧩 Fragments</a>
+      <a href="../../../index.html#gallery">🖼️ Gallery</a>
+    </nav>
+
+    <div class="hero">
+      <div class="eyebrow">Project Wrap-Up · Moosic Playlist Clustering</div>
+      <h1>Four Algorithms, One <em>Honest</em> Verdict</h1>
+      <p class="subtitle">Data science case study — Unsupervised Machine Learning — automate playlist creation for a music startup using
+        unsupervised clustering. What started as "run K-Means" became a genuine, iterative investigation across four
+        methods, several real bugs, and one finding that overturned its own headline conclusion mid-analysis.</p>
+
+      <div class="tags">
+        <span class="tag">K-Means</span>
+        <span class="tag">DBSCAN</span>
+        <span class="tag">Agglomerative / Hierarchical</span>
+        <span class="tag">Python · scikit-learn</span>
+        <span class="tag">t-SNE · PCA</span>
+        <span class="tag">Unsupervised Machine Learning</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="num">5,235</div>
+          <div class="label">Songs analyzed</div>
+        </div>
+        <div class="stat">
+          <div class="num">4</div>
+          <div class="label">Clustering approaches tested</div>
+        </div>
+        <div class="stat">
+          <div class="num">98%</div>
+          <div class="label">Playlists hitting the size target</div>
+        </div>
+        <div class="stat">
+          <div class="num">1.000</div>
+          <div class="label">ARI — perfect cross-algorithm agreement</div>
+        </div>
+      </div>
+    </div>
+
+    <section id="brief">
+      <div class="section-label">The Brief</div>
+      <h2>Moosic needs to automate playlist creation</h2>
+      <p>Moosic, a fictional music startup built for the case study, hands over ~5,000 songs' worth of Spotify audio
+        features and two open questions: can audio features identify "similar" songs the way a human listener does, and
+        which clustering algorithm actually works best for turning that similarity into usable playlists?</p>
+      <div class="goal-cards">
+        <div class="goal-card">
+          <div class="icon">🎧</div>
+          <h4>Can features capture "similar"?</h4>
+          <p>Danceability, energy, tempo and friends — do they track what a listener actually hears as alike?</p>
+        </div>
+        <div class="goal-card">
+          <div class="icon">🧩</div>
+          <h4>Which algorithm works best?</h4>
+          <p>K-Means, DBSCAN, or Hierarchical — each with real strengths and real failure modes to find out.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="approach">
+      <div class="section-label">What Was Built</div>
+      <h2>Feature selection → business-constrained K-Means</h2>
+      <p>The starting 13 Spotify audio features were correlation-checked before anything else — <strong>loudness turned
+          out almost redundant with energy and acousticness</strong>, while speechiness and instrumentalness carried
+        genuine independent signal the original 5-feature course example missed entirely. Seven features made the final
+        cut.</p>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="k">13 raw features</div>
+          <div class="v">Spotify audio API</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="k">7 kept</div>
+          <div class="v">Correlation-trimmed</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="k">Recursive K-Means</div>
+          <div class="v">Split → reassign → merge</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="k">~130 playlists</div>
+          <div class="v">20–60 songs each</div>
+        </div>
+      </div>
+
+      <p>The elbow method alone suggested 3–5 clusters on the full dataset — mathematically defensible, practically
+        useless (1,000+ songs per "playlist"). The actual fix: define the business constraint explicitly (a usable
+        playlist is 20–60 songs) and build a <strong>recursive split → global reassignment → distance-based
+          merge</strong> pipeline around that target, rather than trusting a metric to discover it unprompted.</p>
+    </section>
+
+    <section id="findings">
+      <div class="section-label">Why This Went Further Than One Algorithm</div>
+      <h2>Where the simple version hit a wall</h2>
+      <p>K-Means with a business constraint works — but "works" isn't the same as "proven right." Three more
+        investigations followed, each testing the result from a different angle rather than taking it on faith.</p>
+
+      <div class="deepdive-grid">
+        <div class="deepdive-card">
+          <div class="dd-label">Diagnostic, not a generator</div>
+          <h4>DBSCAN</h4>
+          <p>Extensively tuned across two scalers and a wide eps/min_samples sweep — never found a workable middle
+            ground between fragmentation and one dominant mega-cluster. But its noise bucket wasn't empty: it isolated a
+            genuine classical/instrumental pocket and a hidden rap/hip-hop pocket the other methods hadn't named yet.
+          </p>
+          <div class="dd-stat">No eps threads coverage + coherence at once</div>
+        </div>
+        <div class="deepdive-card">
+          <div class="dd-label">Confirms the structure</div>
+          <h4>Hierarchical (Agglomerative)</h4>
+          <p>Best-scoring cut (k=2–3) turned out to be the same misleading mega-cluster pattern as DBSCAN in disguise.
+            k=8 gave 8 genuinely balanced groups — and independently re-found both of DBSCAN's hidden pockets, via a
+            completely different mechanism.</p>
+          <div class="dd-stat">2 independent cross-algorithm replications</div>
+        </div>
+        <div class="deepdive-card warn">
+          <div class="dd-label">A real tradeoff, not a clean win</div>
+          <h4>The Hybrid Experiment</h4>
+          <p>Agglomerative's 8 groups first, K-Means split within each. Looked like a clear win — 76 of 129 single-stage
+            playlists "spanned" multiple broad categories. Checking one by ear: it was a completely coherent jazz &amp;
+            bossa nova playlist the single-stage pipeline got <em>right</em>. The hybrid would have split it apart.</p>
+          <div class="dd-stat">Corrected mid-analysis, not smoothed over</div>
+        </div>
+        <div class="deepdive-card">
+          <div class="dd-label">Quantified, not just eyeballed</div>
+          <h4>Cross-Algorithm Agreement</h4>
+          <p>K-Means and Agglomerative agree strongly (ARI 0.555) on genuinely different assumptions. DBSCAN's apparent
+            disagreement dissolves entirely once resolution mismatch is accounted for — on the one distinction it
+            committed to, agreement with K-Means is perfect.</p>
+          <div class="dd-stat">ARI = 1.000 on classical-cluster membership</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="recommendation">
+      <div class="section-label">The Answer for Moosic</div>
+      <h2>Ship K-Means, business-constrained — with a human always in the loop</h2>
+      <table class="rec">
+        <tr>
+          <th>Method</th>
+          <th>Coverage</th>
+          <th>Coherence</th>
+          <th>Verdict</th>
+        </tr>
+        <tr>
+          <td>K-Means</td>
+          <td>~98%</td>
+          <td>Good, business-tuned</td>
+          <td class="verdict-col">Recommended</td>
+        </tr>
+        <tr>
+          <td>DBSCAN</td>
+          <td>Up to 92%*</td>
+          <td>Diagnostic only</td>
+          <td class="verdict-col">*hides a mega-cluster, not real playlists</td>
+        </tr>
+        <tr>
+          <td>Hierarchical</td>
+          <td>100%</td>
+          <td>Good at k=8</td>
+          <td class="verdict-col">Confirms — not a replacement</td>
+        </tr>
+      </table>
+
+      <div class="callout">
+        <div class="cal-label">Being honest about the limits</div>
+        <p>No algorithm has a concept of "good" on its own — every useful result here came from pairing the math with an
+          explicit, human-defined goal. And audio features track <em>sound</em>, not genre: a rock song ("Teenage
+          Dirtbag") landed in a dance-pop playlist on tempo/energy alone, while an unlabelled piano cover of "Shape of
+          You" was correctly told apart from the original — two sides of the same limitation.</p>
+      </div>
+    </section>
+
+    <section id="reflection">
+      <div class="section-label">How This Was Built</div>
+      <h2>An individual project, built out loud</h2>
+      <p>This was a solo DP-900 assignment, worked through in close collaboration with Claude (Anthropic) across the
+        full arc — from "is fine clustering even a real technique" through nine documented bugs, a self-corrected
+        finding, and a final cross-validated recommendation. Every course-correction is kept in the project's session
+        report rather than edited out after the fact.</p>
+      <p>A parallel nod to <strong>Andreas</strong>, a colleague working the same course material — while this project
+        stayed deliberately narrow (three core algorithms, tuned properly, one cross-validated conclusion), he built a
+        full-stack <a href="https://github.com/andreas-politzer/playlist_generator">playlist generation web app</a> from
+        the same Moosic brief — React/FastAPI, four algorithms including Gaussian Mixture Models, four scaler options, a
+        real drag-and-drop UI. Different kind of ambitious, not a competing one: his own project notes independently
+        land on almost the exact same conclusion this one did — that acoustically similar songs can span genres a
+        listener would never group together, and that "no single clustering metric can fully measure musical
+        usefulness." Reached from two completely different directions, same honest place.</p>
+
+      <div class="cinderella-row">
+        <img src="../outputs/cinderella_beans.png" alt="Blindfolded figure sorting beans wearing boxing gloves">
+        <p>The working metaphor for the whole project: unsupervised clustering is a blindfolded sort by touch alone.
+          Sometimes the tools you're given (the features you chose) are like wearing boxing gloves — comically wrong for
+          delicate work. The point isn't to pretend the blindfold isn't there. It's to be honest about what you can and
+          can't feel, and check by listening whenever it's not sure.</p>
+      </div>
+    </section>
+
+    <footer>
+      <p class="signoff">Full notebooks, session report, and presentation deck in the project repository.</p>
+      <p>Moosic Playlist Clustering — K-Means · DBSCAN · Hierarchical Clustering · Python · scikit-learn</p>
+      <p>Individual project · DP-900 Data Fundamentals</p>
+    </footer>
+  </div>
+
+</body>
+
+</html>
