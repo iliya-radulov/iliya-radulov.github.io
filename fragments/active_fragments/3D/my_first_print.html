@@ -314,16 +314,16 @@
     <p>
         Now that the mechanical parts are ready, the <strong>real</strong> work begins:
         getting the laser cutter back to life. The original control software
-        (<strong>mLaser</strong>) hasn't been updated since 2017 and is Windows‑only.
-        The plan is to run it from a <strong>Raspberry Pi 4</strong> on Linux, or find a
-        modern open‑source alternative.
+        (<strong>mLaser</strong>) hasn't been updated since 2017 and is Windows‑only —
+        <a href="makeblock_laser_revival.html">turns out that's a whole story on its own</a>,
+        ending with a decision to replace the controller entirely.
     </p>
 
     <div class="highlight-box">
-        <strong>Reviving the Makeblock laser</strong> — mLaser last updated 2017.
-        Hardware is solid; the control stack needs some love.
-        Candidate: run the open‑source repo on the Pi 4, or replace with
-        <strong>LaserWeb / LightBurn</strong> if the firmware speaks GRBL.
+        <strong>Reviving the Makeblock laser</strong> — mLaser last updated 2017, speaking
+        a private protocol no modern sender understands. The fix that actually worked:
+        <a href="makeblock_grbl_upgrade.html">a proper GRBL 1.1f board</a>, wired, configured,
+        calibrated, and now genuinely engraving.
     </div>
 
     <p>
@@ -340,7 +340,7 @@
     <hr />
 
     <div class="footer-nav">
-        <span>3D Printing · first original design · see also <a href="#">SO‑ARM101 cam mount</a></span>
+        <span>3D Printing · first original design · see also <a href="makeblock_laser_revival.html">Reviving mLaser</a> and <a href="makeblock_grbl_upgrade.html">GRBL Board Upgrade</a></span>
         <span><a href="#">⬆ back to top</a></span>
     </div>
 

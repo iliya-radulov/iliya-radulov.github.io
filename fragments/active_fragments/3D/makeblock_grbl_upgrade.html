@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GRBL Board Upgrade · Makeblock Laser — Iliya Angelov Radulov</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #fcf9f6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #1e1e20;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        /* ---- site nav ---- */
+        .nav-wrap { max-width: 1100px; margin: 0 auto 1rem; }
+        .subpage-nav {
+            display: flex; flex-wrap: wrap; gap: 0.3rem 0.7rem;
+            padding: 0.7rem 1.1rem; background: #f7f5f1; border-radius: 16px;
+            border: 1px solid #eae5de; margin-bottom: 1rem; font-size: 0.85rem;
+        }
+        .subpage-nav a {
+            color: #6b6b6b; text-decoration: none; padding: 0.25rem 0.55rem;
+            border-radius: 6px; font-weight: 500; transition: all 0.15s ease;
+        }
+        .subpage-nav a:hover { color: #1e1e20; background: #ede9e3; }
+        .subpage-nav a.current { color: #ffffff; background: #b56a2a; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            color: #b56a2a; text-decoration: none; font-size: 0.9rem;
+            font-weight: 500; margin-bottom: 0.4rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.06), 0 8px 20px rgba(0,0,0,0.03);
+            padding: 3rem 2.5rem;
+        }
+
+        @media (max-width: 640px) {
+            .container { padding: 1.8rem 1.2rem; }
+            h1 { font-size: 2.2rem; }
+        }
+
+        /* ---- typography ---- */
+        .eyebrow {
+            font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #b56a2a; margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-family: 'Times New Roman', 'Georgia', serif;
+            font-weight: 700; font-size: 3rem; line-height: 1.1;
+            letter-spacing: -0.02em; margin-bottom: 0.25rem; color: #1c1c1e;
+        }
+
+        h1 .stage-badge {
+            display: inline-block; background: #b56a2a; color: white;
+            font-size: 1.1rem; font-weight: 600; padding: 0.1rem 1rem;
+            border-radius: 60px; letter-spacing: 0.04em; margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .subhead {
+            font-size: 1.15rem; color: #4a4a4e; margin-top: 0.25rem;
+            border-left: 4px solid #b56a2a; padding-left: 1.2rem;
+        }
+
+        .meta-grid {
+            display: flex; flex-wrap: wrap; gap: 1.8rem 3rem;
+            margin: 2rem 0 2.5rem; padding: 1.5rem 0;
+            border-top: 1px solid #eae7e2; border-bottom: 1px solid #eae7e2;
+        }
+        .meta-item .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #7a7a7a; }
+        .meta-item .value { font-weight: 600; font-size: 1.05rem; }
+
+        h2 {
+            font-family: 'Times New Roman', 'Georgia', serif;
+            font-size: 1.9rem; margin-top: 2.8rem; margin-bottom: 0.75rem;
+            letter-spacing: -0.01em; border-bottom: 2px solid #edeae5; padding-bottom: 0.4rem;
+        }
+
+        h3 {
+            font-weight: 600; font-size: 1.2rem;
+            margin-top: 1.8rem; margin-bottom: 0.4rem;
+            display: flex; align-items: baseline; gap: 0.6rem;
+        }
+        h3 .step-index {
+            font-family: 'Times New Roman', serif; color: #d78c4a;
+            font-size: 1.1rem; font-weight: 700; min-width: 1.4rem;
+        }
+
+        p { color: #2d2d30; margin-bottom: 1.2rem; max-width: 75ch; }
+
+        .highlight { background: #fbf3eb; padding: 0.1rem 0.3rem; border-radius: 6px; font-weight: 500; }
+
+        /* ---- stats ---- */
+        .stats-big {
+            display: flex; flex-wrap: wrap; gap: 2rem 3.5rem;
+            background: #1e1e20; color: white; border-radius: 28px;
+            padding: 2rem 2.5rem; margin: 2rem 0 2.5rem;
+        }
+        .stats-big .stat .number { font-family: 'Times New Roman', serif; font-size: 2.2rem; font-weight: 700; color: #d78c4a; line-height: 1; }
+        .stats-big .stat .desc { font-size: 0.88rem; opacity: 0.7; }
+        @media (max-width: 600px) { .stats-big { flex-direction: column; gap: 1.2rem; } }
+
+        /* ---- badges ---- */
+        .badge-list { display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin: 0.8rem 0 1.6rem; }
+        .badge-list .badge { background: #ede9e3; padding: 0.2rem 1rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: #2d2d2d; }
+
+        /* ---- quote ---- */
+        .quote-box {
+            background: #f2eee9; padding: 1.8rem 2rem; border-radius: 28px;
+            font-style: italic; border: 1px solid #ddd6cd; margin: 2rem 0; color: #2b2b2d;
+        }
+        .quote-box .attribution { margin-top: 0.4rem; font-style: normal; font-weight: 500; color: #6b5f50; }
+
+        /* ---- highlight box ---- */
+        .highlight-box {
+            background: #f6fafc;
+            border-left: 5px solid #b56a2a;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.25rem 0;
+            color: #2d2d30;
+        }
+
+        /* ---- inline code ---- */
+        .inline-code { background: #eeeae4; padding: 0.1rem 0.4rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; color: #a55d1c; }
+
+        hr { border: 0; border-top: 2px solid #eae5de; margin: 2rem 0; }
+
+        ul.plain { margin: 1rem 0 1.5rem 1.5rem; color: #2d2d30; }
+        ul.plain li { margin-bottom: 0.3rem; }
+
+        /* ---- hero placeholder ---- */
+        .hero-placeholder {
+            background: linear-gradient(145deg, #f3ede6, #ede5da);
+            border-radius: 1.5rem;
+            padding: 2.5rem 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+            border: 2px dashed #d4c9bc;
+            color: #4a3d2e;
+        }
+        .hero-placeholder p {
+            font-weight: 500;
+            font-size: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .hero-placeholder small {
+            display: block;
+            margin-top: 0.4rem;
+            color: #7a6a58;
+        }
+
+        /* ---- footer nav ---- */
+        .footer-nav {
+            margin-top: 3rem; display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; border-top: 1px solid #ddd8d0; padding-top: 2rem;
+            font-size: 0.9rem; color: #5d5d5d;
+        }
+        .footer-nav a { color: #b56a2a; text-decoration: none; font-weight: 500; }
+        .footer-nav a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="nav-wrap">
+    <nav class="subpage-nav">
+        <a href="../../../index.html">🏠 Home</a>
+        <a href="../../../projects/active/active.html">⚡ Active</a>
+        <a href="../../../projects/recent/recent.html">🕓 Recent</a>
+        <a href="../../../projects/former/former.html">📁 Former</a>
+        <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+        <a href="../../../index.html#fragments" class="current">🧩 Fragments</a>
+        <a href="../../../index.html#gallery">🖼️ Gallery</a>
+    </nav>
+    <a class="back-link" href="makeblock_laser_revival.html">← Back to Reviving mLaser</a>
+</div>
+
+<div class="container">
+
+    <div class="eyebrow">Electronics · Firmware · Making</div>
+    <h1>GRBL Board Upgrade <span class="stage-badge">🔥 engraving + remote monitoring</span></h1>
+    <div class="subhead">Three sessions to get it engraving, then a fourth to make it actually nice: a rigid aluminum base, a proper enclosure for the Pi, an Inkscape extension, and a webcam stream that made "headless" stop meaning "blind."</div>
+
+    <div class="meta-grid">
+        <div class="meta-item"><span class="label">Status</span><div class="value">✅ Fully working, engraving &amp; monitored</div></div>
+        <div class="meta-item"><span class="label">Board</span><div class="value">GRBL 1.1f · ATMega2560</div></div>
+        <div class="meta-item"><span class="label">Sessions</span><div class="value">Sept 9 · 12 · 13 · finishing touches</div></div>
+        <div class="meta-item"><span class="label">Final calibration</span><div class="value">87.4 steps/mm</div></div>
+        <div class="meta-item"><span class="label">Workflow</span><div class="value">Inkscape (J Tech / custom script) → CNCjs, webcam-monitored</div></div>
+    </div>
+
+    <div class="hero-placeholder">
+        <p>🔥 A laser cutter dead since 2017, actually engraving again</p>
+        <small>ATMega2560 · GRBL 1.1f · CNCjs on a Pi 4 · SVG-to-G-code, homegrown</small>
+    </div>        
+
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px;background:var(--surface);">
+        <video controls muted playsinline style="width:100%;display:block;">
+            <source src="voice_trigger.m4v" type="video/mp4">
+            Your browser doesn't support embedded video — the recording shows the process in action.
+        </video>
+    </div>
+
+    <div class="badge-list">
+        <span class="badge">GRBL 1.1f</span>
+        <span class="badge">ATMega2560</span>
+        <span class="badge">A4988 drivers</span>
+        <span class="badge">CNCjs on Pi 4</span>
+        <span class="badge">Inkscape</span>
+        <span class="badge">J Tech Laser Tool</span>
+        <span class="badge">Custom svg_to_gcode.py</span>
+        <span class="badge">12V 2-pin laser module</span>
+        <span class="badge">mjpg-streamer</span>
+        <span class="badge">systemd</span>
+    </div>
+
+    <h2>Session 1 (Sept 9): wiring and the first freeze</h2>
+    <p>
+        The replacement board arrived — GRBL 1.1f on an ATMega2560, three A4988 stepper drivers, running off the existing 12V supply. Motors and endstops wired first; the laser itself deliberately left for later once the right connector was actually in hand.
+    </p>
+
+    <h3><span class="step-index">01</span>Motors &amp; endstops</h3>
+    <p>
+        Straightforward remapping — X and Y motor coil pairs onto the new board's A/B terminals, endstop signal and ground onto their matching pins. Nothing exotic yet.
+    </p>
+
+    <h3><span class="step-index">02</span>GRBL speaks a different dialect than Marlin</h3>
+    <p>
+        Two small but important differences from the old Marlin/mLaser stack: GRBL fires the laser with <span class="inline-code">M3</span>/<span class="inline-code">M5</span>, not Marlin's <span class="inline-code">M4</span> — and laser power is a <span class="inline-code">S0–1000</span> range, not Marlin's <span class="inline-code">P0–255</span>. Every G-code habit from the old machine needed a small mental remap.
+    </p>
+
+    <h3><span class="step-index">03</span>Automatic homing freezes the board — work around it</h3>
+    <p>
+        The standard <span class="inline-code">$H</span> homing cycle reliably hung the controller — an endstop-interrupt issue with this specific board, not a wiring fault. Rather than chase the root cause immediately, a manual homing procedure (jog toward the endstops with short relative moves, watch for both <span class="inline-code">Pn:XY</span> flags, then <span class="inline-code">G92 X0 Y0</span> to zero the origin) became the standing workaround for the rest of the project.
+    </p>
+
+    <div class="highlight-box">
+        ✅ Movement directions confirmed: X+ moves left, Y+ moves back, home is the front-right corner — both axes correct with zero direction-invert needed at this stage.
+    </div>
+
+    <h2>Session 2 (Sept 12): the laser actually fires</h2>
+
+    <h3><span class="step-index">04</span>Finding the real connector</h3>
+    <p>
+        The board turned out to be an <strong>Annoy Tools GRBL board</strong>, offering four different laser output options (12V 2-pin, 12V 3-pin, 12V 4-pin, 24V 3-pin). The Makeblock laser module needed the simple <strong>12V 2-pin</strong> white JST — once identified, wiring was trivial.
+    </p>
+
+    <h3><span class="step-index">05</span>A genuine "oh, that's how laser mode works" moment</h3>
+    <p>
+        With <span class="inline-code">$32=1</span> (laser mode) enabled, GRBL only fires the laser <em>while the machine is actually moving</em> — <span class="inline-code">G1 X.. Y.. F.. S..</span> moves and fires together; a stationary <span class="inline-code">M3</span> alone does nothing. Not a bug, just a genuinely different mental model from a simple on/off laser control.
+    </p>
+
+    <h3><span class="step-index">06</span>Two more wiring mistakes, both mechanical rather than logical</h3>
+    <p>
+        X and Y motor connectors had been swapped, and the X motor's direction wires needed a red/blue swap. Both fixed, both axes homing cleanly to the front-right corner.
+    </p>
+
+    <div class="highlight-box">
+        ✅ First confirmed laser engraving. The machine that sat dead since 2017 physically marked something again.
+    </div>
+
+    <h2>Session 3 (Sept 13): calibration and a real workflow</h2>
+
+    <h3><span class="step-index">07</span>Steps/mm, hunted down by iteration</h3>
+    <p>
+        A commanded 50×30mm rectangle first came out at 104×62mm — the inherited <span class="inline-code">177.8</span> steps/mm value from the old Marlin setup was nowhere close to correct for this board's drivers and pulley ratio. Measured, corrected, re-tested, repeated:
+    </p>
+
+    <div class="stats-big">
+        <div class="stat"><span class="number">177.8</span><div class="desc">inherited guess</div></div>
+        <div class="stat"><span class="number">85.5</span><div class="desc">first correction</div></div>
+        <div class="stat"><span class="number">89.1</span><div class="desc">second correction</div></div>
+        <div class="stat"><span class="number">87.4</span><div class="desc">final — perfect 50×30mm</div></div>
+        <div class="stat"><span class="number">1</span><div class="desc">week, start to finish</div></div>
+        <div class="stat"><span class="number">8</span><div class="desc">years the machine sat dead</div></div>
+    </div>
+
+    <h3><span class="step-index">08</span>A real SVG-to-engraving pipeline</h3>
+    <p>
+        Design in <strong>Inkscape</strong>, save as Plain SVG, convert with a small custom <span class="inline-code">svg_to_gcode.py</span> script, upload the result to <strong>CNCjs</strong> running on the Pi 4, hit Cycle Start. Laser power tuned by result: <span class="inline-code">150</span> engraves paper without cutting through; <span class="inline-code">400</span> cuts through thin paper cleanly.
+    </p>
+
+    <div class="quote-box">
+        "From Marlin 2016 to GRBL 2026 — one USB hub caused most of the problems!"
+        <div class="attribution">— session notes, September 9</div>
+    </div>
+
+    <h2>Session 4: the finishing touches</h2>
+
+    <h3><span class="step-index">09</span>Frame fixed to a real base</h3>
+    <p>
+        The frame's slight out-of-true wobble is gone — the whole machine is now mounted to a 5mm aluminum plate base. Genuine mechanical rigidity, not a workaround.
+    </p>
+
+    <h3><span class="step-index">10</span>The Pi 4 gets a proper home</h3>
+    <p>
+        Relocated onto the frame itself, right next to the GRBL board, inside a yellow 3D-printed housing sourced from Printables — which happens to match the machine's blue frame nicely. No more loose electronics hanging off the side.
+    </p>
+
+    <h3><span class="step-index">11</span>A proper Inkscape laser extension</h3>
+    <p>
+        Installed and tested the <strong>J Tech Photonics Laser Tool</strong> extension for Inkscape — a purpose-built plugin for exactly this workflow, working alongside the custom <span class="inline-code">svg_to_gcode.py</span> script from Session 3.
+    </p>
+
+    <h3><span class="step-index">12</span>The real hammer: streaming a webcam into CNCjs</h3>
+    <p>
+        <strong>The situation:</strong> a USB webcam (HD 720P, <span class="inline-code">/dev/video0</span>) on a headless Pi running CNCjs, needing to be viewed from a completely different machine's browser — direct browser camera access doesn't work here at all; what's actually needed is a real network video stream.
+    </p>
+    <p><strong>Solution: <a href="https://github.com/jacksonliam/mjpg-streamer" target="_blank">mjpg-streamer</a></strong></p>
+    <pre><code>sudo apt install -y cmake build-essential libjpeg-dev v4l-utils</code></pre>
+    <p>Identify the real camera device — USB webcams show up cleanly; ignore the Pi's internal <span class="inline-code">bcm2835-codec</span> ISP nodes, which aren't real cameras:</p>
+    <pre><code>v4l2-ctl --list-devices</code></pre>
+    <p>Manual test run first:</p>
+    <pre><code>export LD_LIBRARY_PATH=/usr/local/lib/mjpg-streamer
+mjpg_streamer -i "input_uvc.so -d /dev/video0" -o "output_http.so -w /usr/local/share/mjpg-streamer/www -p 8080"</code></pre>
+    <p>Made persistent with a systemd unit — <span class="inline-code">/etc/systemd/system/mjpg-streamer.service</span>:</p>
+    <pre><code>[Unit]
+Description=MJPG Streamer for webcam
+After=network.target
+
+[Service]
+Environment=LD_LIBRARY_PATH=/usr/local/lib/mjpg-streamer
+ExecStart=/usr/local/bin/mjpg_streamer -i "input_uvc.so -d /dev/video0" -o "output_http.so -w /usr/local/share/mjpg-streamer/www"
+Restart=on-failure
+RestartSec=5
+User=brain
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+    <pre><code>sudo systemctl daemon-reload
+sudo systemctl enable --now mjpg-streamer.service
+sudo systemctl status mjpg-streamer.service   # confirmed: active (running)</code></pre>
+
+    <div class="highlight-box">
+        ✅ Stream persists across reboots at <span class="inline-code">http://&lt;pi-ip&gt;:8080/?action=stream</span>. In CNCjs: Webcam widget → settings → URL/streaming mode → paste that URL. Remote job monitoring, actually working.
+    </div>
+
+    <p><strong>Troubleshooting notes, kept for next time:</strong></p>
+    <ul class="plain">
+        <li><span class="inline-code">input_uvc.so</span> only works with USB (UVC) cameras — CSI ribbon-cable camera modules need a <span class="inline-code">libcamera</span>-based approach instead</li>
+        <li>"Permission denied" on <span class="inline-code">/dev/video0</span> → add the user to the <span class="inline-code">video</span> group: <span class="inline-code">sudo usermod -aG video $USER</span></li>
+        <li>"Device busy" → check what else has it open: <span class="inline-code">sudo fuser /dev/video0</span></li>
+    </ul>
+
+    <h2>What was actually achieved</h2>
+    <ul class="plain">
+        <li>✅ Replacement carriage plates printed in PETG (own FreeCAD design)</li>
+        <li>✅ Loose motor connectors and belt tensioner orientation fixed</li>
+        <li>✅ Makeblock MegaPi (Marlin, 2016) replaced with a modern GRBL 1.1f board</li>
+        <li>✅ Motors, endstops, and laser wired and configured correctly</li>
+        <li>✅ Manual homing procedure working reliably</li>
+        <li>✅ Laser firing and engraving, power-tuned for paper</li>
+        <li>✅ CNCjs running headless on a Pi 4</li>
+        <li>✅ A real SVG → G-code → engrave workflow, via both a custom script and the J Tech Inkscape extension</li>
+        <li>✅ Frame mounted to a rigid 5mm aluminum base</li>
+        <li>✅ Pi 4 rehoused on-frame, next to the GRBL board, in a color-matched enclosure</li>
+        <li>✅ Live remote webcam monitoring via mjpg-streamer, integrated directly into CNCjs</li>
+    </ul>
+    
+    <div class="shot">
+        <span class="cam">
+            <img src="figs/MLaser.png" style="width:fit-content(90%); height:auto;" alt="The fully upgraded Makeblock laser engraving a test pattern" />
+        </span>
+    </div>
+    
+    <h2>Still on the list</h2>
+    <p>
+        One honest item left, and it's the one that actually matters for safety:
+    </p>
+    <ul class="plain">
+        <li>☐ A proper enclosure around the machine — mainly for safety around the open beam</li>
+    </ul>
+
+    <div class="quote-box">
+        From broken, brittle plastic and a protocol nobody else ever learned to speak, to a laser that fires exactly where it's told, calibrated to the tenth of a millimeter. Eight years dead, one week to bring back.
+        <div class="attribution">— September 2026</div>
+    </div>
+
+    <hr />
+
+    <div class="footer-nav">
+        <span>Electronics · firmware · see also <a href="makeblock_laser_revival.html">Reviving mLaser</a> and <a href="my_first_print.html">Belt Holders (3D Printing)</a></span>
+        <span><a href="#">⬆ back to top</a></span>
+    </div>
+
+</div>
+</body>
+</html>
