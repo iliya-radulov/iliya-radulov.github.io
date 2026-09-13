@@ -49,6 +49,26 @@
             h1 { font-size: 2.2rem; }
         }
 
+
+        .shot {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .shot img {
+            max-width: 90%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        :root {
+            --border: #eae5de;
+            --surface: #ffffff;
+        }
+
         /* ---- typography ---- */
         .eyebrow {
             font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em;
@@ -207,6 +227,12 @@
         <small>MegaPi board · Marlin 1.0.2+ · custom-patched acknowledgment string</small>
     </div>
 
+    <div class="shot">
+        <span class="cam">
+            <img src="figs/laser_on.png" style="width:fit-content(90%); height:auto;" alt="The fully upgraded Makeblock laser engraving a test pattern" />
+        </span>
+    </div>
+
     <div class="badge-list">
         <span class="badge">Marlin 1.0.2+</span>
         <span class="badge">Makeblock MegaPi</span>
@@ -314,6 +340,12 @@
     <p>
         The new board did arrive — the full wiring, GRBL configuration, a manual-homing workaround, a calibration hunt, and the machine's first real engraving are all in <a href="makeblock_grbl_upgrade.html">GRBL Board Upgrade</a>.
     </p>
+
+    <div class="shot">
+        <span class="cam">
+            <img src="figs/control.png" style="width:fit-content(90%); height:auto;" alt="The fully upgraded Makeblock laser engraving a test pattern" />
+        </span>
+    </div>
 
     <hr />
 
