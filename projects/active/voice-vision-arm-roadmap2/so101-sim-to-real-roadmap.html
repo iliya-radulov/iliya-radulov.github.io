@@ -1,0 +1,135 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SO-101 Sim-to-Real Integration Roadmap — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="roadmap-stage2.html">← Back to Roadmap Stage 2</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Interdisciplinary · Active · Living Document</div>
+    <h1>SO-101 Sim-to-Real Integration Roadmap</h1>
+    <p class="subtitle">Three parallel tracks, adopted after the camera fix closed out one investigation and MuJoCo opened another — sim runs alongside real recording, not before it</p>
+
+    <div class="abstract-box">
+      <strong>Status:</strong> active plan, adopted 22 September 2026, superseding a same-day first-pass draft.
+      Following the <a href="../robot-arm-pickplace/so101-camera-fix-rollout-report.html">camera-fix + lighting/position investigation</a> (closed the same day) and the earlier data-poisoning paper follow-up, the next stage is training <strong>SmolVLA</strong> — a real vision-language-action model — while standing up a <strong>MuJoCo</strong> simulation track on the ML Desktop, in parallel, without letting either block the other.
+      <div class="kw"><strong>Expect this to move:</strong> the user's roadmaps shift as reality disagrees with them — this document gets rewritten wholesale as it evolves, not patched incrementally.</div>
+    </div>
+
+    <h2>Where things stand (22 Sept, end of day)</h2>
+    <ul>
+      <li><strong>Real hardware (Pi 5 rig)</strong> — solid, a reliable data-collection instrument. Camera framing fixed, arm recalibrated, lighting sensitivity quantified in lux, object-difficulty vs. position-margin interaction understood. No longer an open question.</li>
+      <li><strong>ACT dataset</strong> — 96 episodes, single task ("pick up the object and place it in the target"), 8 positions × 4 orientations × 3 repetitions, trained and validated at 86.3% on trained positions. Reusable as SmolVLA's first task, not wasted effort.</li>
+      <li><strong>Simulation (MuJoCo)</strong> — confirmed working today on the ML Desktop, first time using the machine's compute in three weeks. First training run kicked off today, using only ~30% of GPU memory (plenty of headroom for the next run) — the render initially looked "too small to see anything," later clarified as just a small render, not a broken run. A second sim run and a second task are planned to start tomorrow.</li>
+    </ul>
+
+    <h2>Three compatibility gaps between sim and real, identified today</h2>
+    <ol>
+      <li><strong>Action space mismatch</strong> — sim uses normalized end-effector deltas <code>[dx, dy, dz, grasp]</code>; real recordings are joint-space actions. No translation layer exists yet.</li>
+      <li><strong>Resolution/camera mismatch</strong> — sim renders 128×128 from a fixed default view; real cameras are 640×480 (main) / 320×240 (gripper), front-facing.</li>
+      <li><strong>Task mismatch</strong> — sim ships one canned pick-cube task; SmolVLA needs genuinely varied language-conditioned tasks, not more positions of the same task.</li>
+    </ol>
+    <div class="abstract-box"><strong>Conclusion carried into this plan:</strong> sim is real and working, but it is not yet a shortcut to more SmolVLA training data. It's a parallel investment, not a dependency for starting real recording.</div>
+
+    <h2>Vocabulary — three integration strategies</h2>
+    <p>These name <em>how</em> sim and real eventually combine, once the three gaps above are closed. They are not the near-term plan — see the adopted tracks below for that.</p>
+    <ol>
+      <li><strong>Domain randomization</strong> — randomize sim rendering (textures, lighting, color, camera jitter) so a sim-trained policy doesn't overfit to sim's visual appearance. Fits naturally with the bgdiv (background-diversity) result already found on real hardware. Doesn't by itself solve the task/language-variety problem.</li>
+      <li><strong>Joint co-training on sim + real together</strong> — needs sim episodes schema-compatible with real LeRobot episodes (same feature schema, comparable action/state spaces). The most format-engineering-heavy option; mixing ratio is an open research question, not a known default.</li>
+      <li><strong>Sim-pretrain → real-finetune ("polish")</strong> — the voice-training analogy the user has direct prior experience with (Dimitar/Piper). Lowest new-tooling risk, mechanically similar to existing HF-checkpoint fine-tuning. Risk: catastrophic overfitting back to the small real set if the fine-tune isn't done carefully.</li>
+    </ol>
+
+    <h2>The adopted plan: three parallel tracks</h2>
+
+    <!-- TRACK A -->
+    <div class="phase-card progress">
+      <h2>Track A — Real Multi-Task Recording for SmolVLA <span class="badge-progress">◉ Starts Now, No Blockers</span></h2>
+      <p>Goal: give SmolVLA genuine language variety, which sim can't yet provide.</p>
+      <h3>Plan</h3>
+      <ul>
+        <li>✅ <strong>Task 1:</strong> reuse the existing 96-episode ACT dataset as-is — no re-recording.</li>
+        <li>☐ <strong>Task 2 (immediate next action):</strong> "push the object to the left" — no grasp/release, mechanically simple, fast to record, cheap language variety. Target ~20–30 episodes (3–4 positions × 2 orientations × 3–4 repetitions), deliberately smaller than the full 8×4×3 ACT grid.</li>
+        <li>☐ <strong>Task 3 (optional, decide after Task 2 is reviewed):</strong> "stack the object on top of another object" — needs a second object in frame.</li>
+      </ul>
+      <h3>This week's lessons, applied to every new batch</h3>
+      <ul>
+        <li>Standardize on the larger <strong>yellow</strong> sample — avoids the object-difficulty confound found in the <a href="../robot-arm-pickplace/so101-camera-fix-rollout-report.html">lux/position investigation</a>.</li>
+        <li>Fixed, known lighting condition, logged with the lux value used.</li>
+        <li>Streaming-encoding flags on every batch, no exceptions — forgotten once already, suspected contributor to a prior bad dataset.</li>
+        <li>Pre-flight discipline before pressing record: reconfirm ports, recalibrate against true center, confirm framing.</li>
+      </ul>
+    </div>
+
+    <div class="dep-arrow">⸻ ⬇ ⸻</div>
+
+    <!-- TRACK B -->
+    <div class="phase-card progress">
+      <h2>Track B — Simulation, Scoped Honestly <span class="badge-progress">◉ In Progress, No Deadline</span></h2>
+      <p>Given the three compatibility gaps above, sim's realistic near-term jobs are narrower and more honest than "generate training data":</p>
+      <ul>
+        <li>✅ <strong>Learn the training pipeline mechanics cheaply</strong> — first actual training loop against the sim env live on the ML Desktop today, ~30% GPU memory used, plenty of headroom for the next run.</li>
+        <li>☐ <strong>Prototype domain randomization</strong>, directly informed by the real lux data — randomize rendered brightness across the measured real range (~25–420 lux equivalent), so if sim data is ever used, it's already been forced to be robust to the variation known to matter.</li>
+        <li><strong>Explicitly NOT yet:</strong> merging sim and real episodes into one SmolVLA dataset. Premature until either (a) the sim env exposes a joint-space action mode, or (b) an EE-delta ↔ joint-space translation layer is built and validated.</li>
+      </ul>
+      <p style="color:var(--text-muted);font-size:0.9rem;">Runs whenever ML Desktop time is free between real-data training runs. No dependency relationship with Track A — they only eventually compete for the same GPU, which isn't a real constraint yet.</p>
+    </div>
+
+    <div class="dep-arrow">⸻ ⬇ ⸻</div>
+
+    <!-- TRACK C -->
+    <div class="phase-card planned">
+      <h2>Track C — SmolVLA Training <span class="badge-planned">☐ Blocked on Track A</span></h2>
+      <ul>
+        <li>Once Task 1 (existing) + Task 2 (new) real datasets exist: a <strong>quick validation run first</strong> — small dataset, short training run, sanity-check the loss curve and a few rollout episodes, same discipline as the ACT work.</li>
+        <li>Only add Task 3 (stacking) and scale up episode counts for tasks that show real signal after the quick run.</li>
+        <li>Blocks on Track A producing at least 2 tasks' worth of data.</li>
+      </ul>
+    </div>
+
+    <h2>Sequencing summary</h2>
+    <table>
+      <tr><th>Track</th><th>What</th><th>Blocks on</th><th>Runs when</th></tr>
+      <tr><td>A — Real recording</td><td>Task 2 (push-left), then maybe Task 3 (stack)</td><td>Nothing</td><td>Whenever the rig is free</td></tr>
+      <tr><td>B — Simulation</td><td>Pipeline learning, domain randomization prototyping</td><td>Nothing</td><td>Whenever ML Desktop is free between real-data work</td></tr>
+      <tr><td>C — SmolVLA training</td><td>Quick run on Task 1+2, then scale</td><td>Track A producing ≥2 tasks</td><td>After first new batch is recorded</td></tr>
+    </table>
+    <p>A and B run genuinely in parallel — they don't compete for the same resource (Pi 5 rig vs. ML Desktop GPU) except both eventually want ML Desktop GPU time, which isn't a real constraint yet.</p>
+
+    <h2>Explicitly open / deliberately deferred</h2>
+    <ul>
+      <li>Whether/how to build an action-space translation layer (EE-delta ↔ joint-space), if sim-real merging becomes worth pursuing later.</li>
+      <li>Whether the sim env supports a larger render resolution or a custom camera pose closer to the real front-facing setup.</li>
+      <li>Standardizing fully on the yellow object across all future recording (tentative, not locked in project-wide yet).</li>
+      <li>Occasional Pi 5 CPU-inference slowdown during rollout — separate from an earlier thermal/load check that resolved as non-thermal; this one still undiagnosed (<code>vcgencmd measure_temp</code>, <code>htop</code> during a stall — not yet run).</li>
+      <li>Real:sim episode ratio, once merging is eventually attempted.</li>
+      <li>Whether this becomes its own paper ("Paper C") or folds into an expanded Paper B — left open per the "white paper marks intent, not a fixed path" framing.</li>
+      <li>The red-sample position-4 "blind spot" anomaly from the camera-fix investigation — investigated, not resolved, and knowingly deprioritized in favor of this roadmap.</li>
+    </ul>
+
+    <div class="last-updated">
+      Adopted: 22 September 2026 · Last updated: 22 September 2026
+    </div>
+
+  </div>
+  <script data-goatcounter="https://iliya-radulov.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+
+</html>

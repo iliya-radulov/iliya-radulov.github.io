@@ -79,10 +79,24 @@
         <li>✅ <strong>Record → transfer → train pipeline proven end to end on the new hardware</strong> — first Pi-5-hosted
           dataset (28 episodes) recorded, transferred to the ML Desktop, GPU confirmed genuinely functional. Full setup,
           storage policy, and open questions: <a href="../robot-arm-pickplace/ml-desktop-lerobot-setup.html">ML Desktop: LeRobot Setup &amp; First Pi 5 Dataset</a>.</li>
-        <li>☐ <strong>Immediate next step:</strong> run ACT training on the validation dataset to confirm the full pipeline, before moving to genuine SmolVLA multi-task data planning</li>
-        <li>☐ <strong>The real next step after that: design and record a genuinely multi-task dataset.</strong> Current data is
-          single-task throughout (pick-and-place only) — language conditioning is meaningless without task variety to
-          actually condition on. Deliberately deferred to its own planning session, not decided in passing.</li>
+        <li>✅ <strong>Camera-framing bug found and fixed</strong> — the prior 120-episode "dense" dataset's total rollout
+          failure traced to the operator's own hand being visible in-frame under the old high overhead mount. New
+          front-facing mount installed, 96-episode dataset re-recorded and re-trained. Full report: <a
+            href="../robot-arm-pickplace/so101-camera-fix-rollout-report.html">Camera Fix, Recording &amp; Quantified Rollout Testing</a>.</li>
+        <li>✅ <strong>ACT rollout quantified at real sample sizes:</strong> 86.3% (69/80) on the trained 8-position grid,
+          53.6% (30/56) on genuinely novel positions. Lighting sensitivity now measured in actual lux, not just
+          observed — a ~400 lux glare threshold for light-colored samples, a separate low-contrast localization
+          failure for dark ones. One sharp, reproducible anomaly (a near-total "blind spot" for one sample at one
+          position) was investigated and knowingly closed, unresolved, in favor of the roadmap below.</li>
+        <li>✅ <strong>Roadmap pivot, 22 Sept:</strong> rather than deciding the SmolVLA multi-task dataset schema in the
+          abstract, the plan is now three parallel tracks — real multi-task recording, a MuJoCo simulation track
+          (confirmed working the same day), and SmolVLA training once both feed it. Full plan: <a
+            href="so101-sim-to-real-roadmap.html">SO-101 Sim-to-Real Integration Roadmap</a>.</li>
+        <li>☐ <strong>Immediate next step (Track A):</strong> record a second task — "push the object to the left" — for
+          genuine language variety, reusing the existing pick-and-place dataset as Task 1</li>
+        <li>☐ <strong>In parallel (Track B):</strong> MuJoCo sim on the ML Desktop — pipeline learned, domain
+          randomization prototyping next; three concrete sim/real compatibility gaps identified (action space,
+          resolution, task variety), not yet closed</li>
         <li>☐ Validate whether the Pi 5 (4GB) can run SmolVLA inference at usable speed at all, or whether a
           Mac/desktop-tethered setup is needed long-term</li>
         <li>☐ Once trained: re-test the original text-triggered backdoor attack from the poisoning investigation —
@@ -147,22 +161,25 @@
         ">⏳ Pulse</span>
         <span style="font-weight: 400;">
           Three parallel threads, none blocking each other. <strong>LeKiwi</strong> waits on Seeed's replacement parts.
-          <strong>SmolVLA</strong> pipeline now proven end to end on the new Pi 5 + ML Desktop setup — next up is real ACT
-          training on the validation dataset, then a proper multi-task dataset design. <strong>Voice
-            polishing</strong> is ready to resume anytime, now genuinely easier with local GPU training available.
+          <strong>SmolVLA</strong> pivoted 22 Sept to a three-track plan: real multi-task recording (Task 2, "push left,"
+          starts now), a MuJoCo sim track (confirmed working the same day), and SmolVLA training once both feed it —
+          the camera-framing bug that caused a 0-success rollout is fixed and quantified at 86.3%/53.6% (trained/novel
+          positions). <strong>Voice polishing</strong> is ready to resume anytime, now genuinely easier with local GPU
+          training available.
         </span>
       </div>
       <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.6; display: flex; gap: 20px; flex-wrap: wrap;">
         <span>📦 LeKiwi: blocked on Seeed replacement parts</span>
-        <span>📷 New cameras: installed</span>
-        <span>🔧 SO-101 rig: migrated to Pi 5, camera-crash root cause fixed</span>
-        <span>🖥️ ML Desktop: record→transfer→train pipeline proven</span>
+        <span>📷 Camera framing bug: found and fixed</span>
+        <span>🎯 ACT rollout: 86.3% trained / 53.6% novel positions</span>
+        <span>🧪 MuJoCo sim: confirmed working on ML Desktop</span>
+        <span>🗺️ Roadmap: pivoted to 3 parallel tracks (real / sim / SmolVLA)</span>
         <span>🎙️ Dimitar round 3: ready to resume anytime</span>
       </div>
     </div>
 
     <div class="last-updated">
-      Started: 1 September 2026 · Last updated: 5 September 2026
+      Started: 1 September 2026 · Last updated: 22 September 2026
     </div>
 
   </div>

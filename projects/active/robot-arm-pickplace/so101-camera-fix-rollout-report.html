@@ -1,0 +1,237 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camera Fix, Recording &amp; Quantified Rollout Testing — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="ml-desktop-lerobot-setup.html">← Back to ML Desktop: LeRobot Setup</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Technical Deep-Dive · Closed Investigation</div>
+    <h1>Camera Fix, Recording &amp; Quantified Rollout Testing</h1>
+    <p class="subtitle">Tracing a "loses the plot" 0-success policy back to the operator's own hand in frame, fixing it, then quantifying exactly how well the fix worked — down to the lux</p>
+
+    <div class="abstract-box">
+      <strong>Result:</strong> the earlier dense-dataset policy's total rollout failure was a camera-framing bug, not a training-pipeline problem — fixed by moving to a front-facing mount. The corrected policy hits <strong>86.3% (69/80)</strong> on its trained position grid and <strong>53.6% (30/56)</strong> on genuinely novel positions. Lighting sensitivity is now quantified in actual lux, not just observed. One sharp, reproducible anomaly (a near-total "blind spot" for one sample at one position) was investigated, not resolved, and knowingly closed in favor of the sim/SmolVLA roadmap.
+      <div class="kw"><strong>Covers:</strong> 18–22 September 2026 · camera stand redesign → pre-flight validation → 3-batch recording (96 episodes) → merge → two training runs on the ML Desktop → rollout testing → quantified lux investigation → extended confirmation passes</div>
+    </div>
+
+    <h2>1. Starting problem: a policy that "loses the plot"</h2>
+    <p>The prior 120-episode "dense" dataset (diagnosed in an earlier session note) trained an ACT policy that scored <strong>zero successes</strong> on rollout, on both the Pi 5 and the Mac — a stall-and-restart failure mode rather than a clean miss. Reviewing training footage frame-by-frame found the actual cause: the high-mounted overhead camera (an official LeRobot/XLeRobot design, originally chosen for hypothetical cross-hardware compatibility with LeKiwi/XLeRobot) captured the <strong>operator's own hand and arm</strong> in frame during teleoperation demonstrations — a genuine train/inference distribution mismatch, since no hand exists during autonomous rollout. The same high mount also caused a physical arm/camera-stand collision in some poses, and the wrist camera's fisheye lens added further distortion on top.</p>
+    <div class="abstract-box"><strong>Decision that unblocked the fix:</strong> drop the cross-hardware-compatibility requirement for this camera mount entirely. LeKiwi and XLeRobot are planned to run SmolVLA (not ACT) and will get their own separate recording/validation pass on their own hardware — so the SO-101 rig's camera position never needed to match their mount design in the first place. This freed the mount to be optimized purely for this rig's own geometry.</div>
+
+    <h2>2. Camera stand — resolution</h2>
+    <p>A CAD detour into FreeCAD explored a custom-designed stand before concluding a purpose-built one wasn't worth the time given a working off-the-shelf option existed. Settled on a freestanding 3-leg stand (Printables model 648198) rather than a printer-frame-specific clip mount, since this rig isn't printer-frame-mounted. Front-facing vs. side-facing positions were compared via test stills — front-facing won on clean full-frame workspace coverage with minimal clutter. The wrist camera's fisheye lens was also swapped for a non-fisheye one during the pre-flight pass below.</p>
+
+    <h2>3. Pre-flight validation</h2>
+    <p>Before any new recording, a full reconfirmation pass was run rather than trusting the last-known configuration — ports, camera indices, and calibration are all known to drift between sessions on this rig.</p>
+    <ul>
+      <li><strong>Ports and cameras</strong> reconfirmed fresh via <code>lerobot-find-port</code> and device listing, not assumed from the Pi 5 migration doc.</li>
+      <li><strong>Both arms recalibrated against a true-center reference</strong> (gripper parallel to table), a distinction made deliberately after arbitrary mid-swing calibrations had caused subtle offset problems before. Follower <code>wrist_flex</code> and leader <code>elbow_flex</code> were specifically checked and corrected against true-center offset.</li>
+      <li><strong>Port-swap safety incident:</strong> follower and leader ports were briefly reversed during a teleoperation test, causing erratic movement. Power was cut immediately; the arm was inspected and found undamaged; the corrected mapping then ran clean.</li>
+      <li><strong>Collision check</strong> confirmed clear with the new front-facing mount, unlike the old high position.</li>
+      <li><strong>Framing check</strong> confirmed the operator's hand was no longer visible in-frame, and the new wrist lens gave an undistorted close-up.</li>
+    </ul>
+    <p style="color:var(--text-muted);font-size:0.9rem;"><em>Parked, not blocking:</em> the <code>spd-say</code>/speech-dispatcher audio-cue setup for episode boundaries remains unresolved (chased through locale, HDMI routing, and synthesis-engine config in an earlier session). Recording proceeds fine on terminal text output alone.</p>
+
+    <h2>4. Recording — three batches</h2>
+    <p>Recorded in three separate batches, using the corrected camera setup and, this time, the streaming-encoding flags that had earlier fixed a <code>BrokenProcessPool</code> crash:</p>
+    <pre><code>--dataset.streaming_encoding=true
+--dataset.encoder_threads=2
+--dataset.num_image_writer_processes=0
+--dataset.num_image_writer_threads_per_camera=2</code></pre>
+    <table>
+      <tr><th>Batch</th><th>Repo ID</th><th>Episodes</th><th>Notes</th></tr>
+      <tr><td>1</td><td><code>so101_pi5_act_v3_framefix</code></td><td>32</td><td>Clean</td></tr>
+      <tr><td>2</td><td><code>so101_pi5_act_v3_batch2</code></td><td>31 (of 32)</td><td>Teardown crash lost the last episode</td></tr>
+      <tr><td>3</td><td><code>so101_pi5_act_v3_batch3</code></td><td>33</td><td>One extra episode recorded to compensate</td></tr>
+    </table>
+    <p><strong>Batch 2 teardown crash:</strong> a <code>TimeoutError: OpenCVCamera(/dev/video2) latest frame is too old: 1052.1 ms</code> occurred during video-encoder finalization, <em>after</em> the full 32-episode cadence summary had already printed. Confirmed as a shutdown/finalization resource-contention crash, not mid-recording data loss — episodes 0–30 (31 of 32) were intact, only the final episode was lost. Rather than risk a <code>--resume=true</code> for one episode, the simpler fix was recording one extra episode in batch 3.</p>
+    <p>Grid: <strong>8 positions × 4 orientations × 3 repetitions = 96 episodes</strong>, matching 32 + 31 + 33 = 96 exactly.</p>
+
+    <h3>Merge</h3>
+    <p>Merged with the same <code>LeRobotDataset.create()</code> / <code>add_frame()</code> / <code>save_episode()</code> pattern used for the earlier bgdiv and visual-trigger-backdoor merges. Three bugs in the draft merge script were caught and fixed: batch 1 missing from <code>BASE_REPO_IDS</code>, the wrong features schema (policy-schema format instead of the dataset-metadata format <code>LeRobotDataset.create()</code> actually needs — the same class of bug hit once before in the bgdiv merge), and a stale task string (<code>"...box"</code> instead of the actually-recorded <code>"...target"</code>).</p>
+    <p><strong>Result:</strong> 96 episodes, 56,856 frames — verified against the batch sum (18,956 + 18,355 + 19,545 = 56,856, exact match).</p>
+
+    <h2>5. Training — two runs on the ML Desktop</h2>
+    <table>
+      <tr><th>Run</th><th>Dataset</th><th>Steps</th><th>Wall time</th><th>Final loss</th></tr>
+      <tr><td>Quick validation</td><td>32-episode batch 1 only</td><td>20,000</td><td>40m 27s</td><td>~0.128</td></tr>
+      <tr><td>Full run</td><td>96-episode merged dataset</td><td>50,000</td><td>1h 40m 52s</td><td>~0.112–0.116</td></tr>
+    </table>
+    <p>Both runs on the RTX 5060 Ti — roughly 8× faster than Mac MPS for this workload (~8.3 steps/sec vs. ~1 step/sec previously observed). The quick 32-episode run served as a fast sanity check on the new camera setup before committing to the full training time. Both completed cleanly with no crashes — a clean contrast with the earlier dense-dataset run, which had trained without error yet produced a policy with zero rollout successes, confirming the camera fix (not the training pipeline) was the actual problem all along.</p>
+
+    <h2>6. Rollout testing — the two headline findings</h2>
+    <p style="color:var(--text-muted);font-size:0.9rem;"><em>Session-start hiccup: the Pi 5 briefly dropped off the network and needed its WiFi password re-entered locally — back up at the same address, <code>192.168.2.110</code>, within ~30 minutes.</em></p>
+
+    <h3>Finding 1 — lighting mismatch</h3>
+    <p>Rollout under the room's default lighting produced poor results across the board; testing improved dramatically once the room light was matched to the actual recording-time condition. This reconfirms the original background-diversity experiment's lighting/glare finding as a <strong>general, recurring property of this rig</strong>, not a one-off — any future rollout session should deliberately match recording-time lighting before judging policy quality.</p>
+
+    <h3>Finding 2 — object generalization vs. positional grasp-margin</h3>
+    <p>Testing across three physical objects at the 8 trained positions initially looked confusing until separated into two independent variables:</p>
+    <ul>
+      <li><strong>The object's own physical difficulty</strong> — a small (~3×2.5cm), slippery, rounded clay sample was hard to grasp reliably regardless of positional accuracy. A larger, less-slippery sample grasped far more reliably.</li>
+      <li><strong>Whether a position has "margin"</strong> to absorb object-shape variation — the policy generalizes across object identity well at positions where the trained grasp already has comfortable margin, and degrades exactly at positions already near its own precision ceiling, even for the trained object.</li>
+    </ul>
+    <p>A mid-session concern that some tested positions might be novel (unseen during training) was checked and ruled out — all 8 were confirmed part of the actual training grid. So there is no evidence of a spatial-generalization failure in this specific finding; it's an object/position-margin interaction.</p>
+
+    <h2>7. Quantifying the lighting effect: reflected lux by sample</h2>
+    <p>Measured with a phone light-meter app (back-camera variant, chosen because it lets the sample be visually framed and confirmed before reading), each sample filled the measurement area so only its own reflected light was captured, at a constant camera-to-sample distance.</p>
+    <table>
+      <tr><th>Sample color</th><th>No added light</th><th>+1 light source</th><th>+2 light sources</th></tr>
+      <tr><td>Black</td><td>25–30</td><td>100–110</td><td>140–150</td></tr>
+      <tr><td>Blue</td><td>40–45</td><td>120–140</td><td>200–220</td></tr>
+      <tr><td>Red</td><td>45–50</td><td>130–150</td><td>210–230</td></tr>
+      <tr><td>Gray</td><td>55–60</td><td>160–170</td><td>270–290</td></tr>
+      <tr><td>Yellow</td><td>80–90</td><td>180–200</td><td>310–320</td></tr>
+      <tr><td>White</td><td>100–110</td><td>240–260</td><td>340–380</td></tr>
+    </table>
+    <p><strong>Position dependence, discovered mid-measurement:</strong> the table above was measured near position 5 — but reflected lux also depends strongly on <em>table position</em>, since the two LED sources sit physically closer to positions 5–8. At those positions, white's reflected lux rises further, to <strong>400–420</strong>, versus its 340–380 baseline. A separate retest at position 3 (chosen as roughly equidistant from both lights, for a fairer cross-sample comparison) put black at only 70 lux there — resolving what first looked like a measurement discrepancy against the general table's 140–150 reading; it was two different positions, not an error.</p>
+
+    <h3>Two distinct lighting failure modes, from direct observation — not the same story with a sign flip</h3>
+    <ul>
+      <li><strong>Black — a localization failure.</strong> The arm failed to reliably find the sample at all, even initial positioning — a genuine low-contrast perception problem, not an imprecision issue.</li>
+      <li><strong>White — a near-miss/precision failure under glare.</strong> Above roughly <strong>400 lux</strong> (positions 5–8), the arm localizes and reaches the right area but consistently misses narrowly, grasping just beside the sample — glare distorting the camera's read of its exact edges. Below ~400 lux, white behaves like any other sample: this is a threshold, not a smooth degradation.</li>
+    </ul>
+    <p><strong>Shape surfaced as a third, independent confound:</strong> egg-like samples (blue, gray) both scored 1/2 at moderate, unremarkable lux — more likely a grip-difficulty issue than a lighting one. The thick-disk red sample scored 2/2 at similarly moderate lux, better than expected — reframing some of the apparent color/lux effect as partly a shape effect for the mid-range samples, while lux still cleanly explains the black and white extremes.</p>
+
+    <h2>8. Extended confirmation — trained positions, 10 trials each (yellow)</h2>
+    <p>Yellow — the trained-on object, and the sample left standing after black (localization failure) and white (glare failure) were ruled out — was run 10 trials per trained position, up from the initial ~4-trial pass.</p>
+    <table>
+      <tr><th>Position</th><th>Success / 10</th></tr>
+      <tr><td>1</td><td>7</td></tr>
+      <tr><td>2</td><td>10</td></tr>
+      <tr><td>3</td><td>10</td></tr>
+      <tr><td>4</td><td>8</td></tr>
+      <tr><td>5</td><td>8</td></tr>
+      <tr><td>6</td><td>8</td></tr>
+      <tr><td>7</td><td>9</td></tr>
+      <tr><td>8</td><td>9</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>69 / 80 (86.3%)</strong></td></tr>
+    </table>
+    <p>No position collapses to near-zero; the weakest (position 1) still clears 70%. This is a substantially stronger, more statistically reliable confirmation than the initial pass, and confirms the camera fix + lighting correction together produce a genuinely solid policy across the full trained grid.</p>
+
+    <h2>9. Spatial generalization — untrained (novel) positions</h2>
+    <h3>9a. First pass (1 trial/point, yellow)</h3>
+    <table>
+      <tr><th>Coordinates</th><th>Result</th></tr>
+      <tr><td>(5, 18)</td><td>Success</td></tr>
+      <tr><td>(11, 17)</td><td>Fail</td></tr>
+      <tr><td>(12, 7)</td><td>Success</td></tr>
+      <tr><td>(16, 10)</td><td>Fail</td></tr>
+      <tr><td>(21, 13)</td><td>Success</td></tr>
+      <tr><td>(30, 15)</td><td>Fail</td></tr>
+      <tr><td>(33, 13)</td><td>Success</td></tr>
+      <tr><td>(35, 20)</td><td>Fail</td></tr>
+    </table>
+    <p>4/8 (50%) — flagged at the time as too small a sample to trust.</p>
+
+    <h3>9b. Confirmation pass (7 trials/point, yellow)</h3>
+    <table>
+      <tr><th>Coordinates</th><th>Success / 7</th><th>1-trial result (9a)</th></tr>
+      <tr><td>(5, 18)</td><td>4/7</td><td>Success</td></tr>
+      <tr><td>(11, 17)</td><td>6/7</td><td>Fail</td></tr>
+      <tr><td>(12, 7)</td><td>5/7</td><td>Success</td></tr>
+      <tr><td>(16, 10)</td><td>5/7</td><td>Fail</td></tr>
+      <tr><td>(21, 13)</td><td>2/7</td><td>Success</td></tr>
+      <tr><td>(30, 15)</td><td>4/7</td><td>Fail</td></tr>
+      <tr><td>(33, 13)</td><td>3/7</td><td>Success</td></tr>
+      <tr><td>(35, 20)</td><td>1/7</td><td>Fail</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>30 / 56 (53.6%)</strong></td><td>4/8 (50%)</td></tr>
+    </table>
+    <p>The aggregate rate is reassuringly consistent between passes (50% vs. 53.6%), even though several individual points flipped: (11,17) and (16,10) went fail→mostly-succeed, (21,13) went succeed→mostly-fail — a clean demonstration of why the single-trial pass was explicitly labeled preliminary. <strong>(35, 20)</strong> stands out as the weakest point (1/7, 14%), consistent across both passes — the first appearance, with the standard yellow sample, of the same "not seen, unresponsive to added light" signature later found with red at trained position 4 (§10).</p>
+    <p><strong>Qualitative "hunting" behavior</strong> observed at novel positions — the arm visibly tracking toward the sample, retrying on failure rather than returning to a default pose — is attributed on review to a mechanical consequence of the camera reposition itself: under the old overhead mount, the arm's own body frequently occluded the sample during approach; under the new front-facing camera, the sample stays continuously visible, which is what actually enables the retry behavior. A cleaner, more mechanistic explanation than "emergent closed-loop tracking."</p>
+
+    <h3>9c. Red-sample novel-position pass (5 trials/point) — completes a 2×2 design</h3>
+    <table>
+      <tr><th>Coordinates</th><th>Success / 5 (red)</th></tr>
+      <tr><td>(5, 18)</td><td>0/5</td></tr>
+      <tr><td>(11, 17)</td><td>0/5</td></tr>
+      <tr><td>(12, 7)</td><td>0/5</td></tr>
+      <tr><td>(16, 10)</td><td>4/5</td></tr>
+      <tr><td>(21, 13)</td><td>1/5</td></tr>
+      <tr><td>(30, 15)</td><td>0/5</td></tr>
+      <tr><td>(33, 13)</td><td>1/5</td></tr>
+      <tr><td>(35, 20)</td><td>1/5</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>7 / 40 (17.5%)</strong></td></tr>
+    </table>
+
+    <div class="abstract-box">
+      <strong>The full 2×2 design:</strong>
+      <table style="margin-top:12px;">
+        <tr><th></th><th>Trained positions</th><th>Novel positions</th></tr>
+        <tr><td><strong>Yellow (trained sample)</strong></td><td>86.3% (69/80)</td><td>53.6% (30/56)</td></tr>
+        <tr><td><strong>Red (untrained sample)</strong></td><td>58.75% (47/80)</td><td>17.5% (7/40)</td></tr>
+      </table>
+      <p style="margin-top:10px;margin-bottom:0;">Matches the predicted ordering: yellow-trained best, red-novel worst (stacking both disadvantages), with the two single-disadvantage cells (yellow-novel, red-trained) landing close together (53.6% vs. 58.75%) — plausible, since each carries one but not both sources of difficulty.</p>
+    </div>
+
+    <p><strong>(16, 10) is the most surprising single data point in the whole investigation:</strong> 4/5 (80%) for red — dramatically higher than every neighboring red result, including trained position 4 just ~2cm away, which showed near-total non-detection (§10). Directly repeated and confirmed: the sample is essentially invisible to the policy at position 4 but reliably detected a couple of centimeters away. A sharp, small-scale spatial discontinuity, not a gradual gradient.</p>
+    <p>A second, independent hypothesis raised for red's broader novel-position failures (explicitly flagged as a feeling, not a confirmed measurement): the gripper may be closing a little too high and too early — a grasp height/timing problem distinct from the "not seen at all" story that applies to position 4 and (35,20).</p>
+
+    <h2>10. Red sample — full 10-trial run at trained positions, and the position-4 anomaly</h2>
+    <p>Following up on red's promising 2/2 spot-check, a full 10-trials-per-position run was done across all 8 trained positions. <strong>Caveat:</strong> the policy was trained on yellow only, never red — some overall drop is expected on that basis alone; what's notable is the <em>shape</em> of the pattern, not just the overall rate.</p>
+    <p style="color:var(--text-muted);font-size:0.9rem;"><em>Testing began under direct morning sunlight, producing unquantified "awful" results — the window was closed and artificial lighting restored to match the calibrated setup before any numbers below were collected.</em></p>
+    <table>
+      <tr><th>Position</th><th>Red / 10</th><th>Yellow / 10 (§8, for comparison)</th></tr>
+      <tr><td>1</td><td>9</td><td>7</td></tr>
+      <tr><td>2</td><td>8</td><td>10</td></tr>
+      <tr><td>3</td><td>5</td><td>10</td></tr>
+      <tr><td>4</td><td><strong>1</strong></td><td>8</td></tr>
+      <tr><td>5</td><td>4</td><td>8</td></tr>
+      <tr><td>6</td><td>3</td><td>8</td></tr>
+      <tr><td>7</td><td>9</td><td>9</td></tr>
+      <tr><td>8</td><td>8</td><td>9</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>47 / 80 (58.75%)</strong></td><td>69 / 80 (86.3%)</td></tr>
+    </table>
+    <p><strong>The pattern is essentially inverted relative to yellow:</strong> yellow's weakest point was an edge case (position 1, 70%) with everything else 80–100%; red's four <em>outer</em> positions (1,2,7,8) are strong (80–90%) while the four <em>inner</em> positions (3–6) collapse, with position 4 nearly failing outright.</p>
+    <p><strong>Refined failure-mode split by region:</strong></p>
+    <ul>
+      <li><strong>Outer positions (1,2,7,8) — grasp/geometry failures.</strong> The camera localizes correctly; the arm simply struggles for a stable grip on the disk shape — a mechanical grasping problem, not perception.</li>
+      <li><strong>Inner positions (3–6) — localization/perception failures.</strong> The camera/policy doesn't correctly find the sample; position 4 specifically is total non-detection, 5/6 a milder imprecise-localization pattern.</li>
+    </ul>
+    <p>The corners are a shape problem, the middle is a vision problem — two independent issues that happen to overlap spatially into what first looked like one smooth pattern.</p>
+
+    <h3>Position-4 diagnostics, same day</h3>
+    <ul>
+      <li><strong>Light repositioning:</strong> moved a light source physically nearer position 4; reflected lux stayed in a similar range (~110–140) — weighs against a simple "not enough light" explanation.</li>
+      <li><strong>Repeated additional-light trials at positions 5/6:</strong> sometimes helped the very first attempt, no consistent improvement across repeats.</li>
+      <li><strong>Orientation flip at position 4</strong> (the disk has two distinguishable faces): inconclusive.</li>
+      <li><strong>Hardware/policy re-check:</strong> switching back to yellow reconfirmed normal performance at positions 4, 5, 6 — the issue is specific to red at these positions, not a session-wide rig problem.</li>
+      <li><strong>Adjacent-point comparison</strong> (§9c): moving red ~2cm from position 4 to (16,10) confirmed the effect is sharp and localized, not a smooth gradient.</li>
+    </ul>
+    <div class="abstract-box"><strong>Working theory, unconfirmed:</strong> not light placement or surface lux (both checked and ruled out), but the camera's own <strong>viewing geometry</strong> interacting with the disk's flat, reflective face — a specific camera-sample-light angular relationship present at position 4 (and possibly (35,20)) and not at adjacent points, without necessarily showing up as a large change in surface-reflected lux. The single most diagnostic remaining test — inspecting a raw camera frame with the sample at position 4 — was identified but not run.</div>
+
+    <h2>11. Closing decision</h2>
+    <p>With three obvious levers (light position, light intensity, sample orientation) each tried and none cleanly explaining the position-4 anomaly, and red not being the standardized sample going forward, this is closed as a <strong>documented, partially-unresolved anomaly</strong> rather than a solved question — an explicit user decision. Retraining to specifically fix weak positions was considered and declined: not worth the time relative to the sim/SmolVLA roadmap that follows this investigation.</p>
+
+    <h2>Summary</h2>
+    <ul>
+      <li>The dense-dataset 0-success failure was a camera-framing bug (operator's hand in-frame), not a training-pipeline issue — confirmed fixed.</li>
+      <li>Lighting sensitivity is now quantified: black fails via low-contrast localization, white fails via glare/precision above a ~400 lux threshold, and both are properties of this rig generally, not one experiment's artifact.</li>
+      <li>Shape is an independent third confound — egg-like samples underperform regardless of lighting.</li>
+      <li>Yellow is confirmed as the standard sample: 86.3% (80 trials) on trained positions, 53.6% (56 trials) on novel ones.</li>
+      <li>The full 2×2 sample×position design behaves as predicted — the two single-disadvantage cells land close together between the best and worst cases.</li>
+      <li>One sharp, reproducible "blind spot" (red at trained position 4, echoed by yellow at (35,20)) remains open, investigated but not solved, and knowingly deprioritized.</li>
+      <li>"Hunting" behavior at novel positions is a mechanical consequence of removing camera occlusion, not emergent tracking.</li>
+    </ul>
+
+    <h2>What's next</h2>
+    <p>The planned next step is installing <strong>MuJoCo</strong> on the ML Desktop, moving from pure real-hardware ACT training toward a parallel simulation track and SmolVLA. Full plan: <a href="../voice-vision-arm-roadmap2/so101-sim-to-real-roadmap.html">SO-101 Sim-to-Real Integration Roadmap</a>.</p>
+  </div>
+  <script data-goatcounter="https://iliya-radulov.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
