@@ -97,8 +97,13 @@
         <li>☐ <strong>In parallel (Track B):</strong> MuJoCo sim on the ML Desktop — pipeline learned, domain
           randomization prototyping next; three concrete sim/real compatibility gaps identified (action space,
           resolution, task variety), not yet closed</li>
-        <li>☐ Validate whether the Pi 5 (4GB) can run SmolVLA inference at usable speed at all, or whether a
-          Mac/desktop-tethered setup is needed long-term</li>
+        <li>✅ <strong>Pi 5 SmolVLA inference-speed question resolved — not by making the Pi faster, but by moving
+          inference off it entirely:</strong> on-Pi CPU inference measured 0.55 Hz (54× too slow, confirmed
+          compute-bound). A surgical one-line patch to LeRobot's rollout engine now routes the model's forward pass
+          over the LAN to the ML Desktop's GPU on request, taking cadence to 3.02 Hz and worst-case action latency
+          from 97.4s to 1.16s — first confirmed correct grasp-and-place through the full remote-inference pipeline.
+          One precisely-identified bottleneck (uncompressed image transfer) remains, with a known fix queued. Full
+          write-up: <a href="smolvla-remote-inference.html">SmolVLA Remote Inference: From 0.55 Hz to 3 Hz</a>.</li>
         <li>☐ Once trained: re-test the original text-triggered backdoor attack from the poisoning investigation —
           SmolVLA is the architecture it was actually designed for, unlike the earlier mismatched ACT test</li>
       </ul>
@@ -164,7 +169,10 @@
           <strong>SmolVLA</strong> pivoted 22 Sept to a three-track plan: real multi-task recording (Task 2, "push left,"
           starts now), a MuJoCo sim track (confirmed working the same day), and SmolVLA training once both feed it —
           the camera-framing bug that caused a 0-success rollout is fixed and quantified at 86.3%/53.6% (trained/novel
-          positions). <strong>Voice polishing</strong> is ready to resume anytime, now genuinely easier with local GPU
+          positions). <strong>23 Sept:</strong> SmolVLA's on-Pi inference speed problem (0.55 Hz) fixed not by
+          speeding up the Pi but by moving inference off it — a one-line patch now routes the forward pass to the ML
+          Desktop's GPU over the LAN, 0.55 Hz → 3.02 Hz, with the first confirmed remote-inference grasp-and-place.
+          <strong>Voice polishing</strong> is ready to resume anytime, now genuinely easier with local GPU
           training available.
         </span>
       </div>
@@ -173,13 +181,14 @@
         <span>📷 Camera framing bug: found and fixed</span>
         <span>🎯 ACT rollout: 86.3% trained / 53.6% novel positions</span>
         <span>🧪 MuJoCo sim: confirmed working on ML Desktop</span>
+        <span>🌐 SmolVLA inference: offloaded to ML Desktop GPU, 0.55→3.02 Hz</span>
         <span>🗺️ Roadmap: pivoted to 3 parallel tracks (real / sim / SmolVLA)</span>
         <span>🎙️ Dimitar round 3: ready to resume anytime</span>
       </div>
     </div>
 
     <div class="last-updated">
-      Started: 1 September 2026 · Last updated: 22 September 2026
+      Started: 1 September 2026 · Last updated: 23 September 2026
     </div>
 
   </div>

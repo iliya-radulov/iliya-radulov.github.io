@@ -1,0 +1,149 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmolVLA Remote Inference: From 0.55 Hz to 3 Hz — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html" class="current">⚡ Active</a>
+    <a href="../../recent/recent.html">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="so101-sim-to-real-roadmap.html">← Back to the Sim-to-Real Roadmap</a>
+
+  <div class="article-body">
+    <div class="eyebrow">Maker · Technical Deep-Dive · Infrastructure</div>
+    <h1>SmolVLA Remote Inference: From 0.55 Hz to 3 Hz</h1>
+    <p class="subtitle">Mobility the other way — instead of putting wheels under the arm, the model's own compute learned to move around the house</p>
+
+    <div class="abstract-box">
+      <strong>Result:</strong> SmolVLA's forward pass moved off the Pi 5's CPU and onto the ML Desktop's GPU over the
+      home LAN, taking rollout cadence from <strong>0.55 Hz to 3.02 Hz</strong> (measured over 2,513 control-loop
+      ticks) and worst-case action latency from <strong>97.4s to 1.16s</strong> — with the first confirmed correct
+      grasp-and-place through the full remote-inference pipeline. One straightforward bottleneck (uncompressed image
+      transfer, 98.9% of per-tick work) is precisely identified and not yet fixed — the next session's clear next step.
+      <div class="kw"><strong>Date:</strong> 23 September 2026 · <strong>Status:</strong> working fix confirmed end-to-end, one optimization queued, session paused here by explicit decision</div>
+    </div>
+
+    <h2>Starting point</h2>
+    <p>SmolVLA training and a first Pi 5 rollout test (previous session) had measured on-Pi CPU inference at
+      <strong>0.55 Hz against a 30 Hz target</strong> — roughly 54× too slow, 1.83s mean / 97.4s worst-case latency
+      per action. Confirmed compute-bound, not memory-bound: the 4GB Pi loaded the 865MB / 450M-parameter checkpoint
+      without issue, and since every Pi 5 RAM variant shares the identical CPU, more RAM wouldn't have helped. The
+      task itself still completed despite the extreme slowness — the trained policy was sound, this was purely a
+      deployment-speed problem.</p>
+    <p>Goal for the day: get the model's forward pass off the Pi's CPU and onto the ML Desktop's GPU, without
+      touching training, recording, or LeKiwi's separate Pi.</p>
+
+    <h2>Attempt 1 — USB/IP full-device passthrough (abandoned, but genuinely useful)</h2>
+    <p><strong>Idea:</strong> instead of splitting the code, split the hardware connection. Use USB/IP so the ML
+      Desktop sees the Pi's USB-connected arm and cameras as if locally attached, and run the existing, unmodified
+      <code>lerobot-rollout</code> command on the Desktop instead of the Pi — zero reimplementation of LeRobot's
+      internal preprocessing pipeline.</p>
+
+    <h3>Validated before building anything</h3>
+    <ul>
+      <li><strong>LAN bandwidth</strong> (<code>iperf3</code>): 173 Mbit/s stable, zero retransmissions, Pi ↔ Desktop over WiFi.</li>
+      <li><strong>Camera format</strong> (<code>v4l2-ctl</code>): both cameras confirmed running MJPEG (compressed), not raw YUYV — real bandwidth need well under the measured headroom. Green light to proceed.</li>
+    </ul>
+
+    <h3>Setup</h3>
+    <p>Installed <code>usbip</code> on both machines, identified and mapped all relevant USB devices by busid (follower arm, main camera, gripper camera — one camera was mislabeled "Webcam Vitade AF" by <code>lsusb</code>'s generic vendor DB, correctly identified as an Innomaker unit via <code>v4l2-ctl --list-devices</code>), bound all three on the Pi, attached all three from the Desktop. All three succeeded, confirmed via <code>lsusb</code> and device listings on the Desktop.</p>
+
+    <h3>Result: cameras worked, the arm's motor bus did not</h3>
+    <p>Running the existing ACT rollout command (deliberately used instead of SmolVLA, to isolate variables — see below) against the USB/IP-attached devices: cameras connected fine, but the arm failed immediately on the very first low-level write to the motor bus:</p>
+    <pre><code>ConnectionError: Failed to write 'Homing_Offset' on id_=1 with '0' after 1 tries. There is no status packet!</code></pre>
+    <p>Consistent on retry and on a fresh first write — not a calibration-timing issue, but the basic serial read/write mechanism failing over the network hop.</p>
+    <div class="abstract-box"><strong>Diagnosis:</strong> the arm's CH340 USB-serial adapter uses a half-duplex handshake (write, then immediately expect a reply) that USB/IP's extra network hop doesn't reliably preserve — a known rough edge for USB tunneling tools generally. Cameras (bulk/isochronous-tolerant video) were unaffected by the identical network hop.</div>
+    <p><strong>Why ACT, not SmolVLA, for this test:</strong> a known-working policy (ACT, already at 86.3% in prior testing) meant a failure could only mean "the hardware connection doesn't work," not get tangled up with SmolVLA's separate, already-known CPU-speed issue. The USB/IP failure was in the hardware layer, below any policy — SmolVLA would have hit the identical error for the identical reason.</p>
+    <p>Cleanup: all three devices detached/unbound, Pi restored to its prior working state, the v1 <code>inference_server.py</code> and <code>iperf3</code> test server both stopped and retired.</p>
+    <p><strong>Value despite not shipping:</strong> confirmed LAN bandwidth and camera compression are fine for a network-based approach, conclusively ruled out "just forward all the hardware," and — reading LeRobot's actual rollout code to debug this attempt (<code>sync.py</code>, <code>SyncInferenceEngine</code>, the <code>rollout/strategies/</code> and <code>rollout/inference/</code> packages) is exactly what made Attempt 2 possible.</p>
+
+    <h2>Attempt 2 — Surgical single-line patch (working)</h2>
+    <h3>Design</h3>
+    <p>Code reading (triggered by debugging Attempt 1) found a clean interception point: <code>SyncInferenceEngine.get_action()</code> in <code>lerobot/src/lerobot/rollout/inference/sync.py</code>, specifically:</p>
+    <pre><code>action = self._policy.select_action(observation)</code></pre>
+    <p>At this point <code>observation</code> is already a fully preprocessed dict of torch tensors — camera images normalized, camera keys renamed, state normalized. A remote call could ship <code>observation</code> as-is (via <code>torch.save</code>/<code>torch.load</code> over HTTP) without reimplementing or guessing at any of LeRobot's own preprocessing logic — unlike Attempt 1's original custom server design, which would have needed to track LeRobot's fast-moving internals by hand.</p>
+
+    <h3>Two files</h3>
+    <ul>
+      <li><strong><code>remote_inference_server.py</code></strong> (ML Desktop): loads the trained checkpoint once (SmolVLA or ACT, via <code>--policy-type</code>), exposes <code>/select_action</code> over plain HTTP (FastAPI/uvicorn), calls <code>policy.select_action()</code> on whatever tensor dict it receives, returns the action the same way.</li>
+      <li><strong><code>patch_sync_for_remote_inference.py</code></strong> (Pi, run once): a small, idempotent, self-backing-up script that edits <code>sync.py</code> in place, wrapping the line above in an environment-variable check:
+        <pre><code>_remote_url = _os.environ.get("LEROBOT_REMOTE_INFERENCE_URL")
+if _remote_url:
+    action = _remote_select_action(observation, _remote_url)
+else:
+    action = self._policy.select_action(observation)</code></pre>
+        Local inference remains the default (env var unset); everything else in the rollout pipeline — camera capture, motor writes, calibration, pre/post-processing — is untouched. Designed to survive a future LeRobot update: re-running the patch script against a new <code>sync.py</code> either re-applies cleanly or says plainly that the target line moved, rather than silently doing nothing.</li>
+    </ul>
+
+    <h3>Deployment</h3>
+    <ul>
+      <li>Server started on the Desktop: <code>--policy-type smolvla --port 8766</code> (a different port from the retired v1 server's 8765)</li>
+      <li>Rollout run on the Pi with <code>LEROBOT_REMOTE_INFERENCE_URL=http://192.168.2.210:8766</code> prefixed onto the same SmolVLA rollout command used for the original 0.55 Hz baseline (<code>--rename_map</code> still required at rollout time, consistent with the original training/rollout gotcha)</li>
+    </ul>
+
+    <h2>Results</h2>
+    <p><strong>First live test:</strong> the arm actively searched and moved continuously — no multi-second freezes, unlike the CPU baseline — and completed a genuine grasp-and-place. The object was manually nudged slightly closer partway through to keep the session moving at the still-modest ~2–3 Hz rate, but the grasp, transport, and placement into the target were performed entirely by the policy once the object was in reasonable reach. Confirms pipeline <em>correctness</em>: preprocessing → remote call → postprocessing → action execution all functioning together.</p>
+
+    <h3>Full cadence run — exact numbers from the control loop's own summary</h3>
+    <pre><code>Cadence summary — whole run · target 30 Hz (33.3 ms budget per tick): 2513 ticks, 2512 judged
+  effective cadence: 3.02 Hz over 832.0 s measured
+  ticks over the 33.3 ms work budget: 2512/2512 (100.0%) — work mean 330.8 ms, worst 1157.0 ms
+  loop-body steps (share of measured work):
+    observe      mean   3.18 ms · worst   3.67 ms ·   1.0% of work · 2513 calls
+    process_obs  mean   0.02 ms · worst   0.10 ms ·   0.0% of work · 2513 calls
+    infer        mean 327.42 ms · worst 1153.39 ms ·  98.9% of work · 2513 calls
+    send         mean   0.20 ms · worst   0.58 ms ·   0.1% of work · 2513 calls
+    telemetry    mean   0.01 ms · worst   0.12 ms ·   0.0% of work · 2513 calls
+    query        mean   0.01 ms · worst   0.14 ms ·   0.0% of work · 2513 calls
+  pacing headroom: 0.0 ms slept per tick on average — loop is saturated</code></pre>
+
+    <table>
+      <tr><th>Metric</th><th>Before (local Pi CPU)</th><th>After (remote GPU)</th></tr>
+      <tr><td>Effective cadence</td><td>0.55 Hz</td><td><strong>3.02 Hz</strong> (2,513 ticks / 832s)</td></tr>
+      <tr><td>Worst-case single-action latency</td><td>97.4 s</td><td>1.16 s</td></tr>
+      <tr><td>Mean single-action latency</td><td>1.83 s</td><td>0.33 s</td></tr>
+      <tr><td>Pi CPU load during rollout</td><td>~100%</td><td>~5–6%</td></tr>
+      <tr><td>Pi temperature during rollout</td><td>60–68°C</td><td>~50°C</td></tr>
+      <tr><td>Task outcome</td><td>succeeded (slowly)</td><td><strong>succeeded</strong> — first confirmed correct grasp-and-place through the full remote-inference pipeline</td></tr>
+    </table>
+    <p>The Pi CPU/temperature numbers are an independent confirmation, not just a byproduct of the Hz measurement — they directly show the heavy computation left the Pi, matching the architecture's intent exactly: Pi as thin client for sensing and actuation, Desktop GPU doing the actual model math.</p>
+
+    <h2>Known remaining bottleneck — precisely quantified, not yet fixed</h2>
+    <p><code>infer</code> (this server's round trip) accounts for <strong>98.9%</strong> of all work time in the loop — every other step is under 1% individually. Root cause: the current server sends full-resolution, <strong>uncompressed float32 image tensors</strong> over the network every tick — a 640×480 + 320×240 float32 pair is roughly 4–5 MB per observation, which at the measured ~173 Mbit/s LAN speed accounts for roughly 200ms of pure transfer time per tick, closely matching the measured 327ms mean <code>infer</code> time.</p>
+    <div class="abstract-box">A well-understood, straightforward fix — compress/downcast images before sending, decompress server-side — flagged as the clear next step, not yet implemented. Should get materially closer to the 30 Hz target.</div>
+
+    <h2>Explicitly deferred to next session</h2>
+    <ol>
+      <li><strong>Image-compression optimization</strong> — the known lever to close most of the remaining gap to real-time.</li>
+      <li><strong>Decide the "default" path</strong> — currently requires manually setting <code>LEROBOT_REMOTE_INFERENCE_URL</code> and separately starting the server; worth wrapping into a single convenience script/alias once the design is finalized.</li>
+      <li><strong>Whether/how to reuse this pattern for LeKiwi</strong> — the same thin-client-Pi + GPU-inference-server architecture should apply directly once LeKiwi's own SmolVLA work starts, on its own dedicated Pi 5.</li>
+      <li><strong>Full rollout cadence confirmation with task-success tracking</strong> — today's run measured cadence precisely but wasn't set up to track grasp-success rate across many trials (in the spirit of the lux/rollout investigation's methodology); worth doing once the compression fix is in.</li>
+    </ol>
+
+    <h2>Summary</h2>
+    <ul>
+      <li>SmolVLA's on-Pi CPU inference (0.55 Hz) was confirmed compute-bound, not memory-bound, and not fixable by more RAM.</li>
+      <li>USB/IP full-device passthrough was tried, validated LAN bandwidth and camera compression, but failed on the arm's CH340 serial adapter — a known rough edge for USB tunneling over a network hop.</li>
+      <li>Reading LeRobot's own rollout internals during that debugging surfaced a single clean interception point — one line, already-preprocessed tensors — enabling a minimal, idempotent, self-backing-up patch instead of a hand-rolled reimplementation.</li>
+      <li>Remote GPU inference took cadence from 0.55 Hz to 3.02 Hz and worst-case latency from 97.4s to 1.16s, with the first confirmed correct grasp-and-place through the full pipeline.</li>
+      <li>The remaining gap to 30 Hz is isolated to one cause (uncompressed image transfer) with a known, unimplemented fix.</li>
+    </ul>
+  </div>
+  <script data-goatcounter="https://iliya-radulov.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+
+</html>
