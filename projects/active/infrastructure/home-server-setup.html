@@ -373,7 +373,7 @@ sudo systemctl start wol.service</code></pre>
     <h2 id="postgres">PostgreSQL Migration <span class="status-badge good"><i class="fa-solid fa-check"></i> Complete</span></h2>
     <p>PostgreSQL (alloy_lab DB) now runs in Docker on <em>this</em> server, not the Mac — migrated in one session, no data loss. All machines (Mac, <a href="new-desktop-setup.html">ML Desktop</a>) connect to one canonical DB here. No diverging copies, no data sitting on the Mac Desktop.</p>
     <div class="info-box success">
-      <span class="icon">🎯</span> Full migration record — every step, the dump/restore commands, the final architecture: <a href="../alloy-lab-database/database-migration-home-server.html">Database Migration: Alloy Lab Moves to the Home Server</a>.
+      <span class="icon">🎯</span> Full migration record — every step, the dump/restore commands, the final architecture: <a href="../alloy-lab-database/alloy_db_migration_home_server.html">Database Migration: Alloy Lab Moves to the Home Server</a>.
     </div>
     <div class="info-box warn">
       <span class="icon">⏳</span> <strong>Still open:</strong> raw data files (as opposed to the database itself) remain on the Mac Desktop for now — moving them to <code>storage1/datasets/alloy_lab/</code> and re-running <code>path_repair.py</code> is deferred to the data organization pass before Stage 3.
