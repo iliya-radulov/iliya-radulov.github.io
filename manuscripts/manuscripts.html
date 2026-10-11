@@ -1,0 +1,160 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manuscripts — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body class="subpage-body">
+  <nav class="subpage-nav">
+    <a href="../index.html">🏠 Home</a>
+    <a href="../projects/active/active.html">⚡ Active</a>
+    <a href="../projects/recent/recent.html">🕓 Recent</a>
+    <a href="../projects/former/former.html">📁 Former</a>
+    <a href="../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../index.html#fragments">🧩 Fragments</a>
+    <a href="../index.html#gallery" class="current">🖼️ Gallery</a>
+  </nav>
+  <a class="back-link" href="../index.html#gallery">← Back to Gallery</a>
+
+  <div class="section-head">
+    <div class="eyebrow">Gallery</div>
+    <h2>Manuscripts</h2>
+  </div>
+  <p class="subpage-intro">Manuscripts based on experimental work on various maker and codeing projects.
+    Sorted by topic. Click any card to get forwarded to the manuscript.</p>
+
+  <div class="tag-filter" id="filter-bar">
+    <span class="filter-tab active" data-filter="all" onclick="filterCards(this)">All</span>
+    <span class="filter-tab" data-filter="ai-ml" onclick="filterCards(this)">robotics</span>
+    <span class="filter-tab" data-filter="python" onclick="filterCards(this)">coding</span>
+    <span class="filter-tab" data-filter="infra" onclick="filterCards(this)">other</span>
+    <!-- <span class="filter-tab" data-filter="softwaredev" onclick="filterCards(this)">Software Development</span>
+    <span class="filter-tab" data-filter="design" onclick="filterCards(this)">Creative &amp; Design</span>
+    <span class="filter-tab" data-filter="business" onclick="filterCards(this)">Business &amp; Finance</span>
+    <span class="filter-tab" data-filter="softskills" onclick="filterCards(this)">Soft Skills</span> -->
+  </div>
+
+  <div class="gallery-grid" id="grid">
+
+    <div class="photo-card" data-category="python" onclick="openLb(this)">
+      <div class="thumb">
+        <img src="robotics/r1.png" alt="Robotics Fundamentals" />
+        <img src="robotics/r2.png" alt="Getting Started with Robotics" />
+        <img src="robotics/r3.png" alt="Basic Robotics Concepts" />
+        <img src="robotics/r4.png" alt="Advanced Robotics Techniques" />
+      </div>
+      <div class="caption">
+        <div class="place">robotics</div>
+        <div class="date">SO101, LeKiwi, XLeRobot</div>
+      </div>
+    </div>
+
+    <div class="photo-card" data-category="softwaredev" onclick="openLb(this)">
+      <div class="thumb">
+        <img src="coding/c1.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
+        Stage 1 - Composition Screening and Literature Cross-Referencing" />
+        <img src="coding/c2.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
+        Stage 2 - Validated Multi-Instrument Characterization Pipelines" />
+        <img src="coding/c3.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
+        Stage 3 - Retrieval-Augmented Literature Advice and CALPHAD Feasibility Screening" />
+      </div>
+      <div class="caption">
+        <div class="place">Coding</div>
+        <div class="date">My Database Project</div>
+      </div>
+    </div>
+
+    <div class="photo-card" data-category="design" onclick="openLb(this)">
+      <div class="thumb">
+        <img src="other/o1.png" alt="Adobe InDesign 2025 Essential Skills — Adobe" />
+      </div>
+      <div class="caption">
+        <div class="place">Other</div>
+        <div class="date">MLaser</div>
+      </div>
+    </div>
+
+
+  <!-- LIGHTBOX -->
+  <div id="lightbox">
+    <button id="lightbox-close" onclick="closeLb()">✕</button>
+    <button class="lb-nav" id="lb-prev" onclick="stepLb(-1)">‹</button>
+    <img id="lb-img" src="" alt="" />
+    <div id="lightbox-caption"></div>
+    <button class="lb-nav" id="lb-next" onclick="stepLb(1)">›</button>
+  </div>
+
+<script>
+  // ── FILTER ──
+  function filterCards(tab) {
+    document.querySelectorAll('#filter-bar .filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    document.querySelectorAll('#grid .photo-card').forEach(card => {
+      card.style.display = (filter === 'all' || card.dataset.category === filter) ? '' : 'none';
+    });
+  }
+
+  // ── LIGHTBOX ──
+  let cards = [], lbIndex = 0, currentImages = [], currentImageIndex = 0;
+
+  function visibleCards() {
+    return [...document.querySelectorAll('.photo-card')].filter(c => c.style.display !== 'none');
+  }
+
+  function openLb(card) {
+    const images = card.querySelectorAll('.thumb img');
+    if (!images || images.length === 0) return;
+    cards = visibleCards();
+    lbIndex = cards.indexOf(card);
+    currentImages = [...images];
+    currentImageIndex = 0;
+    showLb();
+  }
+
+  function showLb() {
+    if (!currentImages || currentImages.length === 0) return;
+    const img = currentImages[currentImageIndex];
+    const card = cards[lbIndex];
+    document.getElementById('lb-img').src = img.src;
+    document.getElementById('lb-img').alt = img.alt || '';
+    const altText = img.alt || 'Untitled';
+    const place = card.querySelector('.place').textContent;
+    let caption = altText;
+    if (place && place.trim() !== '') caption += ` — ${place}`;
+    caption += ` (${currentImageIndex + 1}/${currentImages.length})`;
+    document.getElementById('lightbox-caption').textContent = caption;
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function closeLb() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.getElementById('lb-img').src = '';
+    currentImages = [];
+    currentImageIndex = 0;
+  }
+
+  function stepLb(dir) {
+    if (!currentImages || currentImages.length === 0) return;
+    currentImageIndex = (currentImageIndex + dir + currentImages.length) % currentImages.length;
+    showLb();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.key === 'Escape') closeLb();
+    else if (e.key === 'ArrowRight') stepLb(1);
+    else if (e.key === 'ArrowLeft') stepLb(-1);
+  });
+
+  document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) closeLb();
+  });
+</script>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
