@@ -28,38 +28,39 @@
 
   <div class="tag-filter" id="filter-bar">
     <span class="filter-tab active" data-filter="all" onclick="filterCards(this)">All</span>
-    <span class="filter-tab" data-filter="ai-ml" onclick="filterCards(this)">robotics</span>
-    <span class="filter-tab" data-filter="python" onclick="filterCards(this)">coding</span>
-    <span class="filter-tab" data-filter="infra" onclick="filterCards(this)">other</span>
+    <span class="filter-tab" data-filter="robotics" onclick="filterCards(this)">robotics</span>
+    <span class="filter-tab" data-filter="coding" onclick="filterCards(this)">coding</span>
+    <span class="filter-tab" data-filter="other" onclick="filterCards(this)">other</span>
     <!-- <span class="filter-tab" data-filter="softwaredev" onclick="filterCards(this)">Software Development</span>
     <span class="filter-tab" data-filter="design" onclick="filterCards(this)">Creative &amp; Design</span>
     <span class="filter-tab" data-filter="business" onclick="filterCards(this)">Business &amp; Finance</span>
     <span class="filter-tab" data-filter="softskills" onclick="filterCards(this)">Soft Skills</span> -->
   </div>
 
-  <div class="gallery-grid" id="grid">
-
-    <div class="photo-card" data-category="python" onclick="openLb(this)">
-      <div class="thumb">
-        <img src="robotics/r1.png" alt="Robotics Fundamentals" />
-        <img src="robotics/r2.png" alt="Getting Started with Robotics" />
-        <img src="robotics/r3.png" alt="Basic Robotics Concepts" />
-        <img src="robotics/r4.png" alt="Advanced Robotics Techniques" />
-      </div>
-      <div class="caption">
-        <div class="place">robotics</div>
-        <div class="date">SO101, LeKiwi, XLeRobot</div>
-      </div>
+  <div class="gallery-grid" id="grid"><div class="photo-card" data-category="robotics" onclick="openLb(this)">
+    <div class="thumb">
+      <img src="robotics/r1.png"
+        alt="Field Notes from a Low-Cost Robot Learning Lab: Hardware Churn, Software Whiplash, and What Actually Went Wrong DOI: 10.5281/zenodo.23259697" />
+      <img src="robotics/r2.png"
+        alt="Distribution Mismatch, Lighting, and Background Generalization in a Low-Cost Imitation-Learning Pick-and-Place Policy DOI: 10.5281/zenodo.23212209." />
+      <img src="robotics/r3.png"
+        alt="When Does a Trigger Reach a Robot Policy? Architecture, Fine-Tuning, and a Correctly Targeted Visual Backdoor  DO: 10.5281/zenodo.23143960." />
+      <!-- <img src="robotics/r4.png" alt="Basic Robotics Concepts" /> -->
     </div>
+    <div class="caption">
+      <div class="place">robotics</div>
+      <div class="date">SO101, LeKiwi, XLeRobot</div>
+    </div>
+  </div>
 
-    <div class="photo-card" data-category="softwaredev" onclick="openLb(this)">
+    <div class="photo-card" data-category="coding" onclick="openLb(this)">
       <div class="thumb">
         <img src="coding/c1.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
-        Stage 1 - Composition Screening and Literature Cross-Referencing" />
-        <img src="coding/c2.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
+        Stage 1 - Composition Screening and Literature Cross-Referencing DOI:10.5281/zenodo.23156552"/>
+        <!-- <img src="coding/c2.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
         Stage 2 - Validated Multi-Instrument Characterization Pipelines" />
         <img src="coding/c3.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
-        Stage 3 - Retrieval-Augmented Literature Advice and CALPHAD Feasibility Screening" />
+        Stage 3 - Retrieval-Augmented Literature Advice and CALPHAD Feasibility Screening" /> -->
       </div>
       <div class="caption">
         <div class="place">Coding</div>
@@ -67,9 +68,9 @@
       </div>
     </div>
 
-    <div class="photo-card" data-category="design" onclick="openLb(this)">
+    <div class="photo-card" data-category="other" onclick="openLb(this)">
       <div class="thumb">
-        <img src="other/o1.png" alt="Adobe InDesign 2025 Essential Skills — Adobe" />
+        <img src="other/o1.png" alt="Eight Years Dead, One Week to Bring Back: Revival of a Makeblock Laser Plotter DOI: 10.5281/zenodo.23207105" />
       </div>
       <div class="caption">
         <div class="place">Other</div>
