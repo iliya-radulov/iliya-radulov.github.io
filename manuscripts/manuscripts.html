@@ -6,6 +6,62 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    .pub-section { margin-bottom: 44px; max-width: 980px; }
+    .pub-section-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+    .pub-section-head h3 { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--text); }
+    .pub-section-head .topics { font-size: 0.78rem; color: var(--text-muted); }
+
+    .pub { display: grid; grid-template-columns: 168px 1fr; gap: 22px;
+      padding: 22px 0; border-bottom: 1px solid var(--border); }
+    .pub:last-child { border-bottom: none; }
+    .pub-thumb { display: block; border-radius: 6px; overflow: hidden; border: 1px solid var(--border);
+      align-self: start; background: var(--surface2); }
+    .pub-thumb img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover;
+      transition: transform 0.3s ease; }
+    .pub-thumb:hover img { transform: scale(1.05); }
+
+    .pub-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.72rem;
+      letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 6px; }
+    .pub-meta .chip { padding: 1px 9px; border: 1px solid var(--border); border-radius: 10px; }
+    .pub-meta .chip.code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 0.68rem; }
+    .pub-meta .chip.soon { color: var(--phoenix-light); border-color: var(--phoenix); }
+    .pub h4 { font-size: 1.02rem; font-weight: 600; line-height: 1.35; color: var(--text); margin-bottom: 8px; }
+    .pub h4 a { color: inherit; text-decoration: none; }
+    .pub h4 a:hover { color: var(--phoenix-light); }
+    .pub p { font-size: 0.85rem; line-height: 1.65; color: var(--text-muted); max-width: 68ch; margin-bottom: 12px; }
+    .pub-links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pub-links a { font-size: 0.74rem; font-weight: 500; color: var(--phoenix-light); text-decoration: none;
+      padding: 4px 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);
+      transition: all 0.15s; }
+    .pub-links a:hover { border-color: var(--phoenix); background: var(--surface2); }
+    .pub-links a.doi { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 0.7rem; }
+
+    /* chronological series */
+    .series { margin: 6px 0 0; }
+    .series-title { font-size: 0.92rem; font-weight: 600; color: var(--text); margin: 18px 0 2px; }
+    .series-note { font-size: 0.76rem; color: var(--text-muted); margin-bottom: 4px; }
+    .series-steps { position: relative; margin-left: 10px; padding-left: 26px; border-left: 2px solid var(--border); }
+    .series-steps .pub { position: relative; }
+    .series-steps .pub::before { content: attr(data-stage); position: absolute; left: -41px; top: 22px;
+      width: 28px; height: 28px; border-radius: 50%; background: var(--phoenix); color: #fff;
+      font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 4px var(--dark); }
+    .series-steps .pub.planned::before { background: var(--surface2); color: var(--text-muted);
+      border: 1px dashed var(--text-muted); }
+    .pub.planned .pub-thumb { opacity: 0.45; filter: grayscale(0.6); }
+
+    .zenodo-note { max-width: 720px; font-size: 0.8rem; color: var(--text-muted); margin: -12px 0 28px; }
+    .zenodo-note a { color: var(--phoenix-light); }
+
+    @media (max-width: 640px) {
+      .pub { grid-template-columns: 1fr; gap: 12px; }
+      .pub-thumb { max-width: 240px; }
+      .series-steps { padding-left: 20px; }
+      .series-steps .pub::before { left: -35px; }
+    }
+  </style>
 </head>
 <body class="subpage-body">
   <nav class="subpage-nav">
@@ -21,140 +77,144 @@
   <a class="back-link" href="../index.html#projects">← Back to projects</a>
 
   <div class="section-head">
-    <div class="eyebrow">Gallery</div>
+    <div class="eyebrow">Publications</div>
     <h2>Manuscripts</h2>
   </div>
-  <p class="subpage-intro">Manuscripts based on experimental work on various maker and codeing projects.
-    Sorted by topic. Click any card to get forwarded to the manuscript.</p>
+  <p class="subpage-intro">Manuscripts based on experimental work on various maker and coding projects, sorted by
+    topic. Each one is a self-archived preprint on Zenodo with its own permanent DOI — not peer-reviewed.</p>
+  <p class="zenodo-note">All records: <a href="https://zenodo.org/search?q=metadata.creators.person_or_org.name%3A%22Radulov%2C%20Iliya%20A.%22" target="_blank" rel="noopener">Zenodo profile search ↗</a></p>
 
   <div class="tag-filter" id="filter-bar">
-    <span class="filter-tab active" data-filter="all" onclick="filterCards(this)">All</span>
-    <span class="filter-tab" data-filter="robotics" onclick="filterCards(this)">robotics</span>
-    <span class="filter-tab" data-filter="coding" onclick="filterCards(this)">coding</span>
-    <span class="filter-tab" data-filter="other" onclick="filterCards(this)">other</span>
-    <!-- <span class="filter-tab" data-filter="softwaredev" onclick="filterCards(this)">Software Development</span>
-    <span class="filter-tab" data-filter="design" onclick="filterCards(this)">Creative &amp; Design</span>
-    <span class="filter-tab" data-filter="business" onclick="filterCards(this)">Business &amp; Finance</span>
-    <span class="filter-tab" data-filter="softskills" onclick="filterCards(this)">Soft Skills</span> -->
+    <span class="filter-tab active" data-filter="all" onclick="filterPubs(this)">All</span>
+    <span class="filter-tab" data-filter="robotics" onclick="filterPubs(this)">robotics</span>
+    <span class="filter-tab" data-filter="coding" onclick="filterPubs(this)">coding</span>
+    <span class="filter-tab" data-filter="other" onclick="filterPubs(this)">other</span>
   </div>
 
-  <div class="gallery-grid" id="grid"><div class="photo-card" data-category="robotics" onclick="openLb(this)">
-    <div class="thumb">
-      <img src="robotics/r1.png"
-        alt="Field Notes from a Low-Cost Robot Learning Lab: Hardware Churn, Software Whiplash, and What Actually Went Wrong DOI: 10.5281/zenodo.23259697" />
-      <img src="robotics/r2.png"
-        alt="Distribution Mismatch, Lighting, and Background Generalization in a Low-Cost Imitation-Learning Pick-and-Place Policy DOI: 10.5281/zenodo.23212209." />
-      <img src="robotics/r3.png"
-        alt="When Does a Trigger Reach a Robot Policy? Architecture, Fine-Tuning, and a Correctly Targeted Visual Backdoor  DO: 10.5281/zenodo.23143960." />
-      <!-- <img src="robotics/r4.png" alt="Basic Robotics Concepts" /> -->
-    </div>
-    <div class="caption">
-      <div class="place">robotics</div>
-      <div class="date">SO101, LeKiwi, XLeRobot</div>
-    </div>
-  </div>
-
-    <div class="photo-card" data-category="coding" onclick="openLb(this)">
-      <div class="thumb">
-        <img src="coding/c1.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
-        Stage 1 - Composition Screening and Literature Cross-Referencing DOI:10.5281/zenodo.23156552"/>
-        <!-- <img src="coding/c2.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
-        Stage 2 - Validated Multi-Instrument Characterization Pipelines" />
-        <img src="coding/c3.png" alt="An Open-Source Data Infrastructure for Alloy Synthesis Research: 
-        Stage 3 - Retrieval-Augmented Literature Advice and CALPHAD Feasibility Screening" /> -->
-      </div>
-      <div class="caption">
-        <div class="place">Coding</div>
-        <div class="date">My Database Project</div>
-      </div>
+  <!-- ROBOTICS -->
+  <section class="pub-section" data-category="robotics">
+    <div class="pub-section-head">
+      <h3>Robotics</h3>
+      <span class="topics">SO101, LeKiwi, XLeRobot · newest first</span>
     </div>
 
-    <div class="photo-card" data-category="other" onclick="openLb(this)">
-      <div class="thumb">
-        <img src="other/o1.png" alt="Eight Years Dead, One Week to Bring Back: Revival of a Makeblock Laser Plotter DOI: 10.5281/zenodo.23207105" />
+    <article class="pub">
+      <a class="pub-thumb" href="https://doi.org/10.5281/zenodo.23259697" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="thumbs/r1.jpg" alt="" loading="lazy" /></a>
+      <div>
+        <div class="pub-meta"><span>Oct 2026</span><span class="chip">Preprint</span><span class="chip code">cs.RO</span></div>
+        <h4><a href="https://doi.org/10.5281/zenodo.23259697" target="_blank" rel="noopener">Field Notes from a Low-Cost Robot Learning Lab: Hardware Churn, Software Whiplash, and What Actually Went Wrong</a></h4>
+        <p>The informal companion to the two papers below: seven weeks of building an imitation-learning lab around a self-built SO-101 arm — the incidents that cost the most time, what to warn a newcomer about, and the threads left unfinished.</p>
+        <div class="pub-links">
+          <a class="doi" href="https://doi.org/10.5281/zenodo.23259697" target="_blank" rel="noopener">DOI 10.5281/zenodo.23259697</a>
+          <a href="robotics/Field%20Notes.pdf" target="_blank" rel="noopener">PDF</a>
+        </div>
       </div>
-      <div class="caption">
-        <div class="place">Other</div>
-        <div class="date">MLaser</div>
+    </article>
+
+    <article class="pub">
+      <a class="pub-thumb" href="https://doi.org/10.5281/zenodo.23212209" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="thumbs/r2.jpg" alt="" loading="lazy" /></a>
+      <div>
+        <div class="pub-meta"><span>Oct 2026</span><span class="chip">Preprint</span><span class="chip code">cs.RO</span></div>
+        <h4><a href="https://doi.org/10.5281/zenodo.23212209" target="_blank" rel="noopener">Distribution Mismatch, Lighting, and Background Generalization in a Low-Cost Imitation-Learning Pick-and-Place Policy</a></h4>
+        <p>Four quantified failure modes from an ACT pick-and-place deployment: a camera artifact that produced zero successes, three distinct kinds of background failure, a lighting threshold near 400 lux, and a confirmed baseline of 86.3% on trained and 53.6% on novel positions.</p>
+        <div class="pub-links">
+          <a class="doi" href="https://doi.org/10.5281/zenodo.23212209" target="_blank" rel="noopener">DOI 10.5281/zenodo.23212209</a>
+          <a href="robotics/Distribution_Mismatch_Lighting_and_Background_Generalization.pdf" target="_blank" rel="noopener">PDF</a>
+        </div>
       </div>
+    </article>
+
+    <article class="pub">
+      <a class="pub-thumb" href="https://doi.org/10.5281/zenodo.23143960" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="thumbs/r3.jpg" alt="" loading="lazy" /></a>
+      <div>
+        <div class="pub-meta"><span>Sep 2026</span><span class="chip">Preprint</span><span class="chip code">cs.RO</span></div>
+        <h4><a href="https://doi.org/10.5281/zenodo.23143960" target="_blank" rel="noopener">When Does a Trigger Reach a Robot Policy? Architecture, Fine-Tuning, and a Correctly Targeted Visual Backdoor</a></h4>
+        <p>Why a published text-triggered backdoor did not reproduce on an ACT policy, a three-level test for whether a trigger can reach a policy at all, and a visual backdoor that does work.</p>
+        <div class="pub-links">
+          <a class="doi" href="https://doi.org/10.5281/zenodo.23143960" target="_blank" rel="noopener">DOI 10.5281/zenodo.23143960</a>
+          <a href="robotics/When_Does_a_Trigger_Reach_a_Robot_Policy_v2.pdf" target="_blank" rel="noopener">PDF</a>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- CODING / DATABASE SERIES -->
+  <section class="pub-section" data-category="coding">
+    <div class="pub-section-head">
+      <h3>Coding</h3>
+      <span class="topics">My Database Project · a series, in order</span>
     </div>
 
+    <div class="series">
+      <div class="series-title">An Open-Source Data Infrastructure for Alloy Synthesis Research</div>
+      <div class="series-note">Three stages, each building on the last.</div>
+      <div class="series-steps">
 
-  <!-- LIGHTBOX -->
-  <div id="lightbox">
-    <button id="lightbox-close" onclick="closeLb()">✕</button>
-    <button class="lb-nav" id="lb-prev" onclick="stepLb(-1)">‹</button>
-    <img id="lb-img" src="" alt="" />
-    <div id="lightbox-caption"></div>
-    <button class="lb-nav" id="lb-next" onclick="stepLb(1)">›</button>
-  </div>
+        <article class="pub" data-stage="1">
+          <a class="pub-thumb" href="https://doi.org/10.5281/zenodo.23156552" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="thumbs/c1.jpg" alt="" loading="lazy" /></a>
+          <div>
+            <div class="pub-meta"><span>Oct 2026</span><span class="chip">Preprint</span><span class="chip code">cond-mat.mtrl-sci</span></div>
+            <h4><a href="https://doi.org/10.5281/zenodo.23156552" target="_blank" rel="noopener">Stage 1 — Composition Screening and Literature Cross-Referencing</a></h4>
+            <p>A relational schema, composition calculator, alloy-design screening metrics and automated cross-referencing against three public materials databases for a single working alloy lab — reported as a systems paper, including the engineering failures and how each was fixed.</p>
+            <div class="pub-links">
+              <a class="doi" href="https://doi.org/10.5281/zenodo.23156552" target="_blank" rel="noopener">DOI 10.5281/zenodo.23156552</a>
+              <a href="coding/AlloyDBStage1.pdf" target="_blank" rel="noopener">PDF</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="pub planned" data-stage="2">
+          <div class="pub-thumb"><img src="thumbs/c2.jpg" alt="" loading="lazy" /></div>
+          <div>
+            <div class="pub-meta"><span class="chip soon">In preparation</span></div>
+            <h4>Stage 2 — Validated Multi-Instrument Characterization Pipelines</h4>
+            <p>Validated pipelines for characterization data from multiple instruments, built on the Stage 1 foundation.</p>
+          </div>
+        </article>
+
+        <article class="pub planned" data-stage="3">
+          <div class="pub-thumb"><img src="thumbs/c3.jpg" alt="" loading="lazy" /></div>
+          <div>
+            <div class="pub-meta"><span class="chip soon">In preparation</span></div>
+            <h4>Stage 3 — Retrieval-Augmented Literature Advice and CALPHAD Feasibility Screening</h4>
+            <p>A retrieval-augmented synthesis advisor and a CALPHAD thermodynamics module on top of the earlier stages.</p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- OTHER -->
+  <section class="pub-section" data-category="other">
+    <div class="pub-section-head">
+      <h3>Other</h3>
+      <span class="topics">MLaser</span>
+    </div>
+
+    <article class="pub">
+      <a class="pub-thumb" href="https://doi.org/10.5281/zenodo.23207105" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="thumbs/o1.jpg" alt="" loading="lazy" /></a>
+      <div>
+        <div class="pub-meta"><span>Oct 2026</span><span class="chip">Preprint</span></div>
+        <h4><a href="https://doi.org/10.5281/zenodo.23207105" target="_blank" rel="noopener">Eight Years Dead, One Week to Bring Back: Revival of a Makeblock Laser Plotter</a></h4>
+        <p>Reviving a laser plotter after eight years in storage: replacement carriage plates, the firmware's non-standard acknowledgement string that defeated every modern G-code sender, and a GRBL-based engraving workflow accurate to about 0.2% over 50 mm.</p>
+        <div class="pub-links">
+          <a class="doi" href="https://doi.org/10.5281/zenodo.23207105" target="_blank" rel="noopener">DOI 10.5281/zenodo.23207105</a>
+          <a href="other/Eight_Years_Dead_One_Week_to_Bring_Back.pdf" target="_blank" rel="noopener">PDF</a>
+        </div>
+      </div>
+    </article>
+  </section>
 
 <script>
-  // ── FILTER ──
-  function filterCards(tab) {
+  function filterPubs(tab) {
     document.querySelectorAll('#filter-bar .filter-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     const filter = tab.dataset.filter;
-    document.querySelectorAll('#grid .photo-card').forEach(card => {
-      card.style.display = (filter === 'all' || card.dataset.category === filter) ? '' : 'none';
+    document.querySelectorAll('.pub-section').forEach(sec => {
+      sec.style.display = (filter === 'all' || sec.dataset.category === filter) ? '' : 'none';
     });
   }
-
-  // ── LIGHTBOX ──
-  let cards = [], lbIndex = 0, currentImages = [], currentImageIndex = 0;
-
-  function visibleCards() {
-    return [...document.querySelectorAll('.photo-card')].filter(c => c.style.display !== 'none');
-  }
-
-  function openLb(card) {
-    const images = card.querySelectorAll('.thumb img');
-    if (!images || images.length === 0) return;
-    cards = visibleCards();
-    lbIndex = cards.indexOf(card);
-    currentImages = [...images];
-    currentImageIndex = 0;
-    showLb();
-  }
-
-  function showLb() {
-    if (!currentImages || currentImages.length === 0) return;
-    const img = currentImages[currentImageIndex];
-    const card = cards[lbIndex];
-    document.getElementById('lb-img').src = img.src;
-    document.getElementById('lb-img').alt = img.alt || '';
-    const altText = img.alt || 'Untitled';
-    const place = card.querySelector('.place').textContent;
-    let caption = altText;
-    if (place && place.trim() !== '') caption += ` — ${place}`;
-    caption += ` (${currentImageIndex + 1}/${currentImages.length})`;
-    document.getElementById('lightbox-caption').textContent = caption;
-    document.getElementById('lightbox').classList.add('open');
-  }
-
-  function closeLb() {
-    document.getElementById('lightbox').classList.remove('open');
-    document.getElementById('lb-img').src = '';
-    currentImages = [];
-    currentImageIndex = 0;
-  }
-
-  function stepLb(dir) {
-    if (!currentImages || currentImages.length === 0) return;
-    currentImageIndex = (currentImageIndex + dir + currentImages.length) % currentImages.length;
-    showLb();
-  }
-
-  document.addEventListener('keydown', e => {
-    if (!document.getElementById('lightbox').classList.contains('open')) return;
-    if (e.key === 'Escape') closeLb();
-    else if (e.key === 'ArrowRight') stepLb(1);
-    else if (e.key === 'ArrowLeft') stepLb(-1);
-  });
-
-  document.getElementById('lightbox').addEventListener('click', function(e) {
-    if (e.target === this) closeLb();
-  });
 </script>
 <script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
 async src="//gc.zgo.at/count.js"></script>
