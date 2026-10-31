@@ -22,6 +22,8 @@
       --cheatsheet: #5c6a45;
       --starter: #3c6c58;
       --romance: #7a2e2b;
+      --corpus: #4a3e75;
+      --praat: #8c5a3a;
     }
 
     * {
@@ -58,7 +60,7 @@
 
     /* ---------- COVER ---------- */
     .cover {
-      max-width: 780px;
+      max-width: 1200px;
       margin: 1rem auto 3.5rem;
       padding: 2.5rem 2.2rem 3rem;
       background: var(--paper-dark);
@@ -100,7 +102,7 @@
 
     .cover p {
       font-size: 0.98rem;
-      max-width: 60ch;
+      max-width: fit-content;
       margin-bottom: 0.9rem;
     }
 
@@ -136,7 +138,7 @@
 
     /* ---------- DIVIDER ---------- */
     .tear {
-      max-width: 780px;
+      max-width: 1200px;
       margin: 0 auto;
       height: 1px;
       background-image: repeating-linear-gradient(to right, var(--ink-soft) 0 8px, transparent 8px 16px);
@@ -145,7 +147,7 @@
 
     /* ---------- ITEMS (one per .tex file) ---------- */
     .items {
-      max-width: 780px;
+      max-width: 1200px;
       margin: 0 auto;
     }
 
@@ -256,7 +258,7 @@
 
     /* ---------- SECTIONS ---------- */
     .section {
-      max-width: 780px;
+      max-width: 1200px;
       margin: 3rem auto 0;
       padding: 0 2.2rem;
     }
@@ -339,7 +341,7 @@
 
     /* ---------- CLOSING ---------- */
     .closing {
-      max-width: 780px;
+      max-width: 1200px;
       margin: 3rem auto 0;
       padding: 0 2.2rem;
       font-size: 0.9rem;
@@ -364,7 +366,7 @@
       margin-top: 1.6rem;
     }
 
-    @media (max-width:640px) {
+    @media (max-width:900px) {
       .stamp {
         display: none;
       }
@@ -386,8 +388,6 @@
   </style>
 </head>
 
-<body>
-
   <div class="backbar">
     <a href="../../../index.html">← Back to portfolio</a> 
 
@@ -398,27 +398,25 @@
   <div class="cover">
     <div class="kit-no">KIT No. LLX-2026 · FILED UNDER: TEACHING NOTES</div>
     <h1>A Modern LuaLaTeX Kit for Computational Linguistics</h1>
-    <div class="re">Four files. One narrative tutorial. Written in 2026 for a student who just inherited a decade of
+    <div class="re">Six files. One narrative tutorial. Written in 2026 for a student who just inherited a decade of
       stale advice from the internet.</div>
 
-    <p>Most LuaLaTeX material online was written between 2010 and 2015. Package names drift, defaults change, and a
-      newcomer following those tutorials will spend the first evening fighting <em>inputenc</em> errors instead of
-      writing linguistics. This kit is a small, opinionated starting point for anyone — in particular, students of
-      computational linguistics working with Romance languages (French, Spanish, Italian, Portuguese, Romanian) and
+    <p>Most LuaLaTeX material online was written between 2010 and 2015. Package names drift, defaults change, and a newcomer following those tutorials will spend the first evening fighting <em>inputenc</em> errors instead of
+      writing linguistics. This kit is a small, opinionated starting point for anyone — in particular, students of computational linguistics working with Romance languages (French, Spanish, Italian, Portuguese, Romanian) and
       IPA.</p>
 
-    <p>Everything here assumes a current TeX Live installation and <strong>LuaLaTeX</strong> as the engine. The four
-      source files below mirror four jobs: understand, reference, start, and borrow from a worked example.</p>
-    
+    <p>Everything here assumes a current TeX Live installation and <strong>LuaLaTeX</strong> as the engine. The six
+      source files below mirror six jobs: understand the engine, keep a reference, start a document, and borrow from
+      three worked examples (Romance languages, corpus statistics, Praat alignment).</p>
+
       <a class="photo-card" href="LuaLaTeX.jpg" target="_blank" rel="noopener noreferrer">
         <div class="thumb"><img src="LuaLaTeX.jpg" style="max-width: 100%; height: auto; object-fit: cover;" alt="LuaLaTeX Students Edition 2026" /></div>
           <div class="caption">
-          <div class="place"> 🚀 Iliya Radulov </div>
-          <div class="date">LuaLaTeX Students Edition 2026</div>
+          <div class="topic">LuaLaTeX Students Edition 2026 </div>
+          <div class="author">🚀 Iliya Radulov</div>
         </div>
-      </a>
-
-
+      </a>    
+      
     <div class="shelf-note">Target OS — Ubuntu / Linux. Compiles equally on macOS &amp; Windows TeX Live.</div>
 
     <div class="meta-block">
@@ -457,6 +455,7 @@
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/modern-lualatex-guide.tex">View on GitHub →</a>
         <a href="https://github.com/iliya-radulov/lualatex_kit/main/modern-lualatex-guide.tex" download="modern-lualatex-guide.tex">Download .tex ↓</a>
+         <a href="pdf/modern-lualatex-guide.pdf" download="modern-lualatex-guide.pdf"> Download .pdf↓</a>
       </div>
     </div>
 
@@ -482,6 +481,7 @@
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/cl-cheatsheet.tex">View on GitHub →</a>
         <a href="https://github.com/iliya-radulov/lualatex_kit/main/cl-cheatsheet.tex" download="cl-cheatsheet.tex">Download .tex ↓</a>
+        <a href="pdf/cl-cheatsheet.pdf" download="cl-cheatsheet.pdf"> Download .pdf↓</a>
       </div>
     </div>
 
@@ -505,7 +505,8 @@
       </div>
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/cs-starter.tex">View on GitHub →</a>
-        <a href="https://github.com/iliya-radulov/lualatex_kit/main/cs-starter.tex" download="cs-starter.tex">  Download .tex ↓</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/main/cs-starter.tex" download="cs-starter.tex">Download .tex ↓</a>
+        <a href="pdf/cs-starter.pdf" download="cs-starter.pdf"> Download .pdf↓</a>
       </div>
     </div>
 
@@ -531,7 +532,63 @@
       </div>
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/romance-comp-ling.tex">View on GitHub →</a>
-        <a href="https://github.com/iliya-radulov/lualatex_kit/main/romance-comp-ling.tex" download= "romance-comp-ling.tex">Download .tex ↓</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/main/romance-comp-ling.tex" download="romance-comp-ling.tex">Download .tex ↓</a>
+        <a href="pdf/romance-comp-ling.pdf" download="romance-comp-ling.pdf"> Download .pdf↓</a>
+      </div>
+    </div>
+
+    <!-- ITEM V — Corpus Stats -->
+    <div class="item" style="--accent:var(--corpus);">
+      <div class="stamp">ITEM&nbsp;V<br>STATISTICS</div>
+      <div class="item-head">
+        <span class="item-letter">File V</span>
+        <h2>corpus-stats.tex</h2>
+      </div>
+      <div class="file-meta">
+        <span>Worked example</span>
+        <span>English</span>
+        <span>Quantitative / corpus linguistics</span>
+      </div>
+      <div class="descr">
+        <div class="descr-label">What it is</div>
+        <p>Publication-ready statistical output in pure LaTeX. Decimal-aligned
+          tables with <em>siunitx</em>, properly italicized <em>p</em>-values,
+          scientific notation; a vector-based Zipf's-law plot with
+          <em>pgfplots</em>; and a short note on reading data from a CSV with
+          <em>pgfplotstable</em>. No Python screenshots in your thesis.</p>
+      </div>
+      <div class="actions">
+        <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/corpus-stats.tex">View on GitHub →</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/main/corpus-stats.tex" download="corpus-stats.tex">Download .tex ↓</a>
+        <a href="pdf/corpus-stats.pdf" download="corpus-stats.pdf"> Download .pdf↓</a>
+      </div>
+    </div>
+
+    <!-- ITEM VI — Praat Pipeline -->
+    <div class="item" style="--accent:var(--praat);">
+      <div class="stamp">ITEM&nbsp;VI<br>PHONETICS</div>
+      <div class="item-head">
+        <span class="item-letter">File VI</span>
+        <h2>praat-pipeline.tex</h2>
+      </div>
+      <div class="file-meta">
+        <span>Worked example</span>
+        <span>English</span>
+        <span>Phonetics / acoustic analysis</span>
+      </div>
+      <div class="descr">
+        <div class="descr-label">What it is</div>
+        <p>The modern phonetician's publishing pipeline: export a spectrogram
+          from Praat as a PDF, embed it with <em>graphicx</em>, and draw
+          phoneme, word, and gloss tiers over it with TikZ. Includes a
+          reusable <code>\phonbox</code> macro and the time-to-coordinate
+          scaling formula so your TikZ boxes line up with the acoustic
+          events in the image.</p>
+      </div>
+      <div class="actions">
+        <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/praat-pipeline.tex">View on GitHub →</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/main/praat-pipeline.tex" download="praat-pipeline.tex">Download .tex ↓</a>
+        <a href="pdf/praat-pipeline.pdf" download="praat-pipeline.pdf"> Download .pdf↓</a>
       </div>
     </div>
 
@@ -584,9 +641,11 @@ fc-cache -fv</code></pre>
     </div>
 
     <div class="gotcha">
-      <strong>Two compilation passes</strong>
-      LuaLaTeX often needs to be run twice to resolve the table of contents and cross-references. With a bibliography:
-      LuaLaTeX → Biber → LuaLaTeX → LuaLaTeX.
+      <strong>Two compilation passes — automate them</strong>
+      LuaLaTeX often needs two runs to resolve the table of contents and cross-references, and with a bibliography the
+      full dance is LuaLaTeX → Biber → LuaLaTeX → LuaLaTeX. Don't click compile four times. From the project folder:
+      <code>latexmk -lualatex -pdf your-document.tex</code> handles the whole sequence and stops when nothing changes.
+      It ships with every modern TeX Live.
     </div>
 
     <div class="gotcha">
