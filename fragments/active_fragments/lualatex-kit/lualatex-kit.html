@@ -388,10 +388,10 @@
   </style>
 </head>
 
-  <div class="backbar">
-    <a href="../../../index.html">← Back to portfolio</a> 
+<body>
 
-    <a href="../active_fragments.html">← Back to Fragments</a>
+  <div class="backbar">
+   ☰  <a href="../../../index.html">← Back to portfolio</a> 🧩 <a href="../active_fragments.html">← Back to Fragments</a>
   </div>
 
   <!-- ================= COVER ================= -->
@@ -454,7 +454,7 @@
       </div>
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/modern-lualatex-guide.tex">View on GitHub →</a>
-        <a href="https://github.com/iliya-radulov/lualatex_kit/main/modern-lualatex-guide.tex" download="modern-lualatex-guide.tex">Download .tex ↓</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/raw/main/modern-lualatex-guide.tex" download="modern-lualatex-guide.tex">Download .tex ↓</a>
          <a href="pdf/modern-lualatex-guide.pdf" download="modern-lualatex-guide.pdf"> Download .pdf↓</a>
       </div>
     </div>
@@ -480,7 +480,7 @@
       </div>
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/cl-cheatsheet.tex">View on GitHub →</a>
-        <a href="https://github.com/iliya-radulov/lualatex_kit/main/cl-cheatsheet.tex" download="cl-cheatsheet.tex">Download .tex ↓</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/raw/main/cl-cheatsheet.tex" download="cl-cheatsheet.tex">Download .tex ↓</a>
         <a href="pdf/cl-cheatsheet.pdf" download="cl-cheatsheet.pdf"> Download .pdf↓</a>
       </div>
     </div>
@@ -505,7 +505,7 @@
       </div>
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/cs-starter.tex">View on GitHub →</a>
-        <a href="https://github.com/iliya-radulov/lualatex_kit/main/cs-starter.tex" download="cs-starter.tex">Download .tex ↓</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/raw/main/cs-starter.tex" download="cs-starter.tex">Download .tex ↓</a>
         <a href="pdf/cs-starter.pdf" download="cs-starter.pdf"> Download .pdf↓</a>
       </div>
     </div>
@@ -532,7 +532,7 @@
       </div>
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/romance-comp-ling.tex">View on GitHub →</a>
-        <a href="https://github.com/iliya-radulov/lualatex_kit/main/romance-comp-ling.tex" download="romance-comp-ling.tex">Download .tex ↓</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/raw/main/romance-comp-ling.tex" download="romance-comp-ling.tex">Download .tex ↓</a>
         <a href="pdf/romance-comp-ling.pdf" download="romance-comp-ling.pdf"> Download .pdf↓</a>
       </div>
     </div>
@@ -559,7 +559,7 @@
       </div>
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/corpus-stats.tex">View on GitHub →</a>
-        <a href="https://github.com/iliya-radulov/lualatex_kit/main/corpus-stats.tex" download="corpus-stats.tex">Download .tex ↓</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/raw/main/corpus-stats.tex" download="corpus-stats.tex">Download .tex ↓</a>
         <a href="pdf/corpus-stats.pdf" download="corpus-stats.pdf"> Download .pdf↓</a>
       </div>
     </div>
@@ -587,7 +587,7 @@
       </div>
       <div class="actions">
         <a href="https://github.com/iliya-radulov/lualatex_kit/blob/main/praat-pipeline.tex">View on GitHub →</a>
-        <a href="https://github.com/iliya-radulov/lualatex_kit/main/praat-pipeline.tex" download="praat-pipeline.tex">Download .tex ↓</a>
+        <a href="https://github.com/iliya-radulov/lualatex_kit/raw/main/praat-pipeline.tex" download="praat-pipeline.tex">Download .tex ↓</a>
         <a href="pdf/praat-pipeline.pdf" download="praat-pipeline.pdf"> Download .pdf↓</a>
       </div>
     </div>
@@ -599,24 +599,36 @@
     <h2 class="section-title">Ubuntu Setup — the easy way</h2>
 
     <div class="step">
-      <div class="step-head"><span class="step-num">01</span>Install a full TeX Live</div>
+      <div class="step-head"><span class="step-num">01</span>Install TeX Live</div>
+      <p>The focused install below covers 99&nbsp;% of linguistics needs and is kinder to your disk than the full
+        distribution:</p>
       <pre><code>sudo apt update
-sudo apt install texlive-full</code></pre>
-      <p><code>texlive-full</code> is large (5–8 GB), but after this you will never hit a "package not found" error
-        again. If disk space is tight, the smaller selection below covers 99 % of linguistics needs:</p>
-      <pre><code>sudo apt install texlive-latex-extra texlive-lang-all \
-                 texlive-fonts-extra texlive-science</code></pre>
+sudo apt install texlive-latex-recommended texlive-latex-extra \
+                 texlive-lang-european texlive-fonts-extra \
+                 texlive-science texlive-luatex latexmk</code></pre>
+      <p>If you would rather not worry about missing packages ever, install the full distribution instead (5–8&nbsp;GB):</p>
+      <pre><code>sudo apt install texlive-full</code></pre>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="step-num">02</span>Install an editor (optional)</div>
+      <div class="step-head"><span class="step-num">02</span>Verify your first compile</div>
+      <p>From the folder containing the kit's files:</p>
+      <pre><code>latexmk -lualatex cs-starter.tex</code></pre>
+      <p>A successful run ends with a line like <code>Latexmk: All targets (cs-starter.pdf) are up-to-date</code> and
+        leaves a <code>cs-starter.pdf</code> next to the <code>.tex</code> file. If you cloned the repo, the included
+        <code>.latexmkrc</code> means you can even drop the <code>-lualatex</code> flag — just
+        <code>latexmk cs-starter.tex</code> works.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">03</span>Install an editor (optional)</div>
       <pre><code>sudo apt install texstudio</code></pre>
       <p>Then open <strong>Options → Configure TeXstudio → Build</strong> and change the default compiler to
         <strong>LuaLaTeX</strong>.</p>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="step-num">03</span>Add linguistic fonts</div>
+      <div class="step-head"><span class="step-num">04</span>Add linguistic fonts</div>
       <p>For IPA and Romance special characters, <strong>Charis SIL</strong> and <strong>Doulos SIL</strong> are
         excellent and free. Download the <code>.ttf</code> files, then:</p>
       <pre><code>mkdir -p ~/.local/share/fonts
@@ -627,6 +639,18 @@ fc-cache -fv</code></pre>
       </p>
       <pre><code>\setmainfont{Charis SIL}</code></pre>
     </div>
+  </section>
+
+  <!-- ================= TESTED WITH ================= -->
+  <section class="section">
+    <h2 class="section-title">Tested With</h2>
+    <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:0.9rem;">Last verified <strong>2026-11-01</strong> on:</p>
+    <pre><code>TeX Live 2026
+LuaLaTeX 1.18.x
+latexmk 4.85x
+Ubuntu 24.04 LTS  /  macOS Tahoe 26.6.2
+Editor: TeXstudio 6.0.2 (Linux)  /  Texmaker 6.0.2 (macOS)</code></pre>
+    <p style="font-size:0.85rem; color:var(--ink-soft);">Substantially older or newer versions will almost certainly still work; the exact wording of error messages may differ from the troubleshooting table in <code>modern-lualatex-guide.tex</code>.</p>
   </section>
 
   <!-- ================= GOTCHAS ================= -->
@@ -654,6 +678,28 @@ fc-cache -fv</code></pre>
       Under LuaLaTeX these are at best unneeded and at worst broken. Use <code>fontspec</code>, <code>polyglossia</code>
       and <code>tipauni</code> instead.
     </div>
+  </section>
+
+  <!-- ================= LUA NOTE ================= -->
+  <section class="section">
+    <h2 class="section-title">A Note on Lua — Why We Use Python Instead</h2>
+    <p style="font-size:0.92rem; margin-bottom:0.9rem; color:var(--ink);">
+      LuaLaTeX embeds the Lua programming language, and you <em>can</em> write loops, read CSV files, and compute
+      directly inside your <code>.tex</code> source with <code>\directlua</code>. However, as a computational
+      linguist, your real data processing almost certainly belongs in Python or R — not inside the typesetting
+      engine. One tiny example is included below so you understand the bridge exists; this kit deliberately does
+      not teach Lua programming.
+    </p>
+    <pre><code>\directlua{
+  local words = {"chat", "chien", "maison"}
+  tex.sprint("Corpus contains " .. #words .. " items.")
+}</code></pre>
+    <p style="font-size:0.88rem; color:var(--ink-soft);">
+      When compiled, this prints <em>"Corpus contains 3 items."</em> in the body of the PDF. For anything
+      substantial, process your data in Python or R, write the result to a <code>.csv</code> or <code>.tex</code>
+      fragment, and let LaTeX <code>\input</code> that file — a cleaner division of labour than embedding complex
+      logic in your document, and it keeps your analysis reproducible with the tools your discipline already uses.
+    </p>
   </section>
 
   <!-- ================= CLOSING ================= -->
