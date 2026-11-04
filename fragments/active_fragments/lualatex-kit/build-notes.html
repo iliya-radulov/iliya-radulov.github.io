@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Build &amp; Release Notes — LuaLaTeX Kit — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --paper: #ece3cf;
+      --paper-dark: #ddd0ae;
+      --ink: #1c1712;
+      --ink-soft: #4d4436;
+      --line: #b9ab86;
+      --stamp: #8c2f2f;
+      --accent: #5c6a45;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(0, 0, 0, 0.05), transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(0, 0, 0, 0.06), transparent 55%),
+        var(--paper);
+      color: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      line-height: 1.65;
+      padding-bottom: 6rem;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .backbar {
+      padding: 1rem 1.5rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+
+    .backbar a {
+      text-decoration: none;
+      border-bottom: 1px dashed var(--ink-soft);
+    }
+
+    /* ---------- COVER ---------- */
+    .cover {
+      max-width: 1200px;
+      margin: 1rem auto 3.5rem;
+      padding: 2.5rem 2.2rem 3rem;
+      background: var(--paper-dark);
+      border: 1px solid var(--line);
+      position: relative;
+    }
+
+    .cover::before {
+      content: '';
+      position: absolute;
+      inset: 10px;
+      border: 1px solid rgba(28, 23, 18, 0.25);
+      pointer-events: none;
+    }
+
+    .kit-no {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      color: var(--ink-soft);
+      margin-bottom: 1.6rem;
+    }
+
+    .cover h1 {
+      font-family: 'Special Elite', monospace;
+      font-size: clamp(1.8rem, 5vw, 2.5rem);
+      line-height: 1.25;
+      text-transform: uppercase;
+      letter-spacing: 0.01em;
+      margin-bottom: 1.1rem;
+    }
+
+    .cover .re {
+      font-size: 0.95rem;
+      color: var(--ink-soft);
+      margin-bottom: 1.6rem;
+      font-style: italic;
+    }
+
+    .cover p {
+      font-size: 0.98rem;
+      max-width: 70ch;
+      margin-bottom: 0.9rem;
+    }
+
+    .shelf-note {
+      margin-top: 1.8rem;
+      padding: 0.9rem 1rem;
+      border: 1px dashed var(--stamp);
+      color: var(--stamp);
+      font-family: 'Special Elite', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      display: inline-block;
+      transform: rotate(-1.2deg);
+    }
+
+    .meta-block {
+      margin-top: 2rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+    }
+
+    .meta-block strong {
+      color: var(--ink);
+    }
+
+    /* ---------- CONTENTS ---------- */
+    .contents {
+      max-width: 1200px;
+      margin: 0 auto 1rem;
+      padding: 0 2.2rem;
+    }
+
+    .contents ol {
+      list-style: none;
+      columns: 2;
+      column-gap: 2.5rem;
+      font-size: 0.88rem;
+      color: var(--ink-soft);
+    }
+
+    .contents li {
+      break-inside: avoid;
+      padding: 0.15rem 0;
+    }
+
+    .contents li span {
+      display: inline-block;
+      width: 2.2rem;
+      font-family: 'Special Elite', monospace;
+      font-size: 0.78rem;
+      color: var(--ink);
+    }
+
+    /* ---------- SECTIONS ---------- */
+    .section {
+      max-width: 1200px;
+      margin: 3rem auto 0;
+      padding: 0 2.2rem;
+    }
+
+    .section-title {
+      font-family: 'Special Elite', monospace;
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .section-title .no {
+      color: var(--ink-soft);
+      margin-right: 0.7rem;
+    }
+
+    .section>p {
+      font-size: 0.92rem;
+      margin: 0.6rem 0;
+      color: var(--ink-soft);
+      max-width: 80ch;
+    }
+
+    .step {
+      margin-bottom: 1.8rem;
+    }
+
+    .step-head {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.8rem;
+    }
+
+    .step-num {
+      font-size: 0.78rem;
+      color: var(--ink-soft);
+      border: 1px solid var(--ink-soft);
+      padding: 0.1rem 0.45rem;
+    }
+
+    .step p {
+      font-size: 0.92rem;
+      margin: 0.6rem 0;
+      color: var(--ink-soft);
+      max-width: 80ch;
+    }
+
+    .plain {
+      margin: 0.6rem 0 0.6rem 1.4rem;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+      max-width: 80ch;
+    }
+
+    .plain li {
+      margin-bottom: 0.35rem;
+    }
+
+    ol.plain {
+      margin-left: 1.8rem;
+    }
+
+    pre {
+      background: rgba(28, 23, 18, 0.07);
+      border-left: 3px solid var(--ink-soft);
+      padding: 0.9rem 1rem;
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.88rem;
+      overflow-x: auto;
+      margin: 0.8rem 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    code {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.9em;
+      background: rgba(28, 23, 18, 0.07);
+      padding: 0.05rem 0.3rem;
+    }
+
+    pre.tree {
+      white-space: pre;
+      word-break: normal;
+      font-size: 0.82rem;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      font-size: 1em;
+    }
+
+    .gotcha {
+      padding: 0.9rem 1.1rem;
+      border: 1px dashed var(--stamp);
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      position: relative;
+      max-width: 80ch;
+    }
+
+    .gotcha strong {
+      font-family: 'Special Elite', monospace;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.78rem;
+      color: var(--stamp);
+      margin-bottom: 0.4rem;
+    }
+
+    .note {
+      padding: 0.9rem 1.1rem;
+      border: 1px dashed var(--accent);
+      margin: 1rem 0;
+      font-size: 0.9rem;
+      max-width: 80ch;
+    }
+
+    .note strong {
+      font-family: 'Special Elite', monospace;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.78rem;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+
+    .tear {
+      max-width: 1200px;
+      margin: 3rem auto 0;
+      height: 1px;
+      background-image: repeating-linear-gradient(to right, var(--ink-soft) 0 8px, transparent 8px 16px);
+      opacity: 0.5;
+    }
+
+    /* ---------- CLOSING ---------- */
+    .closing {
+      max-width: 1200px;
+      margin: 3rem auto 0;
+      padding: 0 2.2rem;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+    }
+
+    .closing p {
+      margin-bottom: 0.9rem;
+      max-width: 80ch;
+    }
+
+    .closing .filed {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin-top: 1.6rem;
+    }
+
+    @media (max-width:900px) {
+      .cover {
+        padding: 2rem 1.3rem 2.4rem;
+        margin: 1rem 0.8rem 3rem;
+      }
+
+      .section,
+      .closing,
+      .contents {
+        padding: 0 1.2rem;
+      }
+
+      .contents ol {
+        columns: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="backbar">
+    <a href="lualatex-kit.html">← Back to the kit</a>
+  </div>
+
+  <!-- ================= COVER ================= -->
+  <div class="cover">
+    <div class="kit-no">KIT No. LLX-2026 · APPENDIX · BUILD &amp; RELEASE</div>
+    <h1>Build &amp; Release Notes</h1>
+    <div class="re">How the six files are compiled, checked, versioned and filed. The kit page is for readers; this page is
+      for whoever maintains the machinery behind it.</div>
+
+    <p>The six <code>.tex</code> files are the deliverable. Everything else is scaffolding: a <em>latexmk</em>
+      configuration, a continuous-integration workflow, a citation file, and a release routine that mints a DOI. This
+      page records why each piece is the way it is, including the parts that failed silently the first time.</p>
+
+    <div class="shelf-note">Appendix to the kit page — reference, not tutorial</div>
+
+    <div class="meta-block">
+      <strong>Written for:</strong> release v2.1.0, 2026-11-01 &nbsp;·&nbsp;
+      <strong>License:</strong> MIT
+    </div>
+  </div>
+
+  <!-- ================= CONTENTS ================= -->
+  <nav class="contents" aria-label="Contents">
+    <ol>
+      <li><span>01</span>Repository structure</li>
+      <li><span>02</span>Local build</li>
+      <li><span>03</span>The .latexmkrc file</li>
+      <li><span>04</span>Continuous integration</li>
+      <li><span>05</span>CITATION.cff and release metadata</li>
+      <li><span>06</span>Release workflow</li>
+      <li><span>07</span>Deploying this page</li>
+      <li><span>08</span>Known issues and future work</li>
+      <li><span>09</span>Troubleshooting</li>
+      <li><span>10</span>Credits</li>
+    </ol>
+  </nav>
+
+  <div class="tear"></div>
+
+  <!-- ================= 01 STRUCTURE ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">01</span>Repository structure</h2>
+    <pre class="tree"><code>lualatex_kit/
+├── .github/
+│   └── workflows/
+│       └── build-latex.yml      # CI workflow (see 04)
+├── .latexmkrc                   # latexmk configuration (see 03)
+├── CITATION.cff                 # citation metadata, read by Zenodo and GitHub (see 05)
+├── CREDITS.md                   # attribution for Pégourié-Gonnard (2010)
+├── LICENSE                      # MIT
+├── README.md                    # user-facing documentation
+├── modern-lualatex-guide.tex    # File I   — narrative tutorial
+├── cl-cheatsheet.tex            # File II  — reference
+├── cs-starter.tex               # File III — blank template
+├── romance-comp-ling.tex        # File IV  — Romance languages worked example
+├── corpus-stats.tex             # File V   — statistics worked example
+└── praat-pipeline.tex           # File VI  — phonetics worked example</code></pre>
+    <p>Six <code>.tex</code> files are the deliverable. Everything else exists to build, cite and release them.</p>
+  </section>
+
+  <!-- ================= 02 LOCAL BUILD ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">02</span>Local build</h2>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">a</span>Prerequisites</div>
+      <ul class="plain">
+        <li>TeX Live, installed as described on the kit page.</li>
+        <li><code>latexmk</code>, included in <code>texlive-latex-recommended</code> on Ubuntu, or available as the
+          <code>latexmk</code> package.</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">b</span>Compile a single file</div>
+      <pre><code>latexmk file.tex</code></pre>
+      <p>No engine flag is needed: <code>.latexmkrc</code> configures LuaLaTeX and Biber. Without that file the
+        equivalent command is:</p>
+      <pre><code>latexmk -lualatex -pdf file.tex</code></pre>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">c</span>Compile all six at once</div>
+      <pre><code>for f in *.tex; do latexmk "$f"; done</code></pre>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">d</span>Clean up auxiliary files</div>
+      <pre><code>latexmk -c    # remove .aux, .log, .toc, .out, .bbl, .run.xml, .synctex.gz
+latexmk -C    # the above, and the .pdf as well</code></pre>
+    </div>
+  </section>
+
+  <!-- ================= 03 LATEXMKRC ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">03</span>The .latexmkrc file</h2>
+    <pre><code>$pdf_mode   = 4;   # 4 = LuaLaTeX
+$bibtex_use = 2;   # use Biber for bibliographies
+$clean_ext  = "bbl run.xml synctex.gz";</code></pre>
+    <ul class="plain">
+      <li><code>$pdf_mode = 4</code> selects the engine. Other values: <code>1</code> = pdflatex, <code>2</code> =
+        ps2pdf, <code>3</code> = dvipdf, <code>5</code> = xelatex.</li>
+      <li><code>$bibtex_use = 2</code> makes <em>latexmk</em> run Biber whenever a bibliography is present, even if
+        the <code>.bib</code> file is not mentioned explicitly.</li>
+      <li><code>$clean_ext</code> extends the list of files removed by <code>latexmk -c</code> to include Biber's own
+        auxiliaries.</li>
+    </ul>
+
+    <div class="gotcha">
+      <strong>Precedence: the command line beats the config file</strong>
+      Running <code>latexmk -pdf file.tex</code> with this configuration lets the <code>-pdf</code> flag override
+      <code>$pdf_mode = 4</code> and silently falls back to pdflatex. This matters for CI; see section 04.
+    </div>
+  </section>
+
+  <!-- ================= 04 CI ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">04</span>Continuous integration</h2>
+    <p>The workflow lives in <code>.github/workflows/build-latex.yml</code>.</p>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">a</span>What it does</div>
+      <p>On every push to <code>main</code> that changes a <code>.tex</code> file, the <code>.latexmkrc</code>, or the
+        workflow itself, GitHub:</p>
+      <ol class="plain">
+        <li>starts a clean Ubuntu virtual machine;</li>
+        <li>checks out the repository;</li>
+        <li>runs <code>latexmk</code> on each of the six <code>.tex</code> files in parallel (a matrix build);</li>
+        <li>uploads each resulting <code>.pdf</code> as a downloadable artifact;</li>
+        <li>marks the whole run green or red, depending on whether everything compiled.</li>
+      </ol>
+      <p>Artifacts are kept for 90 days by default. Find them on the repository's <strong>Actions</strong> tab: open
+        the run and scroll to "Artifacts" at the bottom.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">b</span>Trigger paths</div>
+      <pre><code>paths:
+  - '**.tex'
+  - '.latexmkrc'
+  - '.github/workflows/build-latex.yml'</code></pre>
+      <p>Edits to the README, the LICENSE or <code>CITATION.cff</code> do not trigger a build, which keeps CI noise
+        low. To force a rebuild, use the <strong>Run workflow</strong> button on the Actions tab (enabled by
+        <code>workflow_dispatch:</code>).</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">c</span>The latexmk_use_lualatex line</div>
+      <pre><code>- uses: xu-cheng/latex-action@v3
+  with:
+    root_file: ${{ matrix.name }}.tex
+    latexmk_use_lualatex: true</code></pre>
+      <p>The action's default command line includes <code>-pdf</code>, which, as section 03 explains, overrides
+        <code>$pdf_mode = 4</code> and brings back pdflatex. Setting <code>latexmk_use_lualatex: true</code> swaps
+        <code>-pdf</code> for <code>-pdflua</code> and keeps the engine as LuaLaTeX. Without this line, CI would
+        build with the wrong engine and say nothing. With it, local and CI builds agree.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">d</span>The matrix</div>
+      <pre><code>matrix:
+  name:
+    - modern-lualatex-guide
+    - cl-cheatsheet
+    - cs-starter
+    - romance-comp-ling
+    - corpus-stats
+    - praat-pipeline</code></pre>
+      <p>The entries are <strong>stems only</strong>, with no <code>.tex</code> extension. The input is referenced as
+        <code>${{ matrix.name }}.tex</code> and the output as <code>${{ matrix.name }}.pdf</code>. This avoids the
+        <code>foo.tex.pdf</code> artifact-path bug.</p>
+      <p><code>fail-fast: false</code> means that if one file fails to compile, the other five keep going, so a
+        single run shows every error and not only the first.</p>
+    </div>
+
+    <div class="note">
+      <strong>Node.js deprecation warnings are harmless</strong>
+      CI runs print "Node.js 20 is deprecated" warnings for <code>actions/checkout@v4</code> and
+      <code>actions/upload-artifact@v4</code>. GitHub is moving its runners from Node 20 to Node 24, and the action
+      maintainers will update upstream. Nothing needs fixing here.
+    </div>
+  </section>
+
+  <!-- ================= 05 CITATION ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">05</span>CITATION.cff and release metadata</h2>
+    <p>A machine-readable citation file in format v1.2.0. GitHub builds a "Cite this repository" button in the
+      sidebar from it, and Zenodo reads it when it mints a DOI on release.</p>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">a</span>What to update per release</div>
+      <p>Two fields, and nothing else:</p>
+      <pre><code>version: 2.1.0
+date-released: "2026-11-01"</code></pre>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">b</span>Why there is no email address</div>
+      <p><code>CITATION.cff</code> is public, and leaving the email out prevents scraping. The ORCID iD plus the name
+        is enough for attribution; anyone who needs to reach the author can use the repository's issue tracker.</p>
+    </div>
+  </section>
+
+  <!-- ================= 06 RELEASE ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">06</span>Release workflow (GitHub → Zenodo)</h2>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">a</span>One-time setup (done for this repo)</div>
+      <ul class="plain">
+        <li>Log in to Zenodo with GitHub OAuth.</li>
+        <li>Switch on this repository in Zenodo's list of GitHub repositories.</li>
+        <li>That creates a webhook which fires on every GitHub release.</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">b</span>Per release</div>
+      <ol class="plain">
+        <li><strong>Bump the version</strong> in <code>CITATION.cff</code> (<code>version:</code> and
+          <code>date-released:</code>).</li>
+        <li><strong>Commit everything</strong> that belongs in the release:
+          <pre><code>git add -A
+git commit -m "vX.Y.Z: &lt;short summary&gt;"
+git push</code></pre>
+        </li>
+        <li><strong>Wait for CI to go green</strong> on that push. If it is red, fix it before tagging.</li>
+        <li>On GitHub, open <strong>Releases → Draft a new release</strong>.</li>
+        <li><strong>Tag:</strong> <code>vX.Y.Z</code>, with "Create new tag on publish".</li>
+        <li><strong>Title:</strong> <code>vX.Y.Z — &lt;one-line summary&gt;</code>.</li>
+        <li><strong>Description:</strong> a dedication paragraph if there is one, then a change list organised by
+          intent (pedagogical, infrastructure, portfolio), not by file.</li>
+        <li>Leave "Set as the latest release" checked.</li>
+        <li><strong>Publish the release.</strong></li>
+        <li>Within about two minutes Zenodo receives the webhook, downloads the tag snapshot, mints a new DOI and
+          sends an email.</li>
+        <li><strong>Verify the Zenodo record:</strong> author name, ORCID link, and an abstract that matches
+          <code>CITATION.cff</code>. If anything is off, edit the record on Zenodo directly. The DOI is permanent,
+          but the metadata can be edited.</li>
+      </ol>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">c</span>Versioning policy</div>
+      <ul class="plain">
+        <li><strong>Patch</strong> (X.Y.z): typo fixes and minor polish, no new content.</li>
+        <li><strong>Minor</strong> (X.y.0): new sections or files, non-breaking additions.</li>
+        <li><strong>Major</strong> (x.0.0): removed files, breaking changes, significant restructuring.</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">d</span>Concept DOI and version DOI</div>
+      <ul class="plain">
+        <li>The <strong>concept DOI</strong> always resolves to the latest version. Cite it when you mean the kit in
+          general.</li>
+        <li>Each release also gets its own <strong>version DOI</strong>. Cite it when you need one specific version,
+          for reproducibility.</li>
+      </ul>
+      <p>Both appear on the Zenodo record page.</p>
+    </div>
+  </section>
+
+  <!-- ================= 07 DEPLOY ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">07</span>Deploying this page</h2>
+    <p>The kit page lives in the portfolio repository under <code>fragments/active_fragments/lualatex-kit/</code>
+      and is published through GitHub Pages. This notes page sits in the same folder.</p>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">a</span>The PDF folder</div>
+      <p>The compiled PDFs sit in <code>pdf/</code> next to the HTML. They are updated by hand, either from local
+        compiles or by downloading the CI artifacts and committing them.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">b</span>Updating the pages</div>
+      <p>Each page is self-contained: CSS inline, no build step. Edit, commit and push to the portfolio repository,
+        and GitHub Pages redeploys within a few minutes.</p>
+    </div>
+
+    <div class="gotcha">
+      <strong>If the download links break again</strong>
+      Download links must point at the raw file, in the form <code>github.com/&lt;user&gt;/&lt;repo&gt;/raw/main/&lt;file&gt;</code>
+      (or the equivalent on <code>raw.githubusercontent.com</code>), and <em>never</em> at
+      <code>/blob/main/</code>, which returns a GitHub web page instead of the file. Watch out for code assistants in
+      the editor: they do not know which format is needed and may silently rewrite the URL into the broken form.
+    </div>
+  </section>
+
+  <!-- ================= 08 KNOWN ISSUES ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">08</span>Known issues and future work</h2>
+
+    <div class="gotcha">
+      <strong>Praat spectrogram is a placeholder</strong>
+      <code>praat-pipeline.tex</code> currently uses a gray placeholder image. Replace it with a Praat-exported PDF
+      once one exists. The TikZ tier coordinates assume a 4.5-unit-wide timeline, so adjust them after the
+      replacement.
+    </div>
+
+    <div class="gotcha">
+      <strong>Bibliography style</strong>
+      <code>cs-starter.tex</code> has <code>biblatex</code> commented out. If you uncomment it, use
+      <code>style=unified</code> (the LSA Unified Stylesheet, from the <code>biblatex-unified</code> package, part of
+      <code>texlive-full</code>). Do not use <code>biblatex-sbl</code>: that is the Society of Biblical Literature
+      style, not linguistics.
+    </div>
+
+    <div class="gotcha">
+      <strong>tipauni, not tipa</strong>
+      The kit standardises on <code>tipauni</code>, which is Unicode-native and works with <code>fontspec</code> and
+      <code>polyglossia</code>. The old <code>tipa</code> package is incompatible with modern Unicode fonts and
+      should not be loaded.
+    </div>
+
+    <div class="gotcha">
+      <strong>gb4e needs \noautomath</strong>
+      Always load <code>\noautomath</code> immediately after <code>\usepackage{gb4e}</code>. Omitting it causes a
+      parameter-stack crash on any subscript or superscript. Every template in the repository already does this.
+    </div>
+  </section>
+
+  <!-- ================= 09 TROUBLESHOOTING ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">09</span>Troubleshooting</h2>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">01</span>CI fails with "File 'xyz.sty' not found"</div>
+      <p>The CI's TeX Live is comprehensive but not exhaustive. Add a step before the compile step to install the
+        missing package:</p>
+      <pre><code>- name: Install missing packages
+  run: sudo tlmgr install xyz</code></pre>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">02</span>CI fails but the local build works</div>
+      <p>The likely cause is a <code>.latexmkrc</code> disagreement (section 04) or TeX Live version drift. Compare
+        the output of <code>lualatex --version</code> locally with the version printed in the CI log.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">03</span>The Zenodo record has the wrong author</div>
+      <p>Edit the record on Zenodo directly: open it and choose "Edit". Metadata changes do not need a new DOI.
+        <code>CITATION.cff</code> is only read at release time, so to fix it for the next release, edit
+        <code>CITATION.cff</code> <em>and</em> update the current Zenodo record by hand.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">04</span>The font cache is stale after installing a font</div>
+      <ul class="plain">
+        <li>Linux: <code>fc-cache -fv</code></li>
+        <li>macOS: <code>luaotfload-tool --update</code> (no <code>sudo</code>)</li>
+        <li>Windows: usually automatic</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-num">05</span>GitHub lists one person as two contributors</div>
+      <p>It is not two accounts; it is two different <code>user.email</code> values on different machines. Set the
+        same values everywhere:</p>
+      <pre><code>git config --global user.email "you@example.org"
+git config --global user.name  "Your Name"</code></pre>
+      <p>Then make sure the same address is added to the GitHub account and marked as primary. New commits will be
+        unified. Old commits can be rewritten with <code>git filter-repo</code>, but that is rarely worth the
+        trouble.</p>
+    </div>
+  </section>
+
+  <!-- ================= 10 CREDITS ================= -->
+  <section class="section">
+    <h2 class="section-title"><span class="no">10</span>Credits</h2>
+    <p>Motivated by Manuel Pégourié-Gonnard's <em>A Guide to LuaLaTeX</em> (2010). The structure, examples, package
+      choices and prose are new; the original guide served as inspiration and not as source text. See
+      <code>CREDITS.md</code> in the repository.</p>
+  </section>
+
+  <div class="closing">
+    <p>Dedicated to the Народните Будители, 1 November 2026.</p>
+    <div class="filed">— MIT licensed · 2026 —</div>
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js">
+</script>
+</body>
+
+</html>
