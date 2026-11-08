@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forecasting London NO₂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* ────────────────────────────────────────────────────────────
+   Palette: warm London dusk — amber, brick, steel, teal
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --bg: #1a1410;
+  --bg-2: #211a15;
+  --paper: #241d17;
+  --fg: #f3e8d8;
+  --muted: #b09d88;
+  --rule: #3d3228;
+  --accent: #e8a33d;        /* amber — the winning model */
+  --accent-2: #d4744a;      /* brick / signal */
+  --accent-soft: #3a2c1e;
+  --sky-top: #2a1f2e;
+  --sky-mid: #4a2f3a;
+  --sky-glow: #d4744a;
+  --c-mean: #e0b85c;
+  --c-arima: #5fb3a0;
+  --c-snaive: #b09d88;
+  --c-naive: #8a7a6a;
+  --c-ar: #d4744a;
+  --molecule: #e8a33d;
+  --f-display: "Newsreader", Georgia, serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--f-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ────────────────────────────────────────────────────────────
+   SKY BACKDROP — dusk gradient + stars + landmarks
+   ──────────────────────────────────────────────────────────── */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 140% 70% at 50% 120%, var(--sky-glow) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 50% at 20% -10%, #3a2a3a 0%, transparent 60%),
+    radial-gradient(ellipse 80% 40% at 85% 0%, #2e1f2a 0%, transparent 50%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, #1a1410 100%);
+}
+
+/* stars */
+.backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 8%, rgba(255,240,220,0.5), transparent),
+    radial-gradient(1px 1px at 28% 15%, rgba(255,240,220,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 45% 5%, rgba(255,240,220,0.6), transparent),
+    radial-gradient(1px 1px at 62% 12%, rgba(255,240,220,0.35), transparent),
+    radial-gradient(1px 1px at 78% 7%, rgba(255,240,220,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 90% 18%, rgba(255,240,220,0.4), transparent),
+    radial-gradient(1px 1px at 8% 22%, rgba(255,240,220,0.3), transparent),
+    radial-gradient(1px 1px at 52% 20%, rgba(255,240,220,0.25), transparent),
+    radial-gradient(1px 1px at 35% 30%, rgba(255,240,220,0.2), transparent),
+    radial-gradient(1px 1px at 70% 25%, rgba(255,240,220,0.3), transparent);
+  opacity: 0.7;
+}
+
+/* ────────────────────────────────────────────────────────────
+   LONDON LANDMARKS — the star of the show
+   ──────────────────────────────────────────────────────────── */
+.skyline {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 2400px;
+  height: 340px;
+  transform: translateX(-50%);
+  color: #1e1610;
+  opacity: 1;
+  mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%);
+}
+.skyline svg { display: block; width: 100%; height: 100%; }
+
+/* landmark glow accents */
+.landmark-glow {
+  position: absolute;
+  bottom: 0;
+  width: 2400px;
+  height: 340px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 100%);
+}
+.landmark-glow svg { width: 100%; height: 100%; }
+
+/* ────────────────────────────────────────────────────────────
+   FLOATING NO₂ MOLECULES
+   ──────────────────────────────────────────────────────────── */
+.molecules { position: absolute; inset: 0; color: var(--molecule); }
+.mol {
+  position: absolute;
+  opacity: 0.22;
+  animation: drift linear infinite;
+  will-change: transform;
+  filter: drop-shadow(0 0 6px rgba(232,163,61,0.35));
+}
+.mol svg { display: block; width: 100%; height: 100%; }
+@keyframes drift {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%  { transform: translate3d(16px, -22px, 0) rotate(10deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+@keyframes rise {
+  0%   { transform: translate3d(0, 40px, 0) rotate(-6deg); opacity: 0; }
+  15%  { opacity: 0.22; }
+  85%  { opacity: 0.22; }
+  100% { transform: translate3d(-24px, -70px, 0) rotate(12deg); opacity: 0; }
+}
+.mol.rise { animation-name: rise; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mol { animation: none !important; }
+}
+
+/* ────────────────────────────────────────────────────────────
+   ARTICLE LAYOUT
+   ──────────────────────────────────────────────────────────── */
+article {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding-block: 4rem 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.75rem;
+  position: relative;
+}
+
+header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 2rem;
+}
+
+.kicker {
+  font-family: var(--f-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.kicker::before {
+  content: "";
+  width: 24px; height: 1px;
+  background: var(--accent);
+  display: inline-block;
+}
+
+h1 {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+  line-height: 1.1;
+  margin: 0;
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--fg) 0%, var(--accent) 60%, var(--accent-2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+h1 sub { font-size: 0.6em; vertical-align: baseline; position: relative; top: 0.25em; }
+
+.subtitle {
+  font-family: var(--f-display);
+  font-style: italic;
+  font-size: 1.25rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.byline { font-size: 0.92rem; color: var(--muted); margin: 0; }
+.byline strong { color: var(--fg); font-weight: 600; }
+
+/* ────────────────────────────────────────────────────────────
+   ABSTRACT
+   ──────────────────────────────────────────────────────────── */
+.abstract {
+  background: linear-gradient(135deg, var(--paper) 0%, var(--bg-2) 100%);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.abstract h2 {
+  font-family: var(--f-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0;
+}
+.abstract p { margin: 0; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+.stat {
+  border-top: 2px solid var(--accent);
+  padding-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.stat .v {
+  font-family: var(--f-mono);
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+.stat .l { font-size: 0.85rem; color: var(--muted); line-height: 1.35; }
+.stat:nth-child(2) { border-color: var(--c-mean); }
+.stat:nth-child(2) .v { color: var(--c-mean); }
+.stat:nth-child(3) { border-color: var(--accent-2); }
+.stat:nth-child(3) .v { color: var(--accent-2); }
+
+/* ────────────────────────────────────────────────────────────
+   SECTIONS
+   ──────────────────────────────────────────────────────────── */
+section { display: flex; flex-direction: column; gap: 1rem; }
+
+h2 {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 1.65rem;
+  line-height: 1.25;
+  margin: 0;
+  text-wrap: balance;
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+h2 .n {
+  font-family: var(--f-mono);
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+h3 {
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin: 0.5rem 0 0;
+  color: var(--accent);
+}
+
+p { margin: 0; }
+ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+ul li::marker { color: var(--accent); }
+
+code, .mono { font-family: var(--f-mono); font-size: 0.88em; }
+em.term { font-style: normal; font-weight: 600; color: var(--accent); }
+
+.callout {
+  border-left: 3px solid var(--accent-2);
+  padding: 0.8rem 0 0.8rem 1.2rem;
+  font-family: var(--f-display);
+  font-size: 1.2rem;
+  line-height: 1.45;
+  font-style: italic;
+  background: linear-gradient(90deg, rgba(212,116,74,0.08) 0%, transparent 100%);
+  border-radius: 0 6px 6px 0;
+  color: var(--fg);
+}
+
+/* ────────────────────────────────────────────────────────────
+   FIGURES & TABLES
+   ──────────────────────────────────────────────────────────── */
+figure { margin: 0.5rem 0; display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+
+.chart-box {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 1rem;
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+.chart-box::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 50%, transparent 100%);
+  border-radius: 8px 8px 0 0;
+}
+.chart-box .canvas-wrap { position: relative; width: 100%; }
+
+figcaption { font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+figcaption b { color: var(--accent); font-weight: 600; }
+
+.table-wrap {
+  overflow-x: auto;
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 0.88rem;
+  color: var(--muted);
+  padding: 0 0 0.5rem;
+}
+.tblock { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+.tcap { font-size: 0.88rem; color: var(--muted); }
+.tcap b { color: var(--accent); font-weight: 600; }
+
+th, td {
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+th {
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--bg-2);
+}
+td.num, th.num {
+  text-align: right;
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+}
+tbody tr:last-child td { border-bottom: 0; }
+tr.best td {
+  background: linear-gradient(90deg, var(--accent-soft) 0%, transparent 100%);
+  font-weight: 600;
+  color: var(--accent);
+}
+tr.group td {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding-top: 0.9rem;
+  background: var(--bg-2);
+}
+
+/* ────────────────────────────────────────────────────────────
+   METHOD CARDS
+   ──────────────────────────────────────────────────────────── */
+.method {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.method div {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.8rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.method .k {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.method .v { font-weight: 600; line-height: 1.35; }
+
+/* ────────────────────────────────────────────────────────────
+   FOOTER
+   ──────────────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  article { padding-block: 2.5rem 3rem; gap: 2.25rem; }
+  .stats, .method { grid-template-columns: minmax(0, 1fr); }
+  th, td { padding: 0.5rem 0.65rem; }
+  .mol { opacity: 0.14; }
+  .skyline { opacity: 0.85; height: 260px; }
+  .landmark-glow { height: 260px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     BACKDROP: dusk sky, stars, London landmarks, NO₂ molecules
+     ════════════════════════════════════════════════════════════ -->
+<div class="backdrop" aria-hidden="true">
+
+  <!-- London landmarks — big, recognizable silhouettes -->
+  <div class="skyline">
+    <svg viewBox="0 0 2400 340" preserveAspectRatio="xMidYMax meet" fill="currentColor">
+      <defs>
+        <!-- Big Ben clock face glow -->
+        <radialGradient id="clockGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffe9b0" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#e8a33d" stop-opacity="0"/>
+        </radialGradient>
+        <!-- London Eye pod glow -->
+        <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#e8a33d" stop-opacity="0.6"/>
+          <stop offset="100%" stop-color="#e8a33d" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- ── LONDON EYE (left) ── -->
+      <g transform="translate(180, 90)">
+        <!-- support legs -->
+        <path d="M0 250 L-55 250 M0 250 L55 250" stroke="currentColor" stroke-width="6" fill="none"/>
+        <path d="M-55 250 L0 120 L55 250" stroke="currentColor" stroke-width="5" fill="none"/>
+        <path d="M0 120 L0 60" stroke="currentColor" stroke-width="5"/>
+        <!-- the wheel -->
+        <circle cx="0" cy="60" r="78" fill="none" stroke="currentColor" stroke-width="4"/>
+        <circle cx="0" cy="60" r="70" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+        <circle cx="0" cy="60" r="6" fill="currentColor"/>
+        <!-- spokes -->
+        <g stroke="currentColor" stroke-width="1.2" opacity="0.55">
+          <line x1="0" y1="60" x2="0" y2="-18"/>
+          <line x1="0" y1="60" x2="55" y2="-5"/>
+          <line x1="0" y1="60" x2="78" y2="60"/>
+          <line x1="0" y1="60" x2="55" y2="125"/>
+          <line x1="0" y1="60" x2="0" y2="138"/>
+          <line x1="0" y1="60" x2="-55" y2="125"/>
+          <line x1="0" y1="60" x2="-78" y2="60"/>
+          <line x1="0" y1="60" x2="-55" y2="-5"/>
+        </g>
+        <!-- pods -->
+        <g fill="url(#eyeGlow)">
+          <circle cx="0" cy="-18" r="6"/>
+          <circle cx="55" cy="-5" r="6"/>
+          <circle cx="78" cy="60" r="6"/>
+          <circle cx="55" cy="125" r="6"/>
+          <circle cx="0" cy="138" r="6"/>
+          <circle cx="-55" cy="125" r="6"/>
+          <circle cx="-78" cy="60" r="6"/>
+          <circle cx="-55" cy="-5" r="6"/>
+        </g>
+        <g fill="#ffe9b0" opacity="0.85">
+          <circle cx="0" cy="-18" r="2.5"/>
+          <circle cx="55" cy="-5" r="2.5"/>
+          <circle cx="78" cy="60" r="2.5"/>
+          <circle cx="55" cy="125" r="2.5"/>
+          <circle cx="0" cy="138" r="2.5"/>
+          <circle cx="-55" cy="125" r="2.5"/>
+          <circle cx="-78" cy="60" r="2.5"/>
+          <circle cx="-55" cy="-5" r="2.5"/>
+        </g>
+      </g>
+
+      <!-- ── RIVERSIDE BLOCKS (mid-left) ── -->
+      <path d="M320 340 V230 h35 v-20 h28 v40 h30 v-55 h32 v55 h22 v-35 h28 v35 h30 v-60 h34 v60 h28 v-25 h26 v25 h30 v-45 h32 v45 h24 v70 z" opacity="0.7"/>
+
+      <!-- ── BIG BEN (center-left) ── -->
+      <g transform="translate(720, 20)">
+        <!-- tower body -->
+        <rect x="0" y="40" width="90" height="280" fill="currentColor"/>
+        <!-- vertical stone lines -->
+        <g stroke="#2a2018" stroke-width="1.5" opacity="0.5">
+          <line x1="18" y1="50" x2="18" y2="320"/>
+          <line x1="45" y1="50" x2="45" y2="320"/>
+          <line x1="72" y1="50" x2="72" y2="320"/>
+        </g>
+        <!-- clock face -->
+        <circle cx="45" cy="95" r="30" fill="url(#clockGlow)"/>
+        <circle cx="45" cy="95" r="26" fill="#ffe9b0"/>
+        <circle cx="45" cy="95" r="26" fill="none" stroke="#1a1410" stroke-width="2.5"/>
+        <!-- clock hands -->
+        <line x1="45" y1="95" x2="45" y2="78" stroke="#1a1410" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="45" y1="95" x2="57" y2="100" stroke="#1a1410" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="45" cy="95" r="3" fill="#1a1410"/>
+        <!-- ornate top -->
+        <path d="M0 40 L45 0 L90 40 z" fill="currentColor"/>
+        <path d="M0 40 L45 0 L45 40 z" fill="#2a2018" opacity="0.4"/>
+        <!-- spire -->
+        <rect x="41" y="-30" width="8" height="32" fill="currentColor"/>
+        <path d="M38 -30 L45 -50 L52 -30 z" fill="currentColor"/>
+        <!-- small pinnacles -->
+        <path d="M-5 40 L-5 20 L0 20 L0 40 z" fill="currentColor"/>
+        <path d="M95 40 L95 20 L90 20 L90 40 z" fill="currentColor"/>
+      </g>
+
+      <!-- ── PARLIAMENT / low riverside (under Big Ben) ── -->
+      <path d="M820 340 V250 h40 v-25 h30 v45 h35 v-30 h28 v30 h40 v-50 h30 v50 h35 v-20 h30 v20 h40 v90 z" opacity="0.85"/>
+
+      <!-- ── ST PAUL'S DOME (center) ── -->
+      <g transform="translate(1180, 60)">
+        <!-- base block -->
+        <rect x="-70" y="140" width="140" height="140" fill="currentColor"/>
+        <!-- colonnade lines -->
+        <g stroke="#2a2018" stroke-width="1.5" opacity="0.5">
+          <line x1="-55" y1="150" x2="-55" y2="280"/>
+          <line x1="-30" y1="150" x2="-30" y2="280"/>
+          <line x1="-5" y1="150" x2="-5" y2="280"/>
+          <line x1="20" y1="150" x2="20" y2="280"/>
+          <line x1="45" y1="150" x2="45" y2="280"/>
+        </g>
+        <!-- drum -->
+        <rect x="-42" y="70" width="84" height="75" fill="currentColor"/>
+        <g stroke="#2a2018" stroke-width="1.2" opacity="0.5">
+          <line x1="-32" y1="78" x2="-32" y2="145"/>
+          <line x1="-16" y1="78" x2="-16" y2="145"/>
+          <line x1="0" y1="78" x2="0" y2="145"/>
+          <line x1="16" y1="78" x2="16" y2="145"/>
+          <line x1="32" y1="78" x2="32" y2="145"/>
+        </g>
+        <!-- dome -->
+        <path d="M-42 70 Q0 -30 42 70 z" fill="currentColor"/>
+        <path d="M-42 70 Q0 -30 0 70 z" fill="#2a2018" opacity="0.35"/>
+        <!-- lantern -->
+        <rect x="-8" y="-25" width="16" height="22" fill="currentColor"/>
+        <path d="M-10 -25 L0 -45 L10 -25 z" fill="currentColor"/>
+        <!-- cross -->
+        <line x1="0" y1="-45" x2="0" y2="-60" stroke="currentColor" stroke-width="2.5"/>
+        <line x1="-5" y1="-54" x2="5" y2="-54" stroke="currentColor" stroke-width="2.5"/>
+      </g>
+
+      <!-- ── THE GHERKIN (center-right) ── -->
+      <g transform="translate(1480, 60)">
+        <path d="M-45 280 Q-55 160 -30 90 Q0 40 30 90 Q55 160 45 280 z" fill="currentColor"/>
+        <!-- diagonal grid pattern -->
+        <g stroke="#2a2018" stroke-width="1" opacity="0.45">
+          <path d="M-38 260 Q-42 180 -25 110" fill="none"/>
+          <path d="M-30 270 Q-35 190 -18 100" fill="none"/>
+          <path d="M-20 275 Q-25 200 -8 95" fill="none"/>
+          <path d="M-8 278 Q-12 210 2 92" fill="none"/>
+          <path d="M5 278 Q2 210 12 95" fill="none"/>
+          <path d="M18 275 Q12 200 22 100" fill="none"/>
+          <path d="M30 270 Q25 190 30 110" fill="none"/>
+          <path d="M38 260 Q42 180 35 115" fill="none"/>
+        </g>
+        <!-- tip -->
+        <path d="M-6 40 L0 20 L6 40 z" fill="currentColor"/>
+      </g>
+
+      <!-- ── THE SHARD (right) ── -->
+      <g transform="translate(1750, 10)">
+        <path d="M0 330 L30 40 L45 60 L55 330 z" fill="currentColor"/>
+        <path d="M0 330 L30 40 L30 330 z" fill="#2a2018" opacity="0.3"/>
+        <!-- glass facet lines -->
+        <g stroke="#2a2018" stroke-width="1" opacity="0.4">
+          <line x1="15" y1="330" x2="33" y2="55"/>
+          <line x1="30" y1="330" x2="38" y2="60"/>
+          <line x1="45" y1="330" x2="43" y2="75"/>
+        </g>
+        <!-- spire -->
+        <line x1="34" y1="40" x2="42" y2="-15" stroke="currentColor" stroke-width="2.5"/>
+      </g>
+
+      <!-- ── TOWER BRIDGE (far right) ── -->
+      <g transform="translate(1980, 140)">
+        <!-- two towers -->
+        <rect x="0" y="0" width="45" height="200" fill="currentColor"/>
+        <rect x="140" y="0" width="45" height="200" fill="currentColor"/>
+        <!-- tower tops -->
+        <path d="M-5 0 L22 -35 L50 0 z" fill="currentColor"/>
+        <path d="M135 0 L162 -35 L190 0 z" fill="currentColor"/>
+        <!-- turrets -->
+        <rect x="-8" y="-15" width="12" height="20" fill="currentColor"/>
+        <rect x="41" y="-15" width="12" height="20" fill="currentColor"/>
+        <rect x="132" y="-15" width="12" height="20" fill="currentColor"/>
+        <rect x="181" y="-15" width="12" height="20" fill="currentColor"/>
+        <!-- suspension bridge cables -->
+        <path d="M45 30 Q92 70 140 30" fill="none" stroke="currentColor" stroke-width="3"/>
+        <path d="M45 60 Q92 100 140 60" fill="none" stroke="currentColor" stroke-width="2" opacity="0.7"/>
+        <!-- deck -->
+        <rect x="-40" y="170" width="270" height="12" fill="currentColor"/>
+        <!-- vertical hangers -->
+        <g stroke="currentColor" stroke-width="1.2" opacity="0.6">
+          <line x1="60" y1="40" x2="60" y2="170"/>
+          <line x1="75" y1="50" x2="75" y2="170"/>
+          <line x1="92" y1="56" x2="92" y2="170"/>
+          <line x1="108" y1="56" x2="108" y2="170"/>
+          <line x1="125" y1="50" x2="125" y2="170"/>
+          <line x1="140" y1="40" x2="140" y2="170"/>
+        </g>
+      </g>
+
+      <!-- ── FAR RIGHT low blocks / city fill ── -->
+      <path d="M2250 340 V220 h35 v-40 h30 v40 h32 v-25 h28 v25 h30 v-55 h34 v55 h28 v-30 h26 v30 h27 v120 z" opacity="0.7"/>
+
+      <!-- ── GROUND line ── -->
+      <rect x="0" y="330" width="2400" height="10" fill="currentColor" opacity="0.6"/>
+    </svg>
+  </div>
+
+  <!-- Warm glow accents over key landmarks -->
+  <div class="landmark-glow">
+    <svg viewBox="0 0 2400 340" preserveAspectRatio="xMidYMax meet">
+      <defs>
+        <radialGradient id="bigBenGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffe9b0" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#ffe9b0" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="eyeGlow2" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#e8a33d" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#e8a33d" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="domeGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#f3e8d8" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#f3e8d8" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- Big Ben clock glow -->
+      <circle cx="765" cy="115" r="55" fill="url(#bigBenGlow)"/>
+      <!-- London Eye glow -->
+      <circle cx="180" cy="150" r="120" fill="url(#eyeGlow2)"/>
+      <!-- St Paul's dome glow -->
+      <circle cx="1180" cy="130" r="100" fill="url(#domeGlow)"/>
+    </svg>
+  </div>
+
+  <!-- Floating NO₂ molecules -->
+  <div class="molecules">
+    <span class="mol" style="top:10%;left:5%;width:56px;height:56px;animation-duration:16s;animation-delay:-3s;">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="32" cy="38" r="9"/>
+        <text x="32" y="42" font-family="'Source Sans 3',sans-serif" font-size="10" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">N</text>
+        <circle cx="14" cy="18" r="7"/>
+        <circle cx="50" cy="18" r="7"/>
+        <line x1="24" y1="31" x2="19" y2="24"/>
+        <line x1="28" y1="30" x2="23" y2="22"/>
+        <line x1="40" y1="31" x2="45" y2="24"/>
+        <line x1="36" y1="30" x2="41" y2="22"/>
+      </svg>
+    </span>
+    <span class="mol" style="top:24%;right:7%;width:80px;height:80px;animation-duration:20s;animation-delay:-7s;">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="32" cy="38" r="9"/>
+        <text x="32" y="42" font-family="'Source Sans 3',sans-serif" font-size="10" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">N</text>
+        <circle cx="14" cy="18" r="7"/>
+        <circle cx="50" cy="18" r="7"/>
+        <line x1="24" y1="31" x2="19" y2="24"/>
+        <line x1="28" y1="30" x2="23" y2="22"/>
+        <line x1="40" y1="31" x2="45" y2="24"/>
+        <line x1="36" y1="30" x2="41" y2="22"/>
+      </svg>
+    </span>
+    <span class="mol rise" style="top:46%;left:3%;width:48px;height:48px;animation-duration:24s;animation-delay:-4s;">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+        <circle cx="32" cy="38" r="9"/>
+        <text x="32" y="42" font-family="'Source Sans 3',sans-serif" font-size="10" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">N</text>
+        <circle cx="14" cy="18" r="7"/>
+        <circle cx="50" cy="18" r="7"/>
+        <line x1="24" y1="31" x2="19" y2="24"/>
+        <line x1="28" y1="30" x2="23" y2="22"/>
+        <line x1="40" y1="31" x2="45" y2="24"/>
+        <line x1="36" y1="30" x2="41" y2="22"/>
+      </svg>
+    </span>
+    <span class="mol rise" style="top:62%;right:5%;width:64px;height:64px;animation-duration:28s;animation-delay:-12s;">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="32" cy="38" r="9"/>
+        <text x="32" y="42" font-family="'Source Sans 3',sans-serif" font-size="10" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">N</text>
+        <circle cx="14" cy="18" r="7"/>
+        <circle cx="50" cy="18" r="7"/>
+        <line x1="24" y1="31" x2="19" y2="24"/>
+        <line x1="28" y1="30" x2="23" y2="22"/>
+        <line x1="40" y1="31" x2="45" y2="24"/>
+        <line x1="36" y1="30" x2="41" y2="22"/>
+      </svg>
+    </span>
+    <span class="mol" style="top:80%;left:10%;width:40px;height:40px;animation-duration:18s;animation-delay:-9s;">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round">
+        <circle cx="32" cy="38" r="9"/>
+        <text x="32" y="42" font-family="'Source Sans 3',sans-serif" font-size="10" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">N</text>
+        <circle cx="14" cy="18" r="7"/>
+        <circle cx="50" cy="18" r="7"/>
+        <line x1="24" y1="31" x2="19" y2="24"/>
+        <line x1="28" y1="30" x2="23" y2="22"/>
+        <line x1="40" y1="31" x2="45" y2="24"/>
+        <line x1="36" y1="30" x2="41" y2="22"/>
+      </svg>
+    </span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ARTICLE
+     ════════════════════════════════════════════════════════════ -->
+<article>
+  <header>
+    <span class="kicker">Time series forecasting · Station KC1, North Kensington</span>
+    <h1>Forecasting Daily NO<sub>2</sub> Concentrations in London</h1>
+    <p class="subtitle">A comparative study of baseline, ARIMA and Prophet models</p>
+    <p class="byline"><strong>Iliya Radulov</strong> · November 2026</p>
+  </header>
+
+  <aside class="abstract" aria-label="Summary">
+    <h2>Summary</h2>
+    <p>Fourteen years of daily nitrogen dioxide measurements from one London monitoring station were used to test how far simple and classical models can forecast pollution levels. The yearly heating and weather cycle turned out to be the only signal that reliably improves a forecast. Prophet, which models that cycle directly, won every evaluation. Holidays, the COVID lockdown and the ULEZ expansion added almost nothing.</p>
+    <div class="stats">
+      <div class="stat"><span class="v">6.86</span><span class="l">Prophet MAE, µg/m³, final shoot-out</span></div>
+      <div class="stat"><span class="v">8.21</span><span class="l">Best baseline (365-day recent mean)</span></div>
+      <div class="stat"><span class="v">&lt;0.05</span><span class="l">MAE gain from holidays, COVID and ULEZ combined</span></div>
+    </div>
+  </aside>
+
+  <section id="introduction">
+    <h2><span class="n">1</span>Introduction</h2>
+    <p>Nitrogen dioxide (NO<sub>2</sub>) is a persistent public health concern in dense cities. Most of it in London comes from road traffic and gas heating. Over the last decade the city has pushed hard to reduce it, through bus and taxi fleet modernisation and the Ultra Low Emission Zone (ULEZ). Long-term measurements show the result: concentrations have roughly halved since 2010.</p>
+    <p>This study asks whether that declining, seasonal signal can be forecast at a daily resolution. It starts with simple baselines that set a performance floor, then adds complexity step by step with ARIMA, SARIMA and Prophet. The goal is to find the most accurate model and also to understand what is actually predictable in the series: do the trend and seasonality outweigh the day-to-day noise?</p>
+  </section>
+
+  <section id="data">
+    <h2><span class="n">2</span>Data and setup</h2>
+    <p>The data are daily mean NO<sub>2</sub> concentrations from the London Air Quality Network station KC1 in North Kensington, an urban background site. The series runs from 1 January 2010 to 31 December 2023.</p>
+    <div class="method">
+      <div><span class="k">Target</span><span class="v">Daily mean NO<sub>2</sub>, µg/m³</span></div>
+      <div><span class="k">Training</span><span class="v">2010 – 2022 (13 years)</span></div>
+      <div><span class="k">Hold-out test</span><span class="v">Calendar year 2023</span></div>
+    </div>
+    <p><em class="term">Evaluation metric.</em> Models are compared by mean absolute error (MAE) in µg/m³, with RMSE as a secondary check. MAPE is not used. On clean-air days NO<sub>2</sub> can fall close to zero, so the percentage error explodes and one calm week can dominate the score. MAE stays in physical units and is easy to read: an MAE of 7 means the forecast is off by 7 µg/m³ on an average day.</p>
+    <p><em class="term">Evaluation schemes.</em> Three schemes are used. The baseline, ARIMA and Prophet sections score a single forecast of all of 2023. Walk-forward cross-validation checks whether a result holds across many forecast origins. The final comparison runs all models from 12 origins spread through 2023, each forecasting 30 days ahead.</p>
+    <p><em class="term">Limitation.</em> All results come from one station. Roadside sites, or areas with different local sources, may behave differently, so the conclusions should be replicated across more of the network before they are generalised to London as a whole.</p>
+  </section>
+
+  <section id="baselines">
+    <h2><span class="n">3</span>Baselines</h2>
+    <p>Five simple forecasts set the floor that any real model has to beat:</p>
+    <ul>
+      <li><b>Mean</b> predicts the average of the whole training history for every future day.</li>
+      <li><b>Naïve</b> repeats the last observed value.</li>
+      <li><b>Drift</b> extends the line between the first and last training values.</li>
+      <li><b>Seasonal naïve (m = 7)</b> repeats the value from the same weekday one week earlier.</li>
+      <li><b>Seasonal naïve (m = 365)</b> repeats the value from the same date one year earlier.</li>
+    </ul>
+    <p>The comparison between the two seasonal versions gave the first surprise. For urban pollution the usual assumption is that the weekly traffic cycle, busy weekdays against quieter weekends, is the dominant pattern. At KC1 the yearly version clearly wins. The strongest seasonal signal at this station is the annual cycle driven by winter heating and winter weather, not the weekly commute. The Mean model is the worst because it predicts a flat line at the long-run average, which sits well above recent levels after a decade of decline.</p>
+
+    <figure>
+      <div class="chart-box"><div class="canvas-wrap" style="height:240px"><canvas id="chBaselines" aria-label="Bar chart of baseline MAE on 2023"></canvas></div></div>
+      <figcaption><b>Figure 1.</b> Baseline MAE on the 2023 hold-out year (lower is better). The yearly seasonal naïve is the strongest baseline.</figcaption>
+    </figure>
+
+    <div class="tblock">
+      <span class="tcap"><b>Table 1.</b> Baseline performance, test year 2023</span>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Model</th><th class="num">MAE</th><th class="num">RMSE</th></tr></thead>
+          <tbody>
+            <tr class="best"><td>Seasonal naïve (m = 365)</td><td class="num">10.42</td><td class="num">14.76</td></tr>
+            <tr><td>Seasonal naïve (m = 7)</td><td class="num">12.20</td><td class="num">16.64</td></tr>
+            <tr><td>Naïve</td><td class="num">12.58</td><td class="num">16.90</td></tr>
+            <tr><td>Drift</td><td class="num">13.88</td><td class="num">17.89</td></tr>
+            <tr><td>Mean</td><td class="num">16.57</td><td class="num">18.21</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="arima">
+    <h2><span class="n">4</span>ARIMA and SARIMA</h2>
+    <p>ARIMA models forecast from the autocorrelation in the series: today's value depends on recent values and recent errors. A small grid of orders was searched on AIC, separately with and without first differencing. The best differenced model, ARIMA(4,1,3), reached an MAE of 8.13 on 2023, beating every baseline by more than 2 µg/m³.</p>
+    <p>The gain is concentrated at the start of the forecast. For roughly the first month, ARIMA follows the local level of the series better than any baseline. After that it settles towards a nearly constant value and behaves like a random walk. This is expected: ARIMA has no memory of the yearly cycle, so once the short-term autocorrelation has decayed, it has nothing left to say about next winter.</p>
+    <p>A seasonal ARIMA with a weekly period, SARIMA(1,1,1)(1,1,0)<sub>7</sub>, removed about half of the remaining autocorrelation at weekly lags. It could not address the yearly cycle that the baselines had shown to matter most. A 365-day seasonal period is impractical in SARIMA. It needs very long seasonal lags, is slow to fit and tends to overfit.</p>
+    <p>The prediction intervals also become physically meaningless after a few days. They widen to cover negative concentrations, which cannot occur, and span a range of roughly −20 to +80 µg/m³. Intervals that wide give no practical help for planning around high-pollution days.</p>
+
+    <div class="tblock">
+      <span class="tcap"><b>Table 2.</b> ARIMA models against the baselines, test year 2023</span>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Model</th><th class="num">MAE</th><th class="num">RMSE</th></tr></thead>
+          <tbody>
+            <tr class="group"><td colspan="3">ARIMA (selected by AIC)</td></tr>
+            <tr class="best"><td>ARIMA(4,1,3)</td><td class="num">8.13</td><td class="num">11.37</td></tr>
+            <tr><td>ARIMA(1,1,1)</td><td class="num">8.49</td><td class="num">11.30</td></tr>
+            <tr><td>ARIMA(6,0,3)</td><td class="num">9.12</td><td class="num">11.59</td></tr>
+            <tr class="group"><td colspan="3">Baselines</td></tr>
+            <tr><td>Seasonal naïve (m = 365)</td><td class="num">10.42</td><td class="num">14.76</td></tr>
+            <tr><td>Seasonal naïve (m = 7)</td><td class="num">12.20</td><td class="num">16.64</td></tr>
+            <tr><td>Naïve</td><td class="num">12.58</td><td class="num">16.90</td></tr>
+            <tr><td>Drift</td><td class="num">13.88</td><td class="num">17.89</td></tr>
+            <tr><td>Mean</td><td class="num">16.57</td><td class="num">18.21</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3>Does the result hold across many origins?</h3>
+    <p>A single test year can flatter or punish a model by chance, so the comparison was repeated with walk-forward cross-validation: train on a rolling 365-day window, forecast the next 30 days, move forward and repeat. A rolling window treats every fold equally, which suits a series whose level changes over time better than an expanding window that keeps old, higher values.</p>
+    <p>Under this scheme the ranking changed. The Mean baseline came first with an MAE of 7.62, ahead of ARIMA at 9.43 and Naïve at 9.60. With only one year of training data, the mean stays close to the current level of the series, so the long-term decline no longer hurts it. ARIMA(2,1,0) without drift behaved almost exactly like a random walk over 30 days. The 0.17 difference from Naïve is within noise. For horizons of a month or more, a well-chosen average is as good as an autoregressive model on this series.</p>
+  </section>
+
+  <section id="prophet">
+    <h2><span class="n">5</span>Prophet</h2>
+    <p>Prophet, developed at Meta, treats a time series as the sum of a trend, seasonal terms and holiday effects. Its seasonalities are Fourier series, so a 365-day cycle costs a handful of parameters instead of the long seasonal lags SARIMA would need. That is exactly the component the baselines identified as most important.</p>
+    <p>The model was built up in four steps, adding one feature at a time:</p>
+    <ul>
+      <li><b>Baseline:</b> piecewise linear trend with yearly and weekly seasonality, multiplicative mode.</li>
+      <li><b>+ Bank holidays:</b> England's public holidays.</li>
+      <li><b>+ COVID lockdown:</b> a custom holiday block covering the spring 2020 lockdown.</li>
+      <li><b>+ ULEZ:</b> a step regressor switched on at the October 2021 inner-London expansion.</li>
+    </ul>
+    <p>Additive and multiplicative seasonality gave similar results. Between the early and late years the absolute winter–summer gap shrank from about 17–21 to about 11–13 µg/m³, but more slowly than the overall level fell. Neither mode describes that perfectly, and the multiplicative version was kept by a small margin.</p>
+
+    <div class="callout">The three added features improved MAE by less than 0.05 µg/m³ in total. Prophet's advantage comes almost entirely from its yearly seasonality.</div>
+
+    <p>At a background site, holidays shift daily NO<sub>2</sub> by far less than the weather does. The lockdown fell inside the training period and did not affect 2023. The ULEZ effect is already absorbed by the trend, which has been declining for years. A model with only trend and seasonality is effectively as good as the full version.</p>
+
+    <figure>
+      <div class="chart-box"><div class="canvas-wrap" style="height:220px"><canvas id="chProphet" aria-label="Prophet variant MAE comparison"></canvas></div></div>
+      <figcaption><b>Figure 2.</b> MAE of the four Prophet variants on 2023. The axis starts at 6.8 µg/m³ to make the differences visible at all. All four lie within 0.05 of each other.</figcaption>
+    </figure>
+
+    <div class="tblock">
+      <span class="tcap"><b>Table 3.</b> Prophet variants, test year 2023</span>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Variant</th><th class="num">MAE</th><th class="num">RMSE</th><th class="num">80% coverage</th><th class="num">Gain</th></tr></thead>
+          <tbody>
+            <tr><td>Baseline (multiplicative)</td><td class="num">6.95</td><td class="num">10.48</td><td class="num">89.5%</td><td class="num">—</td></tr>
+            <tr><td>+ England bank holidays</td><td class="num">6.93</td><td class="num">10.48</td><td class="num">89.3%</td><td class="num">0.2%</td></tr>
+            <tr><td>+ COVID lockdown block</td><td class="num">6.93</td><td class="num">10.46</td><td class="num">89.5%</td><td class="num">0.2%</td></tr>
+            <tr class="best"><td>+ ULEZ step regressor</td><td class="num">6.90</td><td class="num">10.42</td><td class="num">89.3%</td><td class="num">0.6%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p>The 80% prediction interval actually contained about 89% of observations, so Prophet's uncertainty is slightly conservative. That is the safer direction for a pollution forecast.</p>
+
+    <h3>Cross-validation and tuning</h3>
+    <p>Prophet's own rolling cross-validation (three years of initial training, then a new cutoff every 90 days, 41 cutoffs in total) gave a mean MAE of 9.17. Naïve scored 13.7 and seasonal naïve 12.6 on the same cutoffs. From 3 to 12 days ahead the error stayed between 8.4 and 9.9 with no upward drift, and the 80% interval covered 82–90% of observations. Unlike ARIMA, Prophet does not degrade with distance, because its seasonal terms are fixed patterns and do not depend on recent observations.</p>
+    <p>A grid search over the trend flexibility parameter, <code>changepoint_prior_scale</code> ∈ {0.005, 0.05, 0.5}, confirmed that the default of 0.05 was already optimal. Tuning changed nothing.</p>
+  </section>
+
+  <section id="comparison">
+    <h2><span class="n">6</span>Final comparison</h2>
+    <p>In the final test every model forecast 30 days ahead from 12 origins spaced 30 days apart through 2023, retraining on all data available up to each origin. This gives a mean error and also a spread, which shows how consistent each model is across the year.</p>
+
+    <figure>
+      <div class="chart-box"><div class="canvas-wrap" style="height:280px"><canvas id="chFinal" aria-label="Final leaderboard: mean MAE with standard deviation"></canvas></div></div>
+      <figcaption><b>Figure 3.</b> Mean MAE across 12 forecast origins in 2023, with whiskers at ±1 standard deviation across origins.</figcaption>
+    </figure>
+
+    <div class="tblock">
+      <span class="tcap"><b>Table 4.</b> Final leaderboard, 12 origins × 30-day horizon</span>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Model</th><th class="num">Mean MAE</th><th class="num">Std MAE</th><th class="num">Mean RMSE</th><th class="num">80% coverage</th></tr></thead>
+          <tbody>
+            <tr class="best"><td>Prophet</td><td class="num">6.86</td><td class="num">3.24</td><td class="num">9.13</td><td class="num">90.6%</td></tr>
+            <tr><td>Recent mean (365 d)</td><td class="num">8.21</td><td class="num">2.77</td><td class="num">10.37</td><td class="num">—</td></tr>
+            <tr><td>ARIMA(2,1,0)</td><td class="num">8.71</td><td class="num">5.47</td><td class="num">11.02</td><td class="num">98.6%</td></tr>
+            <tr><td>Seasonal naïve (m = 7)</td><td class="num">8.78</td><td class="num">4.18</td><td class="num">11.19</td><td class="num">—</td></tr>
+            <tr><td>Naïve</td><td class="num">8.98</td><td class="num">5.94</td><td class="num">11.26</td><td class="num">—</td></tr>
+            <tr><td>AR(7)</td><td class="num">12.15</td><td class="num">2.29</td><td class="num">13.84</td><td class="num">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p>Prophet wins with a mean MAE of 6.86, ahead of the 365-day recent mean at 8.21. ARIMA, seasonal naïve and naïve are close together in third to fifth place. ARIMA's 98.6% coverage for an 80% interval confirms its intervals are far too wide to be useful.</p>
+    <p>The per-origin results show where the advantage comes from. In January, February and December the persistence models (Naïve and ARIMA) miss badly, with errors up to 21 µg/m³, because a winter level shift or a stagnant high-pressure spell is not in their recent history. Prophet's yearly term expects those months to be high and keeps its error at 8–14. From spring to early autumn, concentrations are lower and the atmosphere mixes better. All models then converge to errors of about 3–7, and Prophet's lead mostly disappears.</p>
+
+    <figure>
+      <div class="chart-box"><div class="canvas-wrap" style="height:300px"><canvas id="chFolds" aria-label="Per-origin MAE through 2023"></canvas></div></div>
+      <figcaption><b>Figure 4.</b> MAE for each 30-day forecast window in 2023, by forecast origin. The gap between models opens in winter and nearly closes in summer.</figcaption>
+    </figure>
+  </section>
+
+  <section id="conclusion">
+    <h2><span class="n">7</span>Conclusion</h2>
+    <p>The yearly cycle of heating and weather is the only reliably predictable component of daily mean NO<sub>2</sub> at KC1. Prophet was the best model in every evaluation because it captures that cycle cheaply and flexibly. Its success did not come from policy or calendar effects: bank holidays, the COVID lockdown and the ULEZ regressor together changed the error by less than 0.05 µg/m³.</p>
+    <p>Daily pollution is still hard to forecast. Past the first few days, the error is dominated by weather, which none of these models can see. Even the best model is off by about 7 µg/m³ on an average day, and much more during winter episodes. A useful operational forecast would need numerical weather prediction inputs (wind speed, boundary-layer height, temperature) as external regressors, not just the history of the pollutant itself. That is the natural next step for this work, together with repeating the analysis across more London stations.</p>
+  </section>
+
+  <footer>
+    <p>Data: London Air Quality Network, station KC1 (North Kensington), daily means 2010–2023. Models fitted in Python with statsmodels and Prophet.</p>
+    <p>Prepared as the final report of a time series forecasting course module.</p>
+  </footer>
+</article>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  if (typeof Chart === "undefined") return;
+  const charts = [];
+
+  function tok(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  const whiskers = {
+    id: "whiskers",
+    afterDatasetsDraw(chart, args, opts) {
+      if (!opts || !opts.std) return;
+      const { ctx, scales: { x } } = chart;
+      const meta = chart.getDatasetMeta(0);
+      ctx.save();
+      ctx.strokeStyle = tok("--fg");
+      ctx.lineWidth = 1.25;
+      meta.data.forEach((bar, i) => {
+        const v = chart.data.datasets[0].data[i];
+        const s = opts.std[i];
+        const x0 = x.getPixelForValue(Math.max(0, v - s));
+        const x1 = x.getPixelForValue(v + s);
+        const y = bar.y;
+        ctx.beginPath();
+        ctx.moveTo(x0, y); ctx.lineTo(x1, y);
+        ctx.moveTo(x0, y - 5); ctx.lineTo(x0, y + 5);
+        ctx.moveTo(x1, y - 5); ctx.lineTo(x1, y + 5);
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+  };
+
+  function build() {
+    charts.forEach(c => c.destroy());
+    charts.length = 0;
+
+    const fg = tok("--fg"), muted = tok("--muted"), rule = tok("--rule"), paper = tok("--paper");
+    const C = {
+      accent: tok("--accent"), mean: tok("--c-mean"), arima: tok("--c-arima"),
+      snaive: tok("--c-snaive"), naive: tok("--c-naive"), ar: tok("--c-ar"), signal: tok("--accent-2")
+    };
+    Chart.defaults.color = muted;
+    Chart.defaults.borderColor = rule;
+    Chart.defaults.font.family = "'Source Sans 3', 'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.font.size = 13;
+
+    const unit = " µg/m³";
+    const hbarOpts = (min, max, extra) => Object.assign({
+      indexAxis: "y", responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: paper,
+          titleColor: fg, bodyColor: fg,
+          borderColor: rule, borderWidth: 1,
+          callbacks: { label: c => " MAE " + c.parsed.x.toFixed(2) + unit }
+        }
+      },
+      scales: {
+        x: { min, max, grid: { color: rule }, ticks: { color: muted }, title: { display: true, text: "MAE (µg/m³)", color: muted } },
+        y: { grid: { display: false }, ticks: { color: fg } }
+      }
+    }, extra || {});
+
+    // Figure 1: baselines
+    charts.push(new Chart(document.getElementById("chBaselines"), {
+      type: "bar",
+      data: {
+        labels: ["Seasonal naïve (365)", "Seasonal naïve (7)", "Naïve", "Drift", "Mean"],
+        datasets: [{ data: [10.42, 12.20, 12.58, 13.88, 16.57],
+          backgroundColor: [C.accent, C.snaive, C.naive, C.naive, C.mean], borderRadius: 3, barThickness: 22 }]
+      },
+      options: hbarOpts(0, 18)
+    }));
+
+    // Figure 2: prophet variants
+    charts.push(new Chart(document.getElementById("chProphet"), {
+      type: "bar",
+      data: {
+        labels: ["Baseline", "+ Bank holidays", "+ COVID block", "+ ULEZ"],
+        datasets: [{ data: [6.945, 6.935, 6.932, 6.902], backgroundColor: C.accent, borderRadius: 3, barThickness: 20 }]
+      },
+      options: hbarOpts(6.8, 7.0, {
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: paper, titleColor: fg, bodyColor: fg,
+            borderColor: rule, borderWidth: 1,
+            callbacks: { label: c => " MAE " + c.parsed.x.toFixed(3) + unit }
+          }
+        }
+      })
+    }));
+
+    // Figure 3: final leaderboard with whiskers
+    const finalStd = [3.24, 2.77, 5.47, 4.18, 5.94, 2.29];
+    charts.push(new Chart(document.getElementById("chFinal"), {
+      type: "bar",
+      data: {
+        labels: ["Prophet", "Recent mean (365 d)", "ARIMA(2,1,0)", "Seasonal naïve (7)", "Naïve", "AR(7)"],
+        datasets: [{ data: [6.86, 8.21, 8.71, 8.78, 8.98, 12.15],
+          backgroundColor: [C.accent, C.mean, C.arima, C.snaive, C.naive, C.ar], borderRadius: 3, barThickness: 22 }]
+      },
+      options: hbarOpts(0, 16, {
+        plugins: {
+          legend: { display: false },
+          whiskers: { std: finalStd },
+          tooltip: {
+            backgroundColor: paper, titleColor: fg, bodyColor: fg,
+            borderColor: rule, borderWidth: 1,
+            callbacks: { label: c => " MAE " + c.parsed.x.toFixed(2) + " ± " + finalStd[c.dataIndex].toFixed(2) + unit }
+          }
+        }
+      }),
+      plugins: [whiskers]
+    }));
+
+    // Figure 4: per-origin MAE
+    const origins = ["1 Jan", "31 Jan", "2 Mar", "1 Apr", "1 May", "31 May", "30 Jun", "30 Jul", "29 Aug", "28 Sep", "28 Oct", "27 Nov"];
+    const line = (label, data, color, width, dash) => ({
+      label, data, borderColor: color, backgroundColor: color, borderWidth: width || 2,
+      pointRadius: width > 2 ? 3.5 : 2.5, pointHoverRadius: 5, tension: 0.25, borderDash: dash || []
+    });
+    charts.push(new Chart(document.getElementById("chFolds"), {
+      type: "line",
+      data: {
+        labels: origins,
+        datasets: [
+          line("Prophet", [13.93, 11.35, 6.86, 4.74, 4.39, 5.10, 3.11, 2.94, 7.38, 6.94, 7.54, 7.99], C.accent, 3),
+          line("Recent mean", [15.22, 11.80, 6.91, 5.10, 7.41, 7.33, 6.79, 6.70, 6.99, 6.70, 8.07, 9.47], C.mean, 2),
+          line("ARIMA(2,1,0)", [21.45, 14.25, 5.99, 5.23, 4.00, 5.75, 4.50, 4.50, 6.94, 7.60, 8.93, 15.43], C.arima, 2),
+          line("Naïve", [21.45, 14.55, 5.93, 5.18, 3.69, 6.02, 4.81, 4.74, 6.94, 7.32, 8.25, 18.90], C.naive, 2, [5, 4])
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { position: "top", align: "start", labels: { color: fg, usePointStyle: true, boxWidth: 8, padding: 14 } },
+          tooltip: {
+            backgroundColor: paper, titleColor: fg, bodyColor: fg,
+            borderColor: rule, borderWidth: 1,
+            callbacks: { label: c => " " + c.dataset.label + ": " + c.parsed.y.toFixed(2) + unit }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: muted, maxRotation: 0, autoSkip: true }, title: { display: true, text: "Forecast origin, 2023", color: muted } },
+          y: { min: 0, max: 24, grid: { color: rule }, ticks: { color: muted, stepSize: 4 }, title: { display: true, text: "MAE (µg/m³)", color: muted } }
+        }
+      }
+    }));
+  }
+
+  build();
+  try {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", build);
+    new MutationObserver(build).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  } catch (e) {}
+})();
+</script>
+
+</body>
+</html>
