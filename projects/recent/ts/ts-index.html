@@ -1,0 +1,67 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Series Forecasting — Iliya Angelov Radulov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/style.css" />
+</head>
+<body class="subpage-body">
+
+  <nav class="subpage-nav">
+    <a href="../../../index.html">🏠 Home</a>
+    <a href="../../active/active.html">⚡ Active</a>
+    <a href="../../recent/recent.html" class="current">🕓 Recent</a>
+    <a href="../../former/former.html">📁 Former</a>
+    <a href="../../../index.html#scientific">🔬 Scientific Background</a>
+    <a href="../../../index.html#fragments">🧩 Fragments</a>
+    <a href="../../../index.html#gallery">🖼️ Gallery</a>
+  </nav>
+
+  <a class="back-link" href="../recent.html">← Back to Recent Projects</a>
+
+  <div class="article-body">
+
+    <div class="eyebrow">Data Science · Time Series Forecasting</div>
+
+    <h1>Time Series Forecasting</h1>
+    <p class="subtitle">Two forecasting studies completed during my data science training at WBS Coding School, October–November 2026.</p>
+
+    <div class="abstract-box">
+      <strong>Scope:</strong> Classical and modern forecasting methods applied to real-world time series — air quality monitoring and electricity market prices. Both studies compare baselines, ARIMA-family models and retraining strategies, and both find that capturing the right seasonal structure matters more than model complexity.
+    </div>
+
+    <h2>Projects</h2>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; margin-top:8px;">
+
+      <a href="Forecasting-London-NO2.html" style="text-decoration:none; color:inherit; display:block; border:1px solid var(--border); border-radius:12px; overflow:hidden; transition:transform 0.15s ease, box-shadow 0.15s ease;">
+        <img src="screens/london-no2-KC1.png" alt="London air quality monitoring station" class="site-photo" style="width:100%; height:200px; object-fit:cover; margin:0; border-radius:0;">
+        <div style="padding:16px 20px 20px;">
+          <strong style="font-size:1.1rem;">Forecasting Daily NO₂ in London</strong>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-top:6px;">School project — 14 years of daily nitrogen dioxide measurements from North Kensington. Baselines, ARIMA, SARIMA and Prophet compared on a full hold-out year. Prophet wins because it captures the yearly heating cycle that dominates the signal.</p>
+          <p style="color:var(--text-muted); font-size:0.82rem; margin-top:8px;">Best MAE: 6.86 µg/m³ (Prophet) · Test year 2023</p>
+        </div>
+      </a>
+
+      <a href="Retraining%20Matters.html" style="text-decoration:none; color:inherit; display:block; border:1px solid var(--border); border-radius:12px; overflow:hidden; transition:transform 0.15s ease, box-shadow 0.15s ease;">
+        <img src="screens/retraining-matters.png" alt="German electricity day-ahead price chart" class="site-photo" style="width:100%; height:200px; object-fit:cover; margin:0; border-radius:0;">
+        <div style="padding:16px 20px 20px;">
+          <strong style="font-size:1.1rem;">Retraining Matters More Than the Model</strong>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-top:6px;">Own project — day-ahead electricity price forecasting for the German market using grid-operator forecasts of wind, solar and load. A gradient-boosting model retrained every 14 days cuts the error in half compared to a single fit, and beats a model trained once from July onward.</p>
+          <p style="color:var(--text-muted); font-size:0.82rem; margin-top:8px;">Best MAE: 15.98 €/MWh (retrained) vs 31.11 (naïve) · Oct 2025–Oct 2026</p>
+        </div>
+      </a>
+
+    </div>
+
+    <p style="margin-top:24px; color:var(--text-muted); font-size:0.85rem;">
+      <em>Place your images in a <code>screens/</code> subfolder as <code>london-no2.jpg</code> and <code>retraining-matters.jpg</code>. The cards will show placeholder broken-image icons until the files are there.</em>
+    </p>
+
+  </div>
+<script data-goatcounter="https://iliya-radulov.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

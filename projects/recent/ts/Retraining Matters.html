@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retraining Matters</title>
+<meta name="description" content="Day-ahead price forecasting for Germany with grid-operator forecasts: why keeping a model current matters more than choosing it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: control-room page. Dark single theme on purpose (night grid), one reading column with wide chart panels. */
+:root {
+  color-scheme: dark;
+  --bg: #0a0e14;
+  --panel: #101722;
+  --line: #1f2b3a;
+  --grid: #172231;
+  --text: #e6edf3;
+  --muted: #8794a5;
+  --blue: #4da3ff;      /* grid, power flow */
+  --green: #3ccf7f;     /* retrained model */
+  --red: #ff5a67;       /* single fit */
+  --amber: #f5b13d;     /* crisis, solar */
+  --naive: #8b97a6;
+  --f-display: "Barlow Condensed", "Arial Narrow", "Segoe UI", sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); }
+body {
+  font-family: var(--f-body);
+  background:
+    radial-gradient(1200px 600px at 85% -10%, rgba(77,163,255,.09), transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, rgba(60,207,127,.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+  font-size: 16px;
+  overflow-x: hidden;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .16;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a { color: var(--blue); }
+a:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- hero ---------- */
+.hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 2.5rem; align-items: center; padding-block: 3.5rem 3rem; }
+.hero > * { min-width: 0; }
+.tag {
+  display: inline-block; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--blue); border: 1px solid rgba(77,163,255,.35); padding: .3rem .7rem; border-radius: 999px; margin-bottom: 1.3rem;
+}
+h1 {
+  font-family: var(--f-display); font-weight: 700; text-transform: uppercase;
+  font-size: clamp(2.4rem, 5.4vw, 4.3rem); line-height: .98; letter-spacing: .01em; text-wrap: balance;
+}
+h1 .hi { color: var(--green); }
+.sub { margin-top: 1.1rem; color: var(--muted); font-size: clamp(1rem, 1.4vw, 1.15rem); max-width: 48ch; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-top: 2rem; }
+.kpi { border: 1px solid var(--line); border-radius: 12px; padding: .85rem 1rem; background: linear-gradient(180deg, rgba(255,255,255,.035), transparent); }
+.kpi .v { font-family: var(--f-mono); font-size: 1.45rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.kpi .l { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; line-height: 1.3; margin-top: .2rem; }
+.c-green { color: var(--green); } .c-red { color: var(--red); } .c-naive { color: var(--naive); } .c-blue { color: var(--blue); }
+
+/* ---------- scene ---------- */
+.scene { position: relative; height: 400px; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #0b111b; }
+.scene svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rotor { animation: spin 8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.flow { stroke-dasharray: 6 14; animation: flow 2.2s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -40; } }
+.node { animation: pulse 2.6s ease-in-out infinite; }
+.node:nth-child(2) { animation-delay: -.9s; } .node:nth-child(3) { animation-delay: -1.7s; }
+@keyframes pulse { 0%,100% { opacity: .35 } 50% { opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .rotor, .flow, .node { animation: none; } }
+
+/* ---------- sections ---------- */
+section { padding-block: 2.5rem; }
+.eyebrow { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h2 { font-family: var(--f-display); font-weight: 600; text-transform: uppercase; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: .01em; line-height: 1.05; margin-top: .3rem; text-wrap: balance; }
+.lead { color: var(--muted); max-width: 64ch; margin-top: .6rem; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1.3rem 1.3rem 1rem; margin-top: 1.4rem; min-width: 0; }
+.panel h3 { font-family: var(--f-mono); font-weight: 500; font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.panel .note { font-size: .8rem; color: var(--muted); margin-top: .5rem; }
+.chart { width: 100%; height: auto; display: block; margin-top: .8rem; overflow: visible; }
+.legend { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; margin-top: .7rem; font-size: .8rem; color: var(--muted); }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: .4rem; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.two > * { min-width: 0; }
+
+/* ---------- inputs ---------- */
+.inputs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .75rem; margin-top: 1.4rem; }
+.input { border: 1px solid var(--line); border-radius: 12px; padding: 1rem; background: linear-gradient(180deg, rgba(255,255,255,.03), transparent); min-width: 0; }
+.input svg { width: 26px; height: 26px; color: var(--blue); }
+.input h4 { font-family: var(--f-display); font-weight: 600; font-size: 1.15rem; text-transform: uppercase; letter-spacing: .02em; margin-top: .4rem; }
+.input p { font-size: .82rem; color: var(--muted); margin-top: .2rem; }
+.input.lag svg { color: var(--amber); }
+.input.cal svg { color: var(--naive); }
+
+/* ---------- comparison bars ---------- */
+.bars { margin-top: 1.4rem; display: grid; gap: .7rem; }
+.bar-row { display: grid; grid-template-columns: minmax(0, 200px) 1fr 64px; gap: 1rem; align-items: center; }
+.bar-label { font-size: .88rem; }
+.bar-label small { display: block; color: var(--muted); font-size: .74rem; }
+.bar-track { height: 24px; background: #0b111a; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.bar-fill { height: 100%; width: 0; border-radius: 5px; transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
+@media (prefers-reduced-motion: reduce) { .bar-fill { transition: none; } }
+.bar-val { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- findings ---------- */
+.findings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.4rem; }
+.finding { border-left: 3px solid var(--blue); padding: .2rem 0 .2rem 1rem; }
+.finding b { font-family: var(--f-display); font-weight: 600; font-size: 1.2rem; text-transform: uppercase; letter-spacing: .02em; display: block; }
+.finding p { color: var(--muted); font-size: .9rem; margin-top: .2rem; }
+
+footer { border-top: 1px solid var(--line); padding-block: 2rem 3rem; margin-top: 1rem; color: var(--muted); font-size: .85rem; display: grid; gap: .6rem; }
+footer .cite { font-family: var(--f-mono); font-size: .78rem; color: var(--text); word-break: break-word; }
+
+/* chart text */
+.ax { fill: var(--muted); font-family: var(--f-mono); font-size: 11px; }
+.ax-strong { fill: var(--text); font-family: var(--f-mono); font-size: 11px; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; padding-block: 2.2rem 1.5rem; }
+  .scene { height: 280px; }
+  .two { grid-template-columns: 1fr; }
+  .inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .findings { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bar-row { grid-template-columns: minmax(0, 120px) 1fr 52px; gap: .6rem; }
+  .inputs { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+  <a class="back-link" href="ts-index.html">← Time Series Forecasting</a>
+
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <span class="tag">DE-LU day-ahead · test year Oct 2025 – Oct 2026 · 8,760 h</span>
+    <h1>Retraining matters more than the <span class="hi">model</span></h1>
+    <p class="sub">Forecasting German day-ahead electricity prices with the grid operators' own forecasts of wind, solar and load, and why keeping a model current beats choosing a fancier one.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="v c-green">15.98</div><div class="l">MAE €/MWh<br>retrained</div></div>
+      <div class="kpi"><div class="v c-red">25.41</div><div class="l">MAE €/MWh<br>trained once</div></div>
+      <div class="kpi"><div class="v c-naive">31.11</div><div class="l">MAE €/MWh<br>yesterday's price</div></div>
+      <div class="kpi"><div class="v c-green">−48.6%</div><div class="l">error vs<br>yesterday's price</div></div>
+    </div>
+  </div>
+
+  <div class="scene" aria-hidden="true">
+    <svg viewBox="0 0 600 400" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1420"/><stop offset="1" stop-color="#070b12"/></linearGradient>
+        <linearGradient id="wire" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4da3ff" stop-opacity=".1"/><stop offset=".5" stop-color="#4da3ff" stop-opacity=".9"/><stop offset="1" stop-color="#4da3ff" stop-opacity=".1"/></linearGradient>
+      </defs>
+      <rect width="600" height="400" fill="url(#sky)"/>
+      <circle cx="470" cy="85" r="46" fill="#f5b13d" opacity=".08"/>
+      <circle cx="470" cy="85" r="26" fill="#f5b13d" opacity=".2"/>
+      <g stroke="#2b3a4d" stroke-width="3" fill="none" stroke-linecap="round">
+        <line x1="90" y1="345" x2="90" y2="150"/><line x1="60" y1="180" x2="120" y2="180"/><line x1="70" y1="210" x2="110" y2="210"/>
+        <line x1="270" y1="345" x2="270" y2="130"/><line x1="235" y1="160" x2="305" y2="160"/><line x1="245" y1="195" x2="295" y2="195"/>
+        <line x1="420" y1="345" x2="420" y2="150"/><line x1="390" y1="180" x2="450" y2="180"/><line x1="400" y1="210" x2="440" y2="210"/>
+      </g>
+      <g fill="none" stroke="url(#wire)" stroke-width="2">
+        <path class="flow" d="M90,180 C150,220 210,220 270,160"/><path class="flow" d="M270,160 C330,200 360,200 420,180"/>
+        <path class="flow" d="M90,210 C150,250 210,250 270,195"/><path class="flow" d="M270,195 C330,235 360,235 420,210"/>
+      </g>
+      <g transform="translate(505,345)">
+        <line x1="0" y1="0" x2="0" y2="-150" stroke="#2b3a4d" stroke-width="4"/>
+        <g transform="translate(0,-150)"><g class="rotor">
+          <line x1="0" y1="0" x2="0" y2="-50" stroke="#4da3ff" stroke-width="3" stroke-linecap="round"/>
+          <line x1="0" y1="0" x2="43" y2="25" stroke="#4da3ff" stroke-width="3" stroke-linecap="round"/>
+          <line x1="0" y1="0" x2="-43" y2="25" stroke="#4da3ff" stroke-width="3" stroke-linecap="round"/>
+          <circle r="5" fill="#4da3ff"/>
+        </g></g>
+      </g>
+      <g transform="translate(140,312)">
+        <g stroke="#2b3a4d" stroke-width="2"><line x1="6" y1="33" x2="6" y2="10"/><line x1="46" y1="33" x2="46" y2="10"/><line x1="76" y1="33" x2="76" y2="10"/></g>
+        <rect x="-4" y="-6" width="90" height="18" rx="2" fill="#122033" stroke="#f5b13d" stroke-width="1.4"/>
+        <g stroke="#f5b13d" stroke-width=".8" opacity=".55"><line x1="18" y1="-6" x2="18" y2="12"/><line x1="40" y1="-6" x2="40" y2="12"/><line x1="62" y1="-6" x2="62" y2="12"/></g>
+      </g>
+      <g fill="#4da3ff"><circle class="node" cx="150" cy="200" r="3"/><circle class="node" cx="210" cy="220" r="3"/><circle class="node" cx="330" cy="200" r="3"/></g>
+      <line x1="0" y1="345" x2="600" y2="345" stroke="#1f2b3a" stroke-width="2"/>
+    </svg>
+  </div>
+</header>
+
+<section aria-labelledby="s-market">
+  <span class="eyebrow">The market</span>
+  <h2 id="s-market">A price that keeps changing its rules</h2>
+  <p class="lead">After the 2021–22 gas crisis the German price settled at a higher level than before, while wind and solar push more hours below zero. In the test year the gap between the cheapest and the most expensive hour of a day grew from about 65 €/MWh in winter to over 200 €/MWh in late summer.</p>
+  <div class="two">
+    <div class="panel">
+      <h3>Average day-ahead price per year (€/MWh)</h3>
+      <svg class="chart" id="ch-years" viewBox="0 0 520 250" role="img" aria-label="Bar chart of the yearly average price from 2016 to 2026; 235 €/MWh in the 2022 crisis, 112 in 2026."></svg>
+      <p class="note">2016 from October, 2026 to 28 October. Amber: gas crisis.</p>
+    </div>
+    <div class="panel">
+      <h3>Average daily price range in the test year (€/MWh)</h3>
+      <svg class="chart" id="ch-range" viewBox="0 0 520 250" role="img" aria-label="Bar chart of the average daily maximum minus minimum price per month, rising from about 64 in winter to 226 in September 2026."></svg>
+      <p class="note">Daily maximum minus minimum, averaged per month. *October 2025: 29–31 Oct only.</p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="s-decay">
+  <span class="eyebrow">The main result</span>
+  <h2 id="s-decay">A model trained once wears out. Retrained, it stays ahead.</h2>
+  <p class="lead">The same gradient-boosting model, with the same inputs. Trained once in October 2025, it was excellent in winter and worse than simply repeating yesterday's price from July. Retrained every 14 days on the last 180 days, it beat yesterday's price in every month, by 40–67%.</p>
+  <div class="panel">
+    <h3>Mean absolute error per month (€/MWh)</h3>
+    <svg class="chart" id="ch-monthly" viewBox="0 0 1000 340" role="img" aria-label="Line chart of monthly error. Retrained model stays between 8 and 25 €/MWh all year; the model trained once rises to 60 by October 2026, above the naive forecast from July."></svg>
+    <div class="legend">
+      <span><i style="background:var(--green)"></i>Retrained every 14 days</span>
+      <span><i style="background:var(--red)"></i>Trained once</span>
+      <span><i style="background:var(--naive)"></i>Yesterday's price (naïve)</span>
+    </div>
+    <p class="note">*October 2025 covers only 29–31 October.</p>
+  </div>
+</section>
+
+<section aria-labelledby="s-inputs">
+  <span class="eyebrow">The inputs</span>
+  <h2 id="s-inputs">What the model knows at noon the day before</h2>
+  <p class="lead">Only information available before the day-ahead auction: the grid operators' published forecasts for tomorrow, today's and earlier prices, and the calendar. Wind and solar enter as shares of the forecast load, because 20 GW of wind means a surplus on a summer Sunday and only part of the demand on a winter weekday.</p>
+  <div class="inputs">
+    <div class="input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M12 21V10"/><circle cx="12" cy="9" r="1.4"/><path d="M12 9 7 3.5M12 9l7 1M12 9l-5 5"/></svg>
+      <h4>Wind</h4><p>Onshore + offshore forecast, as share of load</p>
+    </div>
+    <div class="input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <h4>Solar</h4><p>Photovoltaic forecast, as share of load</p>
+    </div>
+    <div class="input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M13 2 5 13h6l-1 9 8-11h-6z"/></svg>
+      <h4>Residual load</h4><p>Load not covered by wind and solar: the merit-order position</p>
+    </div>
+    <div class="input lag">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 17l5-6 4 3 5-7 4 4"/><path d="M3 21h18"/></svg>
+      <h4>Price level</h4><p>Price 24 h, 48 h and 168 h earlier, 7-day hour mean, previous day's mean, min and max</p>
+    </div>
+    <div class="input cal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      <h4>Calendar</h4><p>Hour, weekday, month, German public holidays</p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="s-compare">
+  <span class="eyebrow">The comparison</span>
+  <h2 id="s-compare">How a model is trained decides which model wins</h2>
+  <p class="lead">Mean absolute error over the full test year, lower is better. Trained once, the simple linear model beats gradient boosting. Retrained, gradient boosting wins clearly, because it can follow the curved merit order once it is kept up to date.</p>
+  <div class="bars" id="bars"></div>
+</section>
+
+<section aria-labelledby="s-window">
+  <span class="eyebrow">Robustness</span>
+  <h2 id="s-window">Any window from 3 to 9 months works</h2>
+  <div class="two">
+    <div>
+      <p class="lead">The training window was chosen on the test year, so every length is reported. Between 90 and 270 days the error stays within 0.24 €/MWh, inside the uncertainty. With a full year of history it jumps by about 2 €/MWh: data older than nine to twelve months describes a market that no longer exists.</p>
+    </div>
+    <div class="panel">
+      <h3>Error by training-window length (€/MWh)</h3>
+      <svg class="chart" id="ch-window" viewBox="0 0 520 230" role="img" aria-label="Error by window length: 16.22 at 90 days, 16.06 at 120, 15.98 at 180, 16.13 at 270, 17.94 at 365 days."></svg>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="s-find">
+  <span class="eyebrow">Findings</span>
+  <h2 id="s-find">Four things this study shows</h2>
+  <div class="findings">
+    <div class="finding"><b>Yesterday's price is hard to beat</b><p>Repeating yesterday (31.1 €/MWh) beat Prophet with realistic inputs and the standard weekday-aware benchmark. The market's state lasts a few days; a week-old value is already outdated.</p></div>
+    <div class="finding"><b>The drift is in the price response</b><p>The inputs stayed within familiar ranges. What changed was the price paid at a given residual load, which differed from the training period by up to 84 €/MWh in October 2026. That is what a single fit cannot follow.</p></div>
+    <div class="finding"><b>Perfect weather adds almost nothing</b><p>With retraining, adding the actually observed weather on top of the grid operators' forecasts improved the error by at most 0.3 €/MWh.</p></div>
+    <div class="finding"><b>Neither family wins alone</b><p>The winner is a supervised model with time-series memory in its inputs and time-series practice in its training.</p></div>
+  </div>
+</section>
+
+<footer>
+  <div class="cite">Radulov, I. (2026). Retraining Matters More Than the Model: Day-Ahead Price Forecasting for Germany with Grid-Operator Forecasts. Zenodo. <a href="https://doi.org/10.5281/zenodo.24082560">doi.org/10.5281/zenodo.24082560</a></div>
+  <div>Data: EPEX SPOT day-ahead prices via aWATTar · TSO day-ahead forecasts from Bundesnetzagentur | SMARD.de · DWD observations via Bright Sky. Paper, code and notebooks on Zenodo.</div>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function el(tag, attrs, parent, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  // ---- yearly prices (paper Table 1)
+  (function () {
+    const svg = document.getElementById("ch-years");
+    const yrs = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
+    const v = [37.6, 34.2, 44.5, 37.7, 30.5, 96.8, 235.4, 95.2, 79.6, 89.3, 112.4];
+    const L = 34, R = 512, T = 18, B = 215, max = 250;
+    const y = d => B - (d / max) * (B - T);
+    [0, 50, 100, 150, 200, 250].forEach(t => {
+      el("line", { x1: L, x2: R, y1: y(t), y2: y(t), class: "gridline" }, svg);
+      el("text", { x: L - 6, y: y(t) + 4, "text-anchor": "end", class: "ax" }, svg, t);
+    });
+    const w = (R - L) / v.length;
+    v.forEach((d, i) => {
+      const crisis = yrs[i] === 2021 || yrs[i] === 2022;
+      const x = L + i * w + w * 0.18;
+      el("rect", { x, y: y(d), width: w * 0.64, height: B - y(d), rx: 2, fill: crisis ? css("--amber") : css("--blue"), opacity: crisis ? 0.9 : 0.75 }, svg);
+      el("text", { x: x + w * 0.32, y: y(d) - 5, "text-anchor": "middle", class: "ax-strong" }, svg, Math.round(d));
+      el("text", { x: x + w * 0.32, y: B + 15, "text-anchor": "middle", class: "ax" }, svg, "'" + String(yrs[i]).slice(2));
+    });
+  })();
+
+  // ---- daily range per month (E3, test year)
+  const MONTHS = ["Oct*", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"];
+  (function () {
+    const svg = document.getElementById("ch-range");
+    const v = [90.0, 85.9, 64.4, 72.8, 64.3, 156.6, 176.1, 181.1, 208.9, 161.5, 174.0, 226.4, 158.2];
+    const L = 34, R = 512, T = 18, B = 215, max = 250;
+    const y = d => B - (d / max) * (B - T);
+    [0, 50, 100, 150, 200, 250].forEach(t => {
+      el("line", { x1: L, x2: R, y1: y(t), y2: y(t), class: "gridline" }, svg);
+      el("text", { x: L - 6, y: y(t) + 4, "text-anchor": "end", class: "ax" }, svg, t);
+    });
+    const w = (R - L) / v.length;
+    v.forEach((d, i) => {
+      const x = L + i * w + w * 0.15;
+      el("rect", { x, y: y(d), width: w * 0.7, height: B - y(d), rx: 2, fill: css("--amber"), opacity: 0.35 + 0.6 * (d / 230) }, svg);
+      el("text", { x: x + w * 0.35, y: B + 15, "text-anchor": "middle", class: "ax" }, svg, MONTHS[i]);
+    });
+    el("text", { x: L + 11 * w + w * 0.5, y: y(226.4) - 6, "text-anchor": "middle", class: "ax-strong" }, svg, "226");
+    el("text", { x: L + 2 * w + w * 0.5, y: y(64.4) - 6, "text-anchor": "middle", class: "ax-strong" }, svg, "64");
+  })();
+
+  // ---- monthly MAE (paper Figure 1)
+  (function () {
+    const svg = document.getElementById("ch-monthly");
+    const series = [
+      { k: "--naive", w: 2, d: [26.3, 27.6, 20.1, 24.6, 17.1, 39.5, 33.7, 26.4, 37.7, 25.5, 26.2, 49.5, 46.9] },
+      { k: "--red", w: 2.5, d: [11.3, 13.8, 9.8, 14.3, 10.2, 16.3, 14.7, 21.2, 25.8, 29.0, 39.8, 53.8, 59.6] },
+      { k: "--green", w: 3.5, d: [8.8, 13.9, 8.4, 13.7, 9.4, 16.6, 16.6, 15.0, 19.0, 15.2, 15.7, 24.3, 25.3] },
+    ];
+    const L = 44, R = 975, T = 20, B = 300, max = 65;
+    const x = i => L + 14 + i * ((R - L - 28) / 12);
+    const y = d => B - (d / max) * (B - T);
+    [0, 10, 20, 30, 40, 50, 60].forEach(t => {
+      el("line", { x1: L, x2: R, y1: y(t), y2: y(t), class: "gridline" }, svg);
+      el("text", { x: L - 8, y: y(t) + 4, "text-anchor": "end", class: "ax" }, svg, t);
+    });
+    // shade where the single fit is worse than naive (Jul–Oct 26)
+    el("rect", { x: x(9) - 18, y: T, width: x(12) - x(9) + 36, height: B - T, fill: css("--red"), opacity: 0.07 }, svg);
+    el("text", { x: x(9) - 10, y: B - 8, class: "ax", fill: css("--red") }, svg, "trained once: worse than naïve");
+    MONTHS.forEach((m, i) => el("text", { x: x(i), y: B + 18, "text-anchor": "middle", class: "ax" }, svg, m));
+    el("text", { x: x(0), y: B + 34, "text-anchor": "middle", class: "ax" }, svg, "2025");
+    el("text", { x: x(3), y: B + 34, "text-anchor": "middle", class: "ax" }, svg, "2026");
+    series.forEach(s => {
+      const pts = s.d.map((d, i) => `${x(i)},${y(d)}`).join(" ");
+      el("polyline", { points: pts, fill: "none", stroke: css(s.k), "stroke-width": s.w, "stroke-linejoin": "round" }, svg);
+      s.d.forEach((d, i) => el("circle", { cx: x(i), cy: y(d), r: s.k === "--green" ? 4 : 3, fill: css(s.k) }, svg));
+    });
+    el("text", { x: x(12) - 6, y: y(59.6) - 10, "text-anchor": "end", class: "ax-strong" }, svg, "59.6");
+    el("text", { x: x(12) - 6, y: y(25.3) + 20, "text-anchor": "end", class: "ax-strong" }, svg, "25.3");
+  })();
+
+  // ---- comparison bars (paper Tables 6 and 8)
+  (function () {
+    const rows = [
+      ["Yesterday's price", "naïve 24 h", 31.11, "--naive"],
+      ["Gradient boosting", "trained once", 25.41, "--red"],
+      ["Ridge regression", "trained once", 23.57, "--red"],
+      ["Ridge regression", "retrained, 180 d", 19.98, "--blue"],
+      ["Gradient boosting", "retrained, 180 d", 15.98, "--green"],
+    ];
+    const box = document.getElementById("bars");
+    rows.forEach(([a, b, v, k]) => {
+      const r = document.createElement("div");
+      r.className = "bar-row";
+      r.innerHTML = `<div class="bar-label">${a}<small>${b}</small></div>
+        <div class="bar-track"><div class="bar-fill" data-w="${(v / 31.11 * 100).toFixed(1)}" style="background:var(${k})"></div></div>
+        <div class="bar-val">${v.toFixed(2)}</div>`;
+      box.appendChild(r);
+    });
+    const go = () => box.querySelectorAll(".bar-fill").forEach(e => (e.style.width = e.dataset.w + "%"));
+    requestAnimationFrame(() => requestAnimationFrame(go));
+  })();
+
+  // ---- window sensitivity (paper Figure 2)
+  (function () {
+    const svg = document.getElementById("ch-window");
+    const w = [90, 120, 180, 270, 365], v = [16.22, 16.06, 15.98, 16.13, 17.94];
+    const L = 44, R = 505, T = 16, B = 190, lo = 15.5, hi = 18.5;
+    const x = d => L + 10 + ((d - 90) / (365 - 90)) * (R - L - 20);
+    const y = d => B - ((d - lo) / (hi - lo)) * (B - T);
+    [15.5, 16, 16.5, 17, 17.5, 18, 18.5].forEach(t => {
+      el("line", { x1: L, x2: R, y1: y(t), y2: y(t), class: "gridline" }, svg);
+      el("text", { x: L - 8, y: y(t) + 4, "text-anchor": "end", class: "ax" }, svg, t.toFixed(1));
+    });
+    el("rect", { x: x(90) - 10, y: T, width: x(270) - x(90) + 20, height: B - T, fill: css("--green"), opacity: 0.07 }, svg);
+    el("text", { x: x(90) - 4, y: T + 13, class: "ax", fill: css("--green") }, svg, "plateau");
+    el("polyline", { points: w.map((d, i) => `${x(d)},${y(v[i])}`).join(" "), fill: "none", stroke: css("--green"), "stroke-width": 2.5 }, svg);
+    w.forEach((d, i) => {
+      el("circle", { cx: x(d), cy: y(v[i]), r: 4.5, fill: i === 4 ? css("--red") : css("--green") }, svg);
+      el("text", { x: x(d), y: y(v[i]) - 10, "text-anchor": "middle", class: "ax-strong" }, svg, v[i].toFixed(2));
+      el("text", { x: x(d), y: B + 18, "text-anchor": "middle", class: "ax" }, svg, d + " d");
+    });
+  })();
+})();
+</script>
+</body>
+</html>
